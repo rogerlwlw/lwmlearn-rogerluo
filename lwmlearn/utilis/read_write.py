@@ -3,12 +3,13 @@
 Module Description:
     
     offers :class:`Objs_management` class to load or dump objects data to file
-    supported file formats are [.pkl, .csv, .xlsx, .pdf]
+    supported file formats are [.pkl, .csv, .xlsx, .json]
 
 
 Created on Tue Dec 18 14:36:20 2018
 
 @author: roger luo
+
 """
 import pandas as pd
 import numpy as np
@@ -27,8 +28,19 @@ class _Obj():
 
 
 class Path_File():
-    '''
-    descriptor for path_ and file_ and newfile_
+    '''descriptor to init path, file and newfile attributes
+    
+    logging will record IO process
+    
+    path: str
+        check existance, if not create one
+
+    file: dirs/filename
+        check file existance, if not raise FileNotFoundError Error
+ 
+    Newfile: 
+        if not exist create one
+        
     '''
     @property
     def path_(self):
@@ -98,16 +110,18 @@ class Path_File():
 
 
 class Reader(Path_File):
-    '''read in python objects contained in files, 
-    supported suffix of file are
-        - ['.xlsx', '.csv', '.pkl', '.txt', '.sql']
+    '''read in python objects contained in file object
+    
+    supported suffix of file are ['.xlsx', '.csv', '.pkl', '.txt', '.sql']
     
     method
-    ----
-    read: 
+    -------
+    read : 
         return obj read from file
-    read_all:
-        return generator of read in objs
+        
+    read_all :
+        return dict of read in objs
+        
     '''
     def __init__(self, path):
         ''' init path variable 
@@ -115,7 +129,7 @@ class Reader(Path_File):
         self.path_ = path
 
     def read(self, file, **kwargs):
-        '''return obj from file
+        '''read obj from file
         
         supported suffix of file are
         - ['.xlsx', '.csv', '.pkl', '.txt', '.sql']       
