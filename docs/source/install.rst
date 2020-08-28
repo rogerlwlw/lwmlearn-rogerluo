@@ -17,4 +17,4 @@ Install from Github
 
 run the code below::
 
-    pip install git+https://github.com/rogerlwlw/lw_project_template.git
+    pip install git+https://github.com/rogerlwlw/lwmlearn-rogerluo.git
