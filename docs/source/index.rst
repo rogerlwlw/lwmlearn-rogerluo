@@ -2,13 +2,10 @@ Welcome to lwmlearn's documentation!
 ========================================
 
 
-.. figure:: _static/_image/frontpage.jpg
-   :align: center
-   :scale: 40%
-
+Table Of Contents
+==================
 .. toctree::
    :maxdepth: 2
-   :caption: lwmlearn docs
    :name: masterdoc
    :glob:
 
@@ -18,6 +15,11 @@ Welcome to lwmlearn's documentation!
    *
 
 
+.. figure:: _static/_image/frontpage.jpg
+   :align: center
+   :scale: 40%
+   
+   
 Indices and tables
 ===================
 

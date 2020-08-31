@@ -156,6 +156,7 @@ def setup(app):
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
     'sklearn' : ('https://scikit-learn.org/stable', None),
+    'pandas' : ('https://pandas.pydata.org/docs/', None)
     
     }
 # %% -- autoapi configuration --
@@ -193,7 +194,7 @@ autoapi_options = ['members',
                    # 'show-inheritance-diagram',
                    ]
 
-autoapi_python_class_content = 'class'
+autoapi_python_class_content = 'both'
 
 autoapi_member_order = 'groupwise'
 
@@ -292,7 +293,7 @@ todo_include_todos = True
 todo_link_only = False
 
 # %% doctest
-# extensions.append('sphinx.ext.doctest')
+extensions.append('sphinx.ext.doctest')
 # doctest_global_setup = '''
 # try:
 #     import pandas as pd

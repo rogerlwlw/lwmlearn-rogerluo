@@ -16,9 +16,9 @@
 
 * Logger objects:
     
-    methond:
-         `debug, info, warning, error, critical, exception, log`; all these 
-         methods have arguments (msg, *args, **kwargs);
+    method: debug, info, warning, error, critical, exception, log
+    
+         All these methods have arguments (msg, *args, **kwargs);
          
          There are four keyword arguments in kwargs which are inspected: 
          exc_info, stack_info, stacklevel and extra.
@@ -31,18 +31,18 @@
 
 * Best Practice:
     
-    use custom logger to output logging messages (logger.name other than 'root')
+    * use custom logger to output logging messages (logger.name other than 'root')
     
-    use logger method [debug, info, warning, error, critical, exception] to 
+    * use logger method [debug, info, warning, error, critical, exception] to 
     control log level
     
-    use handler settings to distribut logging to differenct  log files 
+    * use handler settings to distribute logging to differenct  log files 
     
-    use logging.disable(lvl) to mute logging level output
+    * use logging.disable(lvl) to mute logging level output
 
 .. _log level:  
     
-* logging level
+* Logging level
 
     #.    NOTSET(0)
     #.    DEBUG(10)
@@ -59,7 +59,7 @@ import logging
 import os
 
 class Filter_loglevel(logging.Filter):
-    '''reconstruct filter method to filter logrecord by a certain level
+    '''reconstruct filter method to filter logrecord by a loglevel
     
     Logrecord has attributes that could be used as filters: [name, levelname]
     
@@ -70,7 +70,7 @@ class Filter_loglevel(logging.Filter):
         Parameters
         ----------
         loglevel : string
-            log level name.
+            log level name, options are [INFO, DEBUG, ERROR, WARNING]
 
         '''
         super().__init__()
@@ -84,7 +84,7 @@ class Filter_loglevel(logging.Filter):
             return False
     
 
-def init_log(logger_name='mylog', 
+def init_log(logger_name, 
              error_log='error.log',
              all_log='all.log', 
              file_mode='w'):
@@ -94,7 +94,7 @@ def init_log(logger_name='mylog',
     Parameters
     ----------
     logger_name : str
-        logger name other than 'root'. The default is 'mylog'.
+        logger name other than 'root'. 
         
     error_log : path
         The default is 'error.log'. output above ERROR level msg
@@ -151,7 +151,8 @@ if __name__ == '__main__':
     
     # logging.disable(logging.NOTSET)
     
-    logger = init_log(error_log='log/error.log', 
+    logger = init_log(logger_name='mylog',
+                      error_log='log/error.log', 
                       all_log='log/all_log.log')
     logger.info('this is a info message')
     logger.error("this is an error", exc_info=True)

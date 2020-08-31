@@ -2,8 +2,11 @@
 """
 Module Description:
     
-    offers :class:`Objs_management` class to load or dump objects data to file
+    offers :class:`Objs_management` class to load or dump data objects to file
+    
     supported file formats are [.pkl, .csv, .xlsx, .json]
+    
+    supported data formats are [dataframe, dict, python class instance, text]
 
 
 Created on Tue Dec 18 14:36:20 2018
@@ -22,15 +25,18 @@ from sklearn.utils import check_consistent_length
 
 from lwmlearn.utilis.utilis import get_flat_list, get_kwargs
 
+from .. lwlogging import init_log
+
+logger = init_log('IOlog')
 
 class _Obj():
     pass
 
 
 class Path_File():
-    '''descriptor to init path, file and newfile attributes
+    '''descriptor to initialize path, file and newfile attributes
     
-    logging will record IO process
+    used internally logging will record the IO process
     
     path: str
         check existance, if not create one
@@ -51,12 +57,13 @@ class Path_File():
         try:
             if not os.path.exists(path):
                 os.makedirs(path, exist_ok=True)
-                print("info: path '{}' created...".format(path))
+                logger.info("info: path '{}' created ...".format(path))
 
             self._p = os.path.relpath(path)
-        except Exception as e:
-            print(repr(e))
-            raise NotADirectoryError("invalid path input '%s' " % path)
+        except Exception:
+            logger.exception("invalid path input '%s' " % path,
+                             stack_info=True)
+            raise NotADirectoryError()
 
     @path_.deleter
     def path_(self):
@@ -64,8 +71,9 @@ class Path_File():
             for i in file:
                 os.remove(os.path.join(root, i))
         shutil.rmtree(self._p, ignore_errors=True)
-        print("info: path '{}' removed... \n".format(self._p))
-
+        logger.info("info: path '{}' removed... \n".format(self._p))
+        
+    # file
     @property
     def file_(self):
         return self._f
@@ -75,14 +83,16 @@ class Path_File():
         if os.path.isfile(file):
             self._f = os.path.relpath(file)
         else:
-            raise FileNotFoundError("file '{}' does not exist".format(file))
+            logger.exception("file not found '%s' " % file,
+                             stack_info=True)            
+            raise FileNotFoundError()
 
     @file_.deleter
     def file_(self):
         os.remove(self._f)
-        print("info: file '{}' removed".format(self._f))
+        logger.info("info: file '{}' removed".format(self._f))
 
-    ## ----
+    ## newfile
     @property
     def newfile_(self):
         return self._nf
@@ -92,35 +102,37 @@ class Path_File():
         try:
             if os.path.isfile(file):
                 os.remove(file)
-                print("info: old file '{}' deleted...\n ".format(file))
+                logger.info("info: old file '{}' deleted...\n ".format(file))
 
             dirs, filename = os.path.split(file)
             if not os.path.exists(dirs) and len(dirs) > 0:
                 os.makedirs(dirs, exist_ok=True)
-                print("info: path '{}' created...\n".format(dirs))
+                logger.info("info: path '{}' created...\n".format(dirs))
             self._nf = file
-        except Exception as e:
-            print(repr(e))
-            raise NotADirectoryError('invalid path input {}'.format(file))
+        except Exception:
+            logger.exception('invalid path input {}'.format(file),
+                             stack_info=True)
+            raise NotADirectoryError()
 
     @newfile_.deleter
     def newfile_(self):
         os.remove(self._nf)
-        print("info: file '{}' removed".format(self._nf))
+        logger.info("info: file '{}' removed".format(self._nf))
 
 
 class Reader(Path_File):
     '''read in python objects contained in file object
     
-    supported suffix of file are ['.xlsx', '.csv', '.pkl', '.txt', '.sql']
+    supported file formats are ['.xlsx', '.csv', '.pkl', '.txt', '.sql']
     
-    method
-    -------
-    read : 
-        return obj read from file
+    .. note..
+        '.sql' file means sql query script not data file
+    
+    method:
         
-    read_all :
-        return dict of read in objs
+        read : return obj read from file
+            
+        read_all : return dict of read in objs for dirs
         
     '''
     def __init__(self, path):
@@ -131,39 +143,59 @@ class Reader(Path_File):
     def read(self, file, **kwargs):
         '''read obj from file
         
-        supported suffix of file are
-        - ['.xlsx', '.csv', '.pkl', '.txt', '.sql']       
-        file - str or file object
-            - file to read
+        parameters
+        -----------
+        
+        file : str or file object
+        
+            file to read, files options include 
+            ['.xlsx', '.csv', '.pkl', '.txt', '.sql']   
+        
+        **kwargs
+        
+            other key words arguments used by read api, 
+            such as :func:`pandas.read_csv`, :func:`pandas.read_excel`
+        
+        return
+        -------
+        
+        obj : obj
+            data object such as pandas DataFrame
         '''
         self.file_ = file
         read_api = _rd_apis(self.file_)
         try:
             kw = get_kwargs(read_api, **kwargs)
             rst = read_api(self.file_, **kw)
-            print("<obj>: '{}' read from '{}\n".format(rst.__class__.__name__,
-                                                       self.file_))
+            logger.info("<obj>: '{}' read from '{}\n".format(
+                rst.__class__.__name__,
+                self.file_))
             return rst
-        except Exception as e:
-            print("<failure>: file '{}' read failed".format(self.file_))
-            print(repr(e), '\n')
+        except Exception:
+            msg = "fail to read file '{}' ".format(self.file_)
+            logger.exception(msg, stack_info=True)
 
     def read_all(self, suffix=None, path=None, subfolder=False, **kwargs):
-        '''read in all dataframe objects
+        '''read in all objects in given dirs
+        
+        suffix could be specified
         
         parameters
         -----------
         
         suffix: str 
-            file suffix to read in
+        
+            file suffix or list of suffix to read in
             
         path: path 
+        
             relative path to read from, default current self.path_
         
         return
         -------
         d: dict
             dict of read in object {filename : objects}
+            
         '''
         if path is None:
             path = self.path_
@@ -181,7 +213,7 @@ class Reader(Path_File):
 
     def list_all(self, suffix=None, path=None, subfolder=False, 
                  keep_suffix=True):
-        '''return all available file under given 'path' as dict
+        '''return dict of {filename: filepath} for given dirs
         '''
         if path is None:
             path = self.path_
@@ -214,13 +246,19 @@ def _read_file(file):
 
 def _get_files(dirpath, suffix=None, subfolder=False):
     ''' return file dict {filename : file}
-
+    
+    parameters
+    -----------
+    
     dirpath - str
-        - dir_x to traverse
-    suffix -->extension name, or list of extension names, egg ['.xlsx', 'csv']
-        - to include file extensions, default None, to include all extensions
-    subfolder --> bool
-        - true to traverse subfolders, False only the given dirpath
+        dir_x to traverse
+    
+    suffix : str or list of extension names, like ['.xlsx', 'csv']
+        to include file extensions, default None, to include all extensions
+    
+    subfolder : bool
+        true to traverse subfolders, False only the given dirpath
+        
     '''
     if subfolder:
         get_dirs = traverse_all_dirs
@@ -235,25 +273,28 @@ def _get_files(dirpath, suffix=None, subfolder=False):
     return rst
 
 def _rd_csv(file, **kwargs):
-    '''try to read csv file using "utf-8" or "gbk"
+    '''try to read csv file using "utf-8" or "gbk" encoding
     
     Parameters
     ----------
     file : 
         file path or file object 
+    
+    **kwargs :
+        key word arguments for :func:`pandas.read_csv`
 
     Returns
     -------
-    None.
-
+    df : dataframe
+    
     '''
+
     try:
-        return pd.read_csv(file, encoding='utf-8')
+        kwargs.update(encoding='utf-8')
+        return pd.read_csv(file, **kwargs)
     except UnicodeDecodeError:
-        return pd.read_csv(file, encoding='gbk')
-
-    return
-
+        kwargs.update(encoding='gbk')
+        return pd.read_csv(file, **kwargs)
 
 def _read_json(file):
     '''return dict obj from 'json' file
@@ -264,14 +305,14 @@ def _read_json(file):
 
 
 def _rd_apis(file):
-    '''return read api for given suffix of file, default _load_pkl will be
-    used
+    '''return read api for given suffix of file
     
-    api parameters
-    ----
+    default _load_pkl will beused
+    
+    parameters
+    -----------
     file 
         - file to read obj from
-    **kwargs
     '''
     api_collections = {
         '.xlsx': pd.read_excel,
@@ -287,27 +328,32 @@ def _rd_apis(file):
 
 
 class Writer(Path_File):
-    '''write objects into file
+    '''write objects data to file
     
     method
-    -----
+    -----------
     write:
-        write obj into file
+        write obj data into file
     '''
     def __init__(self, path):
-        ''' init path variable '''
+        '''  
+        '''
         self.path_ = path
 
     def write(self, obj, file, **kwargs):
         '''dump obj into file under self.path_
 
-        file
-            - filename + suffix egg 'filename.pkl'
-            - supported suffix are [.pkl, .xlsx, .csv, .pdf, .png], 
-            see _wr_apis
+        parameters
+        ------------
+        
+        file : path
+        
+            like 'dirs/filename.pkl', supported suffix are
+            [.pkl, .xlsx, .csv, .pdf, .png], 
         
         **kwargs
-            - other keys arguments for suffix specified api
+            other keys arguments for suffix specified api
+        
         '''
         file = os.path.join(self.path_, file)
         file = os.path.relpath(file)
@@ -315,23 +361,25 @@ class Writer(Path_File):
         wr_api = _wr_apis(self.newfile_)
         try:
             wr_api(obj, self.newfile_, **kwargs)
-            print("<obj>: '{}' dumped into '{}...\n".format(
+            logger.info("<obj>: '{}' dumped into '{}...\n".format(
                 obj.__class__.__name__, file))
-        except Exception as e:
-            print(repr(e))
-            print("<failure>: '{}' written failed ...".format(file))
+        except Exception:
+            msg = "<failure>: '{}' written failed ...".format(file)
+            logger.exception(msg, stack_info=True)
 
 
 def _wr_apis(file):
-    ''' return write api of given suffix of file, default will use _dump_pkl
+    ''' return write api of given suffix of file
     
-    api parameters
-    ---
-    obj
-        - obj to be written
-    file
-        - file to wirte into
-    **kwargs
+    default will use _dump_pkl
+    
+    parameters
+    ----------
+    obj : obj
+        obj to be written
+    file : path
+        file to wirte into
+        
     '''
     api_collections = {
         '.xlsx': _dump_df_excel,
@@ -347,16 +395,24 @@ def _wr_apis(file):
 
 
 def _dump_json(obj, file):
-    '''
+    '''dump obj as json file
     '''
     with open(file, 'w') as f:
         json.dump(obj, f, ensure_ascii=False)
 
 
 def _dump_pkl(obj, file, **kwargs):
-    '''
-    obj - python objects
-    file - file to dump obj into
+    '''dump obj as pickle file
+    
+    parameters
+    -----------
+    
+    obj : obj
+        python objects
+    
+    file : path
+        file to dump obj into
+        
     '''
     with open(file, 'wb') as f:
         pkl = pickle.Pickler(f)
@@ -364,12 +420,21 @@ def _dump_pkl(obj, file, **kwargs):
 
 
 def _dump_df_excel(obj, file, **kwargs):
-    '''dump df to excel
+    '''dump df to excel file
     
+    parameters
+    ----------
     obj: 
         2d array like data
     file:
-        str or file obj:        
+        str or file obj
+    
+    **kwargs
+    ----------
+    sheet_name : list
+        if list of dataframe are passed as obj, then dump them into list of 
+        sheet_names 
+        
     '''
     writer = pd.ExcelWriter(file)
     obj = get_flat_list(obj)
@@ -417,8 +482,16 @@ def _save_plot(fig, file, **kwargs):
 
 
 class Objs_management(Reader, Writer):
+    '''manage read & write of objects from/into file
+    '''
     def __init__(self, path):
-        '''manage read & write of objects from/into file
+        '''
+        
+        parametrs
+        ---------
+        path : path
+            default path of Object_management instance
+            
         '''
         super().__init__(path)
 
@@ -428,7 +501,7 @@ class Objs_management(Reader, Writer):
         del self.path_
 
     def set_path(self, path):
-        '''set path 
+        '''set path variable
         '''
         self.path_ = path
         return self
@@ -436,9 +509,15 @@ class Objs_management(Reader, Writer):
 
 def traverse_dir(rootDir):
     '''traverse files under rootDir not including subfolder
+   
+    parameters
+    ------------
+    rootDir : path
+        directory to traverse
+    
     return
-    ----
-    dict - {filename : file}
+    -------
+    dict : {filename : file}
     '''
     file_dict = {}
     for filename in os.listdir(rootDir):
@@ -450,9 +529,17 @@ def traverse_dir(rootDir):
 
 def traverse_all_dirs(rootDir):
     '''traverse files under rootDir including subfolders
+    
+    parameters
+    ------------
+    
+    rootDir : path
+        directory to traverse
+        
     return
-    ----
-    dict - {filename : file}
+    -------
+    
+    dict : {filename : file}
     '''
     file_dict = dict([file, os.path.join(dirpath, file)]
                      for dirpath, dirnames, filenames in os.walk(rootDir)
@@ -461,13 +548,30 @@ def traverse_all_dirs(rootDir):
 
 def search_file(filename, search_path, suffix=None, subfolder=False, 
                 include_suffix=False):
-    '''
-    return file_dirpath for filename
+    '''return searched file path by searching search_path
+    
+    parameters
+    ------------
+    filename : str
+        file name, may or may not include suffix
+    
+    search_path : list of path
+        dirs to search from
+    
+    indclude_suffix : bool
+        if True, include the suffix extension in filename
+        
+    return
+    --------
+    filepath : path
+    
     '''
     file_collector = {}
     for i in np.array(search_path):
         file_collector.update(_get_files(i, suffix, subfolder))
+    
     if not include_suffix:
         file_collector = {os.path.splitext(k)[0] : v 
                           for k, v in file_collector.items()}    
+        
     return file_collector.get(filename)
