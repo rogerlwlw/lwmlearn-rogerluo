@@ -37,7 +37,7 @@ from lwmlearn.utilis.docstring import Appender, dedent
 from lwmlearn.viz.plotter import (plotter_auc, plotter_cv_results_,
                                    plotter_score_path, plotter_lift_curve)
 from lwmlearn.hypertune.gridspace import pipe_grid
-from lwmlearn.utilis.binning import _binning
+from lwmlearn.utilis.binning import binning
 from lwmlearn.utilis.utilis import to_num_datetime_df
 from lwmlearn.utilis.lw_model_proxy_utlis import (split_cv,
                                                    get_splits_combined)
@@ -1207,7 +1207,7 @@ class LW_model(BaseEstimator):
                 y_pre = y_pre[:, pos_label]
 
             if pre_level:
-                y_pre, bins = _binning(y_pre,
+                y_pre, bins = binning(y_pre,
                                        bins=self.estimator.bins,
                                        labels=False)
         return y_pre

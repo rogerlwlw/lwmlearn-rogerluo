@@ -15,7 +15,7 @@ from sklearn.tree import DecisionTreeClassifier
 from lwmlearn.preprocess.lw_base import LW_Base
 from lwmlearn.utilis.utilis import get_kwargs
 from lwmlearn.viz.plotter import plotter_rateVol
-from lwmlearn.utilis.binning import _binning
+from lwmlearn.utilis.binning import binning
 
 
 class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
@@ -25,7 +25,7 @@ class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
     calcualte woe & iv of each feature, NaN values will be binned independently
     
     parameters
-    ------            
+    ----------            
     input_edges={}
         - mannual input cutting edges as 
         {colname : [-inf, point1, point2..., inf]}
@@ -59,7 +59,7 @@ class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
         - other decision tree keywords
         
     attributes
-    -----
+    ----------
     edges 
         - dict={colname : [-inf, point1, point2..., inf]}; 
         - 'fit' method will try to get edges by decision Tree algorithm or
@@ -349,7 +349,7 @@ def _get_binning(X,
         y_notna = df.dropna().y
         if (len(pd.unique(col_notna)) > cat_num_lim \
             and api.is_numeric_dtype(col_notna)):
-            label, bin_edges[name] = _binning(col_notna, bins, q,
+            label, bin_edges[name] = binning(col_notna, bins, q,
                                               max_leaf_nodes, mono, y_notna,
                                               **kwargs)
     return bin_edges

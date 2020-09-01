@@ -20,7 +20,7 @@ from scipy import interp
 from sklearn.metrics import auc, roc_curve
 
 from lwmlearn.utilis.utilis import get_flat_list, get_kwargs, dict_diff
-from lwmlearn.utilis.binning import _binning
+from lwmlearn.utilis.binning import binning
 from lwmlearn.utilis.docstring import Appender, dedent
 
 from scipy.interpolate import interp1d
@@ -1231,7 +1231,7 @@ def plotter_binlift(x,
     if ax is None:
         ax = plt.gca()
     # binning x features
-    x_bin, bins_edges = _binning(x,
+    x_bin, bins_edges = binning(x,
                                  y_true=y,
                                  bins=bins,
                                  q=q,
@@ -1433,7 +1433,7 @@ def plotter_lift_curve(y_pre,
         - xlabel for xaxis
     '''
 
-    y_cut, bins = _binning(y_pre,
+    y_cut, bins = binning(y_pre,
                            y_true=y_true,
                            bins=bins,
                            q=q,

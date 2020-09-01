@@ -127,6 +127,7 @@ extensions = [
     "sphinx_rtd_theme",
     "sphinx.ext.todo",
     'sphinx.ext.graphviz',
+    'sphinx.ext.autosummary',
 ]
 
 #%% -- source_suffix --
@@ -167,14 +168,14 @@ intersphinx_mapping = {
 
 autoapi_dirs = ['../../lwmlearn']
 # autoapi documentation root directory
-autoapi_root = 'tech/autoapi'
+autoapi_root = 'autoapi'
 
 autoapi_template_dir = '_template'
 
 # To remove the index page altogether, turn off the autoapi_add_toctree_entry 
 # configuration option:
 
-autoapi_add_toctree_entry = True
+# autoapi_add_toctree_entry = True
 
 # turning the automatic documentation generation off is as easy as 
 # disabling the autoapi_generate_api_docs configuration option:
@@ -184,7 +185,7 @@ autoapi_generate_api_docs = True
 # get AutoAPI to keep its generated files around as a base to start from 
 # using the autoapi_keep_files option:
 
-# autoapi_keep_files = True
+autoapi_keep_files = True
 
 # configuration options
 autoapi_options = ['members', 
@@ -198,6 +199,11 @@ autoapi_python_class_content = 'both'
 
 autoapi_member_order = 'groupwise'
 
+# %% -- autosummary
+
+# autosummary_imported_members = True
+# autosummary_generate = True
+# autodoc_mock_imports = ["lwmlearn"]
 
 # %% --latex settings
 
@@ -293,7 +299,7 @@ todo_include_todos = True
 todo_link_only = False
 
 # %% doctest
-extensions.append('sphinx.ext.doctest')
+# extensions.append('sphinx.ext.doctest')
 # doctest_global_setup = '''
 # try:
 #     import pandas as pd

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
+"""Discretize Data 
+
 Created on Fri Dec 20 09:23:15 2019
 
 @author: roger luo
@@ -15,12 +16,26 @@ import scipy.stats as stats
 
 
 def _tree_univar_bin(arr_x, arr_y, **kwargs):
-    '''univariate binning based on binary decision Tree
+    """univariate binning based on binary decision Tree
     
-    return
-    ----
-    ndarray of binning edges
-    '''
+    Parameters
+    ----------
+    arr_x : 1d array like
+        data to be discretized.
+    arr_y : 1d binary array
+        target class y.
+        
+    **kwargs : other key words
+        key words used by :class:`DecisionTreeClassifier`
+
+    Returns
+    -------
+    cut_edges : ndarray
+        array of cutting points of binning edges, while cut_edges[0] = -inf,
+        cut_edges[-1]=inf.
+
+    """
+    
     validation.check_consistent_length(arr_x, arr_y)
     clf = DecisionTreeClassifier(
         **get_kwargs(DecisionTreeClassifier, **kwargs))
@@ -34,13 +49,29 @@ def _tree_univar_bin(arr_x, arr_y, **kwargs):
     thresh = np.unique(thresh[(feature >= 0).nonzero()]).round(
         kwargs.get('decimal', 8))
     cut_edges = np.append(np.append(-np.inf, thresh), np.inf)
-    return np.unique(cut_edges)
+    cut_edges = np.unique(cut_edges)
+    return cut_edges
 
 
 def _mono_cut(Y, X):
-    '''return binning edges of X, 
-    which increase monotonically with "y" mean value 
-    '''
+    """mono binning edges of data 
+    
+    the binning group increases monotonically with "y" mean value 
+    
+    Parameters
+    ----------
+    X : 1d array like
+        data to be discretized.
+    Y : 1d binary array
+        target class y.
+
+    Returns
+    -------
+    bins : TYPE
+        DESCRIPTION.
+
+    """
+    
     r = 0
     n = 10
     while np.abs(r) < 1 and n > 2:
@@ -66,27 +97,37 @@ def bin_tree(X,
              random_state=0,
              verbose=0,
              **kwargs):
-    '''discrete features based on univariate run of DecisionTree classifier
-    (CART tree - gini impurity as criterion, not numeric dtype will be igored,
-    unique number of values less than "cat_num_lim" will be ignored)
+    '''Discretize features based on Binary DecisionTree classifier
     
-    df_X 
+    .. note::
+    
+        CART tree - gini impurity as criterion, not numeric dtype column will 
+        be igored, unique number of values less than "cat_num_lim" will be 
+        ignored
+    
+    parameters
+    -----------
+    X 
         - df, contain feature matrix, should be numerical dtype
     y 
         - col of class label, binary
-    cat_num_lim=10
-        - number of unique vals limit to be treated as continueous feature
-    max_leaf_nodes=5
-        - max number of bins
-    min_samples_leaf=0.1
-        - minimum number of samples in leaf node
+        
+    cat_num_lim
+        number of unique vals limit to be treated as continueous feature
+        
+    max_leaf_nodes
+        max number of bins
+        
+    min_samples_leaf
+        minimum number of samples in leaf node
+        
     **kwargs
-        - other tree keywords
+        other tree keywords
     
     return
-    ----
-    bin_edges
-        - dict of {'col_name' : bin_edges }
+    -------
+    bin_edges : dict
+        {'col_name' : bin_edges }
     '''
 
     bin_edges = {}
@@ -129,25 +170,9 @@ def bin_tree(X,
 
 
 def _check_binning_keywords(bins, q, max_leaf_nodes, mono):
-    '''check that only one of (bins, q, max_leaf_nodes, mono) can be input with
-    value, if not assign q=10 and others=None
+    '''check that only one of (bins, q, max_leaf_nodes, mono) be input with
+    value, if not assign q=10 and bins=max_leaf_nodes=mono=None
     
-
-    Parameters
-    ----------
-    bins : int
-        DESCRIPTION.
-    q : int
-        DESCRIPTION.
-    max_leaf_nodes : int
-        DESCRIPTION.
-    mono : int
-        DESCRIPTION.
-
-    Returns
-    -------
-    None.
-
     '''
     import warnings
     if sum([i is not None for i in (bins, q, max_leaf_nodes, mono)]) != 1:
@@ -162,7 +187,7 @@ def _check_binning_keywords(bins, q, max_leaf_nodes, mono):
     return bins, q, max_leaf_nodes, mono
 
 
-def _binning(y_pre=None,
+def binning(y_pre=None,
              bins=None,
              q=None,
              max_leaf_nodes=None,
@@ -170,25 +195,33 @@ def _binning(y_pre=None,
              y_true=None,
              labels=None,
              **kwargs):
-    '''
-     supervised binning of y_pre based on y_true if y_true is not None
+    '''supervised binning 
     
+    of y_pre based on y_true if y_true is not None
+    
+    parameters
+    -----------
     y_pre
-        - array_like, value of y to be cut
+        1d array_like, value of y to be cut
     y_true
         - true value of y for supervised cutting based on decision tree 
+
+    .. note::
+        
+        (q, bins, max_leaf_nodes, mono) controls binning method and 
+        only 1 of them can be specified. 
+        
     bins
         - number of equal width or array of edges
     q
-        - number of equal frequency              
+        - number of equal frequency     
+         
     max_leaf_nodes
         - number of tree nodes using tree cut
         - if not None use supervised cutting based on decision tree
+        
     mono 
         - binning edges that increases monotonically with "y" mean value
-        
-    .. note::
-        -  only 1 of (q, bins, max_leaf_nodes, mono) can be specified 
         
     labels
         - see pd.cut, if False return integer indicator of bins, 
@@ -199,9 +232,9 @@ def _binning(y_pre=None,
         - random_state=0 
         
     return 
-    -----
-    y_bins:       
-         bins of y_pre 
+    --------
+    y_binlabel:       
+         bin label of y_pre 
     bins:
          ndarray of bin edges
 
@@ -257,9 +290,9 @@ def _binning(y_pre=None,
     if labels is True:
         labels = None
 
-    y_bins, bins = pd.cut(y_pre_input,
+    y_binlabel, bins = pd.cut(y_pre_input,
                           bins,
                           duplicates='drop',
                           retbins=True,
                           labels=labels)
-    return y_bins, bins
+    return y_binlabel, bins

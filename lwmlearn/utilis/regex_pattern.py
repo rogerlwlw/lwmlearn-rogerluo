@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
+"""Common used regex pattern
+
 Created on Tue Feb 12 13:47:28 2019
 
 @author: roger
@@ -8,34 +9,40 @@ Created on Tue Feb 12 13:47:28 2019
 import re
 from pandas.core.dtypes import api
 
-
-def get_regex(X, casesensitive=False):
-    '''return regex pattern object
-    '''
-    if api.is_re(X): return X
-    if api.is_re_compilable(X): return re.compile(X)
-    regex = '|'.join(get_flat_list(X))
-    if not casesensitive:
-        regex = '(?ix:{0})'.format(regex)
-    return re.compile(regex)
-
-
-def get_flat_list(x):
-    '''
-    list and flatten object into one dimension list
+def common_regex_pattern(key):
+    '''retrieve common regex pattern by key name
     
-    return
-    ----
-    one dimension list
+
+    Parameters
+    ----------
+    key : str
+        string name of regex pattern. if key=None, return all available keys
+
+    Returns
+    -------
+    reg : 
+        regex pattern 
+        
     '''
-    if isinstance(x, list) and not isinstance(x, (str, bytes)):
-        return [a for i in x for a in get_flat_list(i)]
+    d = {
+        "numeric" : "^[-+]?\d*(?:\.\d*)?(?:\d[eE][+\-]?\d+)?(\%)?$",
+        "empty" : "^[-\s\_]*$",
+        "email" :"^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$",
+        "ID18" : "^((\d{18})|([0-9x]{18})|([0-9X]{18}))$",
+        "IP" : "((?:(?:25[0-5]|2[0-4]\\d|[01]?\\d?\\d)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d?\\d))",
+        
+ 
+       }
+    
+    if key is None:
+        return d.keys()
     else:
-        return [x]
+        reg = d.get(key)
+        return reg
 
-
-# from begining to end contain all of ['\d', ',', '-', '.']
-check_all_digits = "^[,\d\.]*$"
-
-# left=\d, right=\d{3}+ and end not \d
-to_accounting_comma = "(?<=\d)(?=(?:\d{3})+(?!\d))"
+if __name__ == '__main__':
+    
+    number = common_regex_pattern('numeric')
+    empty = common_regex_pattern('empty')
+    re.match(number, '1e-3')
+    re.match(empty, '  _-  \t')

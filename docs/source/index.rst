@@ -2,24 +2,27 @@ Welcome to lwmlearn's documentation!
 ========================================
 
 
-Table Of Contents
-==================
+.. figure:: _static/_image/frontpage.jpg
+   :align: center
+   :scale: 40%
+   
+
+.. _masterdoc:
+   
+Master Table Of Contents
+=========================
 .. toctree::
    :maxdepth: 2
-   :name: masterdoc
    :glob:
 
    install
    user guide
    use case
+   autoapi/index
+   
    *
 
 
-.. figure:: _static/_image/frontpage.jpg
-   :align: center
-   :scale: 40%
-   
-   
 Indices and tables
 ===================
 

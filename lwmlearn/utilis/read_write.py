@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
+"""IO functionality
+
 Module Description:
     
     offers :class:`Objs_management` class to load or dump data objects to file
@@ -27,16 +28,11 @@ from lwmlearn.utilis.utilis import get_flat_list, get_kwargs
 
 from .. lwlogging import init_log
 
-logger = init_log('IOlog')
-
-class _Obj():
-    pass
-
 
 class Path_File():
-    '''descriptor to initialize path, file and newfile attributes
+    '''descriptor to initialize file attributes
     
-    used internally logging will record the IO process
+    used internally, logging will record the IO process
     
     path: str
         check existance, if not create one
@@ -48,6 +44,12 @@ class Path_File():
         if not exist create one
         
     '''
+    
+    def _get_logger(self):
+        '''init IO logger
+        '''
+        self.logger = init_log('IOlog')
+    
     @property
     def path_(self):
         return self._p
@@ -57,11 +59,11 @@ class Path_File():
         try:
             if not os.path.exists(path):
                 os.makedirs(path, exist_ok=True)
-                logger.info("info: path '{}' created ...".format(path))
+                self.logger.info("info: path '{}' created ...".format(path))
 
             self._p = os.path.relpath(path)
         except Exception:
-            logger.exception("invalid path input '%s' " % path,
+            self.logger.exception("invalid path input '%s' " % path,
                              stack_info=True)
             raise NotADirectoryError()
 
@@ -71,7 +73,7 @@ class Path_File():
             for i in file:
                 os.remove(os.path.join(root, i))
         shutil.rmtree(self._p, ignore_errors=True)
-        logger.info("info: path '{}' removed... \n".format(self._p))
+        self.logger.info("info: path '{}' removed... \n".format(self._p))
         
     # file
     @property
@@ -83,14 +85,14 @@ class Path_File():
         if os.path.isfile(file):
             self._f = os.path.relpath(file)
         else:
-            logger.exception("file not found '%s' " % file,
+            self.logger.exception("file not found '%s' " % file,
                              stack_info=True)            
             raise FileNotFoundError()
 
     @file_.deleter
     def file_(self):
         os.remove(self._f)
-        logger.info("info: file '{}' removed".format(self._f))
+        self.logger.info("info: file '{}' removed".format(self._f))
 
     ## newfile
     @property
@@ -102,22 +104,22 @@ class Path_File():
         try:
             if os.path.isfile(file):
                 os.remove(file)
-                logger.info("info: old file '{}' deleted...\n ".format(file))
+                self.logger.info("info: old file '{}' deleted...\n ".format(file))
 
             dirs, filename = os.path.split(file)
             if not os.path.exists(dirs) and len(dirs) > 0:
                 os.makedirs(dirs, exist_ok=True)
-                logger.info("info: path '{}' created...\n".format(dirs))
+                self.logger.info("info: path '{}' created...\n".format(dirs))
             self._nf = file
         except Exception:
-            logger.exception('invalid path input {}'.format(file),
+            self.logger.exception('invalid path input {}'.format(file),
                              stack_info=True)
             raise NotADirectoryError()
 
     @newfile_.deleter
     def newfile_(self):
         os.remove(self._nf)
-        logger.info("info: file '{}' removed".format(self._nf))
+        self.logger.info("info: file '{}' removed".format(self._nf))
 
 
 class Reader(Path_File):
@@ -136,9 +138,10 @@ class Reader(Path_File):
         
     '''
     def __init__(self, path):
-        ''' init path variable 
+        ''' init path and logger variable 
         '''
         self.path_ = path
+        self._get_logger()
 
     def read(self, file, **kwargs):
         '''read obj from file
@@ -151,8 +154,7 @@ class Reader(Path_File):
             file to read, files options include 
             ['.xlsx', '.csv', '.pkl', '.txt', '.sql']   
         
-        **kwargs
-        
+        kwargs
             other key words arguments used by read api, 
             such as :func:`pandas.read_csv`, :func:`pandas.read_excel`
         
@@ -161,22 +163,23 @@ class Reader(Path_File):
         
         obj : obj
             data object such as pandas DataFrame
+            
         '''
         self.file_ = file
         read_api = _rd_apis(self.file_)
         try:
             kw = get_kwargs(read_api, **kwargs)
             rst = read_api(self.file_, **kw)
-            logger.info("<obj>: '{}' read from '{}\n".format(
+            self.logger.info("<obj>: '{}' read from '{}\n".format(
                 rst.__class__.__name__,
                 self.file_))
             return rst
         except Exception:
             msg = "fail to read file '{}' ".format(self.file_)
-            logger.exception(msg, stack_info=True)
+            self.logger.exception(msg, stack_info=True)
 
     def read_all(self, suffix=None, path=None, subfolder=False, **kwargs):
-        '''read in all objects in given dirs
+        '''return dict of all objects in given dirs as {filename : objects}
         
         suffix could be specified
         
@@ -213,7 +216,7 @@ class Reader(Path_File):
 
     def list_all(self, suffix=None, path=None, subfolder=False, 
                  keep_suffix=True):
-        '''return dict of {filename: filepath} for given dirs
+        '''return dict of {filename: filepath} in given dirs
         '''
         if path is None:
             path = self.path_
@@ -237,7 +240,7 @@ def _load_pkl(file):
 
 
 def _read_file(file):
-    ''' return 'str' obj from file by calling f.read() method
+    '''return 'str' obj from file by calling f.read() method
     '''
     with open(file, 'r') as f:
         obj = f.read()
@@ -245,7 +248,7 @@ def _read_file(file):
 
 
 def _get_files(dirpath, suffix=None, subfolder=False):
-    ''' return file dict {filename : file}
+    '''return file dict {filename : filepath}
     
     parameters
     -----------
@@ -307,7 +310,8 @@ def _read_json(file):
 def _rd_apis(file):
     '''return read api for given suffix of file
     
-    default _load_pkl will beused
+    suffix options are ['.xlsx', '.csv', '.txt' , '.sql', '.json', '.pkl']
+    default unpickle method '_load_pkl' will be used
     
     parameters
     -----------
@@ -336,9 +340,10 @@ class Writer(Path_File):
         write obj data into file
     '''
     def __init__(self, path):
-        '''  
+        '''init path and logger variable   
         '''
         self.path_ = path
+        self._get_logger()
 
     def write(self, obj, file, **kwargs):
         '''dump obj into file under self.path_
@@ -351,9 +356,12 @@ class Writer(Path_File):
             like 'dirs/filename.pkl', supported suffix are
             [.pkl, .xlsx, .csv, .pdf, .png], 
         
-        **kwargs
-            other keys arguments for suffix specified api
-        
+        kwargs : other keys arguments for suffix specified api
+                
+            * sheet_name : list
+                for dumping to excel file '.xlsx',    
+                if list of dataframe are passed as obj, then dump them into list of 
+                sheet_names 
         '''
         file = os.path.join(self.path_, file)
         file = os.path.relpath(file)
@@ -361,15 +369,16 @@ class Writer(Path_File):
         wr_api = _wr_apis(self.newfile_)
         try:
             wr_api(obj, self.newfile_, **kwargs)
-            logger.info("<obj>: '{}' dumped into '{}...\n".format(
-                obj.__class__.__name__, file))
+            msg = "<obj>: '{}' dumped into '{}...\n".format(
+                obj.__class__.__name__, file)
+            self.logger.info(msg)
         except Exception:
             msg = "<failure>: '{}' written failed ...".format(file)
-            logger.exception(msg, stack_info=True)
+            self.logger.exception(msg, stack_info=True)
 
 
 def _wr_apis(file):
-    ''' return write api of given suffix of file
+    '''return write api of given suffix of file
     
     default will use _dump_pkl
     
@@ -485,7 +494,7 @@ class Objs_management(Reader, Writer):
     '''manage read & write of objects from/into file
     '''
     def __init__(self, path):
-        '''
+        '''init path and logger variable 
         
         parametrs
         ---------

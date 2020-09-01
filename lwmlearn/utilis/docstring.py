@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
+"""Decorate docstring 
+
 Created on Thu Aug  8 18:33:00 2019
 
 inherited from matplotlib.doctring
@@ -31,6 +32,17 @@ class Substitution(object):
 
     """
     def __init__(self, *args, **kwargs):
+        '''
+        
+
+        Parameters
+        ----------
+        *args : TYPE
+            DESCRIPTION.
+        **kwargs : TYPE
+            DESCRIPTION.
+
+        '''
         assert not (len(args) and len(kwargs)), \
                 "Only keyword args are allowed"
         self.params = args or kwargs
@@ -68,14 +80,33 @@ class Appender(object):
     the original docstring. An optional 'join' parameter may be supplied
     which will be used to join the docstring and addendum. e.g.
 
-    add_copyright = Appender("Copyright (c) 2009", join='\n')
+    add_copyright = Appender("Copyright (c) 2009")
 
     @add_copyright
     def my_dog(has='fleas'):
         "This docstring will have a copyright below"
+        
         pass
+        
     """
     def __init__(self, addendum, join=''):
+        '''
+
+        Parameters
+        ----------
+        
+        addendum : str
+            docstring to be appended.
+            
+        join : str, optional
+            may be supplied which will be used to join the docstring 
+            and addendum. e.g.. The default is ''.
+
+        Returns
+        -------
+        None.
+
+        '''
         self.addendum = addendum
         self.join = join
 

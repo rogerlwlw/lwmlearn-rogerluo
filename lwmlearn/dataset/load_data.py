@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+"""use get_local_data function to retrieve local data
 Module Descripiton:
 
     The :mod:`load_data` module offers function :func:`get_local_data` 
@@ -25,7 +25,7 @@ data_path = os.path.join(file_path, 'data')
 
 
 def get_local_data(data_name=None, all_datafile=False, rel_path=None):
-    '''read data file by filename 
+    '''read data file by filename.csv 
     
     from dataset.data folder, extension suffix included
     

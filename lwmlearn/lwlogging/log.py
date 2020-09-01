@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+"""init logging instance logger
 * Module Description:
     
     init logger instance
@@ -116,7 +116,7 @@ def init_log(logger_name,
     logger = logging.getLogger(logger_name)
     logger.setLevel(logging.DEBUG)
 
-    LOG_FMT = "%(levelname)s -logger: %(name)s - %(asctime)s: \n\t %(message)s"
+    LOG_FMT = "%(levelname)s - logger: %(name)s - %(asctime)s: \n\t %(message)s"
     DATE_FORMAT = "%m/%d/%Y %H:%M:%S %p"    
     fmt = logging.Formatter(LOG_FMT, datefmt=DATE_FORMAT)
     
@@ -148,8 +148,9 @@ def init_log(logger_name,
     return logger
 
 if __name__ == '__main__':
+    pass
     
-    # logging.disable(logging.NOTSET)
+    logging.disable(logging.NOTSET)
     
     logger = init_log(logger_name='mylog',
                       error_log='log/error.log', 
