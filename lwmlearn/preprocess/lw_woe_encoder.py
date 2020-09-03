@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
+"""woe & vi 
+
 Created on Sun Dec 15 16:21:27 2019
 
 @author: roger luo
@@ -19,69 +20,78 @@ from lwmlearn.utilis.binning import binning
 
 
 class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
-    '''to woe encode feature matrix using auto-binning based on CART tree
-    gini impurity/bins or specified by input_edges = {col : edges};
-    transform data matrix to woe encoded matrix;
-    calcualte woe & iv of each feature, NaN values will be binned independently
+    '''woe encode feature matrix using auto-binning 
     
-    parameters
-    ----------            
-    input_edges={}
-        - mannual input cutting edges as 
-        {colname : [-inf, point1, point2..., inf]}
-    cat_num_lim
-        - number of unique value limit to be treated as continueous feature,
+    calcualte woe & iv of each feature
+    
+    NaN values will be binned independently
+    
+    binning edges are based on CART tree gini impurity
+    
+    or could be specified by input_edges = {col : edges}
+    
+    not continuous columns will have no binning edges, each of the category will
+    be used as bins
+    
+    Note
+    ------
+    only 1 of ( q, bins, max_leaf_nodes, mono ) can be specified
+    
+    
+    Parameters
+    ----------  
+    input_edges : dict
+        mannual input cutting edges as 
+        {colname : [-inf, point1, point2, .., inf]}
+    cat_num_lim : int
+        number of unique value limit to be treated as continueous feature,
         default 5
-        
-    bins
-        - number of equal width or array of edges
-    q
-        - number of equal frequency              
-    max_leaf_nodes
-        - number of tree nodes using tree cut
-        - if not None use supervised cutting based on decision tree
-    mono 
-        - binning edges that increases monotonically with "y" mean value
-        
-    .. note::
-        -  only 1 of (q, bins, max_leaf_nodes, mono) can be specified 
-        
-        
-    max_leaf_nodes
-        - max number of bins default None
-    min_samples_leaf=0.02
-        - minimum number of samples in leaf node as fraction
-    min_samples_split=0.01
-        - the minimum number of samles required to split a node   
-    min_samples_leaf_num
-        - minimum number of samples in leaf node as numbers
-    **tree_params
-        - other decision tree keywords
-        
-    attributes
-    ----------
-    edges 
-        - dict={colname : [-inf, point1, point2..., inf]}; 
-        - 'fit' method will try to get edges by decision Tree algorithm or
-        pandas cut method
-    woe_map
-        - dict={colname : {category : woe, ...}}
-    woe_iv
-        - df, woe & iv of all features, concatenated in one df
-    feature_importances_ 
-        - iv value of each feature, NA for iv <0.02 to be used in feature
+    bins : int
+        number of equal width  edges
+    q : 
+        number of equal frequency              
+    max_leaf_nodes : int
+        number of tree nodes using tree cut
+        if not None use supervised cutting based on decision tree
+    mono : int
+        binning edges that increases monotonically with "y" mean value
+    
+    
+    Keyword args
+    --------------    
+    min_samples_leaf :
+        default = 0.02
+    min_samples_split :
+        default = 0.05
+    criterion :
+        default = 'gini'
+    min_impurity_split : TYPE, optional
+        DESCRIPTION. The default is None.
+    random_state : TYPE, optional
+        DESCRIPTION. The default is 0.
+    splitter : TYPE, optional
+        DESCRIPTION. The default is 'best'.
+    min_samples_leaf_num : TYPE, optional
+        DESCRIPTION. The default is 100.
+    verbose : TYPE, optional
+        DESCRIPTION. The default is 1.
+    
+    Attributes
+    -----------
+    edges : dict  
+        like {colname : [-inf, point1, point2..., inf]}; 
+        fit method will try to get edges by decision Tree algorithm or
+        pandas cut method, if not specified
+    woe_map : dict
+        woe mapping, like {colname : {category : woe, ...}}
+    woe_iv : dataframe
+        woe & iv table of all features, concatenated in one df
+    feature_importances_ : series
+        iv value of each feature, NA for iv <0.02 to be used in feature
         selection
-    feature_iv 
-        - iv value of each feature (available of iv < 0.02)
+    feature_iv : series 
+        iv value of each feature (available of iv < 0.02)
       
-    method
-    -----
-    fit 
-        - calculate woe & iv values for each col categories, obtain 
-        self edges & woe_map
-    transform
-        - to get woe encoded feature matrix using self woe_map
-
     '''
     def __init__(self,
                  input_edges={},
@@ -98,14 +108,16 @@ class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
                  random_state=0,
                  splitter='best',
                  min_samples_leaf_num=100,
-                 verbose=1):
-
+                 verbose=1): 
+        '''
+        '''
         L = locals().copy()
         L.pop('self')
         self.set_params(**L)
+        
 
     def _get_binned(self, X, labels=None):
-        '''to get binned matrix using self edges, cols without cutting edges
+        '''get binned matrix using self edges, cols without cutting edges
         will remain unchaged
         '''
         if self.edges is None:
@@ -154,15 +166,23 @@ class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
             return
 
     def fit(self, X, y):
-        '''fit X(based on CART Tree) to get cutting edges
-        (updated by manual input edges) and  calculate woe & iv for each 
-        categorical group, categorical features will use category as group
+        '''fit X to get cutting edges
         
-        parameter
-        ---------
-        X - df
+        the cuttign algorithm use CART Tree to cut each feature, or use 
+        monotonical increasing method if mono is not None;
+        
+        cutting edges could be updated by manual input edges 
+        categorical features will use category as group
+        
+        self.edges and self.woe_map will be updated
+        
+        Parameters
+        -----------
+        X : 2d array
+            feature matrix
          
-        y - class label 
+        y : 1d array 
+            class label 
         '''
         X = self._fit(X)
         # --
@@ -179,14 +199,19 @@ class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
         return self
 
     def transform(self, X):
-        '''to get woe encoded X using self woe_map
-        parameters
-        ----------
-        X - df
+        '''get woe encoded X using self woe_map
         
-        return
+        Parameters
+        ----------
+        X : 2d array
+        
+            feature matrix
+        
+        Return
         ------
-        df --> X woe encoded value
+        x_transformed : dataframe
+        
+            woe encoded X 
         '''
         X = self._filter_labels(X)
         # --
@@ -209,8 +234,21 @@ class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
 
         return pd.concat(cols, axis=1)
 
-    def plot_event_rate(self, save_path=None, suffix='.pdf', dw=0.02, up=1.2):
-        '''return iv of each column using self.edges
+    def plot_event_rate(self, save_path=None, suffix='.png', dw=0.02, up=1.2):
+        '''plot correlations between cutting edges and positive proportion of 
+        samples for each feature
+        
+        Parameters
+        -----------
+        save_path : path
+            path to save plots of all 
+        suffix : str
+            suffix of plot file to use
+        dw : 
+            lower bound of iv value
+        up :
+            upper bound of iv value
+            
         '''
         plotter_woeiv_event(self.woe_iv, save_path, suffix, dw, up)
 
@@ -335,14 +373,24 @@ def _get_binning(X,
                  **kwargs):
     '''use by Woe_encoder to get binning edges
     
-    X - DataFrame
-    y - binary target
+    Parameters
+    -----------
+    
+    X :
+        DataFrame
+    y :
+        binary target
+    
     return
-    ----
+    -------
     edges:
         {colname : [-inf, point1, point2..., inf]}
     '''
     bin_edges = {}
+    # reset index
+    X = pd.DataFrame(X).reset_index(drop=True)
+    y = pd.Series(y).reset_index(drop=True)
+    
     for name, col in X.iteritems():
         df = pd.DataFrame({'x': col, 'y': y})
         col_notna = df.dropna().x
@@ -418,22 +466,25 @@ def _single_mapping(X, Y, var_name='VAR'):
 def calc_woe(df_binned, y):
     '''calculate woe and iv 
     
+    parameters
+    -----------
     df_binned
-        - binned feature_matrix
+        binned feature_matrix
     y
-        - binary 'y' target   
+        binary 'y' target   
     
     return
-    ----
-    df_woe_iv =  [
-            'VAR_NAME','CATEGORY', 'COUNT', 'EVENT', 'EVENT_RATE',
-            'NONEVENT', 'NON_EVENT_RATE', 'DIST_EVENT','DIST_NON_EVENT',
-            'WOE', 'IV' ]
+    ---------
+    df_woe_iv : dataframe
+        column names are [ 
+        'VAR_NAME', 'CATEGORY', 'COUNT', 'EVENT', 'EVENT_RATE',
+        'NONEVENT', 'NON_EVENT_RATE', 'DIST_EVENT','DIST_NON_EVENT',
+        'WOE', 'IV' ]
+    woe_map : dict
+        {'colname' : {category : woe}}
+    iv : series
+        colname index iv value 
     
-    woe_map = {'colname' : {category : woe}}
-    
-    iv series
-        - colname--> iv 
     '''
 
     l = []

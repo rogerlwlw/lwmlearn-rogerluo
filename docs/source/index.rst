@@ -18,7 +18,6 @@ Master Table Of Contents
    install
    user guide
    use case
-   autoapi/index
    
    *
 

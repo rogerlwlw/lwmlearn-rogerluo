@@ -14,6 +14,7 @@ from sklearn.tree import DecisionTreeClassifier
 from lwmlearn.utilis.utilis import get_kwargs, to_num_datetime
 import scipy.stats as stats
 
+from lwmlearn.lwlogging import init_log
 
 def _tree_univar_bin(arr_x, arr_y, **kwargs):
     """univariate binning based on binary decision Tree
@@ -33,7 +34,6 @@ def _tree_univar_bin(arr_x, arr_y, **kwargs):
     cut_edges : ndarray
         array of cutting points of binning edges, while cut_edges[0] = -inf,
         cut_edges[-1]=inf.
-
     """
     
     validation.check_consistent_length(arr_x, arr_y)
@@ -53,7 +53,7 @@ def _tree_univar_bin(arr_x, arr_y, **kwargs):
     return cut_edges
 
 
-def _mono_cut(Y, X):
+def _mono_cut(X, Y):
     """mono binning edges of data 
     
     the binning group increases monotonically with "y" mean value 
@@ -97,7 +97,7 @@ def bin_tree(X,
              random_state=0,
              verbose=0,
              **kwargs):
-    '''Discretize features based on Binary DecisionTree classifier
+    '''Discretize features matrix based on Binary DecisionTree classifier
     
     .. note::
     
@@ -107,10 +107,10 @@ def bin_tree(X,
     
     parameters
     -----------
-    X 
-        - df, contain feature matrix, should be numerical dtype
-    y 
-        - col of class label, binary
+    X : 2d array or dataframe matrix
+        contain feature matrix, should be numerical dtype
+    y : str
+        col of class label, binary
         
     cat_num_lim
         number of unique vals limit to be treated as continueous feature
@@ -133,8 +133,11 @@ def bin_tree(X,
     bin_edges = {}
     cols = []
     un_split = []
+    # reset index
+    X = pd.DataFrame(X).reset_index(drop=True)
+    y = pd.Series(y).reset_index(drop=True)
     for name, col in X.iteritems():
-        df = pd.DataFrame({'x': col.values, 'y': y.values})
+        df = pd.DataFrame({'x': col, 'y': y})
         col_notna = df.dropna().x
         y_notna = df.dropna().y
         if (len(pd.unique(col_notna)) > cat_num_lim
@@ -151,20 +154,21 @@ def bin_tree(X,
                 un_split.append(name)
         else:
             cols.append(name)
-
-    if verbose > 0:
-        msg1 = '''total of {2} unchaged (unique counts less 
-               than {1} or categorical dtype) =\n "{0}" 
-               '''.format(pd.Index(cols), cat_num_lim, len(cols))
-        msg2 = '''total of {1} unsplitable features = \n {0} ...
-               '''.format(pd.Index(un_split), len(un_split))
-        msg3 = 'total of {} bin_edges obtained \n'.format(len(bin_edges))
-        if cols:
-            print(msg1)
-        if un_split:
-            print(msg2)
-        if bin_edges:
-            print(msg3)
+    
+    # log process
+    logger = init_log('woe')
+    msg1 = '''total of {2} unchaged (unique counts less 
+           than {1} or categorical dtype) =\n "{0}" 
+           '''.format(pd.Index(cols), cat_num_lim, len(cols))
+    msg2 = '''total of {1} unsplitable features = \n {0} ...
+           '''.format(pd.Index(un_split), len(un_split))
+    msg3 = 'total of {} bin_edges obtained \n'.format(len(bin_edges))
+    if cols:
+        logger.info(msg1)
+    if un_split:
+        logger.info(msg2)
+    if bin_edges:
+        logger.info(msg3)
 
     return bin_edges
 
@@ -201,41 +205,46 @@ def binning(y_pre=None,
     
     parameters
     -----------
-    y_pre
-        1d array_like, value of y to be cut
-    y_true
-        - true value of y for supervised cutting based on decision tree 
+    y_pre : 1d array_like
+         value of y to be cut
+    y_true : 1d array like
+        binary target y_true for supervised cutting
+    
+    bins : int 
+        number of equal width bins
+        
+        .. _binningmeth:
 
-    .. note::
+        .. note::
         
-        (q, bins, max_leaf_nodes, mono) controls binning method and 
-        only 1 of them can be specified. 
-        
-    bins
-        - number of equal width or array of edges
-    q
-        - number of equal frequency     
+            arguments [ q, bins, max_leaf_nodes, mono ] control binning method 
+            and only 1 of them can be specified. 
+            
+    q : int 
+        number of equal frequency bins 
          
-    max_leaf_nodes
-        - number of tree nodes using tree cut
-        - if not None use supervised cutting based on decision tree
+    max_leaf_nodes : int
+        number of tree nodes bins using tree cut
+        if not None use supervised cutting based on decision tree
         
-    mono 
-        - binning edges that increases monotonically with "y" mean value
+    mono : int
+        number of bins that increases monotonically with "y" mean value  
+    
+    labels : bool
+        see pd.cut, if False return integer indicator of bins, 
+        if True return arrays of labels (or can be manually input)
         
-    labels
-        - see pd.cut, if False return integer indicator of bins, 
-        - if True return arrays of labels (or can be manually input)
-        
-    **kwargs - Decision tree keyswords, egg:
-        - min_impurity_decrease=0.001
-        - random_state=0 
+    **kwargs : Decision tree keyswords
+        for example :
+            min_impurity_decrease=0.001
+            
+            random_state=0 
         
     return 
     --------
-    y_binlabel:       
+    y_binlabel : array      
          bin label of y_pre 
-    bins:
+    bin_edge : array
          ndarray of bin edges
 
     '''
@@ -277,7 +286,7 @@ def binning(y_pre=None,
     if mono is not None:
         if y_true.isna().sum() > 0:
             raise ValueError('none nan y_true must be supplied for mono cut')
-        bins = _mono_cut(y_true, y_pre)
+        bins = _mono_cut(Y=y_true, X=y_pre)
 
     if isinstance(bins, int):
         bins = np.linspace(np.min(y_pre), np.max(y_pre), bins + 1)
@@ -290,9 +299,9 @@ def binning(y_pre=None,
     if labels is True:
         labels = None
 
-    y_binlabel, bins = pd.cut(y_pre_input,
+    y_binlabel, bin_edge = pd.cut(y_pre_input,
                           bins,
                           duplicates='drop',
                           retbins=True,
                           labels=labels)
-    return y_binlabel, bins
+    return y_binlabel, bin_edge

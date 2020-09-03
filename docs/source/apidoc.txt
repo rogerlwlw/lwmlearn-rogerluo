@@ -1,0 +1,12 @@
+
+AUTO API Document
+==================
+
+..    
+  .. autosummary::
+    :recursive:
+    :nosignatures:
+    :toctree: api
+    
+    lwmlearn
+
