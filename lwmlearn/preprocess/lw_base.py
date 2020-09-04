@@ -135,59 +135,16 @@ class LW_Base():
 class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
     '''data cleaning
     
-    - clean(convert to numeric/str & drop na or uid columns); 
-    - recognize null and replace them with np.nan
-    - filter columns of specific dtypes; 
-    - store input & output columns; 
-    - drop all na/constant/UID columns
-    - fill in values for both numeric and categorical data
-    - recognize na_values as null values
-    - comma seperated accounting number will be cleaned
+    perform below functionality
+        - clean(convert to numeric/str & drop na or uid columns); 
+        - recognize null and replace them with np.nan
+        - filter columns of specific dtypes; 
+        - store input & output columns; 
+        - drop all na/constant/UID columns
+        - fill in values for both numeric and categorical data
+        - recognize na_values as null values
+        - comma seperated accounting number will be cleaned
     
-    Params
-    ------- 
-
-    dtype_filter str:
-        - num - filter only numeric dtype
-        - obj - filter only obj dtype
-        - datetime - filter only datetime dtype
-        - not_datetime - exclude only datetime dtype
-        - all - all dtypes
-        - default not_datetime
-        
-    na1 str: fill in strategy for categorical data column
-        - default None, don't fill
-        - 'most_frequent', fill in most frequent category 'xxx' 
-        - fill in 'xxx' string
-        
-    na2 int or 'mean': fill in stategy for numeric data column
-        - default None, don't fill
-        - 'mean', fill in mean value of column
-        
-    na_thresh:
-        - int or float(0.0-1.0) thresh number of non-null values to drop,
-        - default 1
-        
-    na_values:
-        - default ['nan', 'NaN', 'null', 'NULL', -999, -99999], 
-        strings in na_values will be recognized as null and replaced
-        with np.nan
-                
-    uniq_frac fraction int or float:
-        - if drop_uid is True for numerical data, the fraction of number of 
-        unique values limit, remove column over the limit
-        - defaul 0.95
-        - the greater (1.0) the value less likely column will be dropped
-    
-    count_frac fraction:
-        for categirical column ,the maximum of fraction of counts for each 
-        category must be greater than, otherwise the column will be dropped.
-        - default is 0.01
-        - the less the value, less likely column will be dropped
-        
-    drop_uid bool:
-        - whether or not to drop uid columns
-        - defualt True
             
     Attributes
     ----
@@ -212,8 +169,80 @@ class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
                  uniq_frac=0.95,
                  count_frac=0.01,
                  drop_uid=True):
-        ''' 
-        '''
+        """
+        Params
+        ------- 
+    
+        dtype_filter str:
+            - num - filter only numeric dtype
+            - obj - filter only obj dtype
+            - datetime - filter only datetime dtype
+            - not_datetime - exclude only datetime dtype
+            - all - all dtypes
+            - default not_datetime
+            
+        na1 str: fill in strategy for categorical data column
+            - default None, don't fill
+            - 'most_frequent', fill in most frequent category 'xxx' 
+            - fill in 'xxx' string
+            
+        na2 int or 'mean': fill in stategy for numeric data column
+            - default None, don't fill
+            - 'mean', fill in mean value of column
+            
+        na_thresh:
+            - int or float(0.0-1.0) thresh number of non-null values to drop,
+            - default 1
+            
+        na_values:
+            - default ['nan', 'NaN', 'null', 'NULL', -999, -99999], 
+            strings in na_values will be recognized as null and replaced
+            with np.nan
+                    
+        uniq_frac fraction int or float:
+            - if drop_uid is True for numerical data, the fraction of number of 
+            unique values limit, remove column over the limit
+            - defaul 0.95
+            - the greater (1.0) the value less likely column will be dropped
+        
+        count_frac fraction:
+            for categirical column ,the maximum of fraction of counts for each 
+            category must be greater than, otherwise the column will be dropped.
+            - default is 0.01
+            - the less the value, less likely column will be dropped
+            
+        drop_uid bool:
+            - whether or not to drop uid columns
+            - defualt True        
+
+        Parameters
+        ----------
+        dtype_filter : TYPE, optional
+            DESCRIPTION. The default is 'not_datetime'.
+        verbose : TYPE, optional
+            DESCRIPTION. The default is 0.
+        na1 : TYPE, optional
+            DESCRIPTION. The default is None.
+        na2 : TYPE, optional
+            DESCRIPTION. The default is None.
+        na_thresh : TYPE, optional
+            DESCRIPTION. The default is 1.
+        na_values : TYPE, optional
+            DESCRIPTION. The default is 
+            ['nan', 'NaN', 'null', 'NULL', 'None', '缺失值', -999, -99999].
+        uniq_frac : TYPE, optional
+            DESCRIPTION. The default is 0.95.
+        count_frac : TYPE, optional
+            DESCRIPTION. The default is 0.01.
+        drop_uid : TYPE, optional
+            DESCRIPTION. The default is True.
+
+        Returns
+        -------
+        None.
+
+        """
+
         L = locals().copy()
         L.pop('self')
         self.set_params(**L)
