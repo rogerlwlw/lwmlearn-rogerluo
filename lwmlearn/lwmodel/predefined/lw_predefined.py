@@ -55,7 +55,7 @@ from sklearn.experimental import enable_hist_gradient_boosting  # noqa
 from sklearn.ensemble import HistGradientBoostingClassifier
 
 from lwmlearn.preprocess.lw_base import Cleaner
-from lwmlearn.preprocess.lw_woe_encoder import WoeEncoder, BinEncoder
+from lwmlearn.preprocess.lw_woe_encoder import WoeEncoder
 from lwmlearn.preprocess.lw_cat_encoder import Oht_encoder, Ordi_encoder
 
 from xgboost.sklearn import XGBClassifier
@@ -109,12 +109,13 @@ def predefined_ops():
         'woem': WoeEncoder(mono=True),
         'oht': Oht_encoder(),
         'ordi': Ordi_encoder(),
-        'bin10': BinEncoder(bins=10, int_bins=True),  # 10 bin edges encoder
-        'bin5': BinEncoder(bins=5, int_bins=True),  # 5 bin edges encoder
-        'binm10': BinEncoder(max_leaf_nodes=10,
-                             int_bins=True),  # 10 bin tree cut edges encoder
-        'binm5': BinEncoder(max_leaf_nodes=5,
-                            int_bins=True),  # 5 bin tree cut edges encoder
+        
+        # 'bin10': BinEncoder(bins=10, int_bins=True),  # 10 bin edges encoder
+        # 'bin5': BinEncoder(bins=5, int_bins=True),  # 5 bin edges encoder
+        # 'binm10': BinEncoder(max_leaf_nodes=10,
+        #                      int_bins=True),  # 10 bin tree cut edges encoder
+        # 'binm5': BinEncoder(max_leaf_nodes=5,
+        #                     int_bins=True),  # 5 bin tree cut edges encoder
     }
 
     resample = {

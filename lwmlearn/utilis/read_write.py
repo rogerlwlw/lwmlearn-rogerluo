@@ -48,7 +48,7 @@ class Path_File():
     def _get_logger(self):
         '''init IO logger
         '''
-        self.logger = init_log('IOlog')
+        self.logger = init_log()
     
     @property
     def path_(self):

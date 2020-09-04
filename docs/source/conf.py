@@ -60,7 +60,7 @@ templates_path = ['_templates']
 language = None
 html_scaled_image_link = True
 
-#%% -- ptions for HTMLHelp output ---------------------------------------------
+#%% -- options for HTMLHelp output ---------------------------------------------
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'lwmlearn doc'
 

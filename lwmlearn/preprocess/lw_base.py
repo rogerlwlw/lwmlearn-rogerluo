@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
+"""Base class for preprocess
+
 Created on Sun Dec 15 16:22:09 2019
 
 @author: roger luo
@@ -19,21 +20,21 @@ class LW_Base():
     '''base class for all 'lw' developed preprocessing operators
 
     attributes
-    -----
-    out_labels
-        - labels for transformed X columns
+    -----------
+    out_labels : list
+        labels for transformed X columns
         
-    input_labels
-        - labels for original input X columns
+    input_labels : list
+        labels for original input X columns
         
     method
-    -----   
+    -------   
     _fit 
-        - to perform before fit method, to store input_labels
+        to perform before fit method, to store input_labels
         
     _filter_labels
         - to perform before transform method 
-        filter only stored labels (self.input_labels) 
+        - filter only stored labels (self.input_labels) 
         
     _check_df 
         - convert X to DataFrame, 
@@ -47,20 +48,26 @@ class LW_Base():
         
     get_feature_names
         - return out_labels, to get selected feature names
+        
     '''
     def _check_df(self, X, na_values=None):
-        '''
-        perform some basic cleaning to input data
+        '''perform some basic cleaning to input data
         
         convert X to DataFrame, drop duplicated cols, try converting X
         to numeric or datetime or object dtype
         
-        X
-            - data X will be converted as DataFrame   
-        na_values
-            - values to recognize as null values
+        parameters
+        -----------
+        X : 2d array
+            data X will be converted as DataFrame   
+        na_values : list
+            list of values to recognize as null values, like ['null', 'nan']
             
-        return --> cleaned df
+        return
+        ----------
+        X: dataframe
+            cleaned df
+        
         '''
         try:
             X = pd.DataFrame(X)
@@ -73,6 +80,7 @@ class LW_Base():
         if na_values is not None:
             na_values = get_flat_list(na_values)
             X.apply(lambda x: x.where(~x.isin(na_values)))
+            
         X = basic_cleandata(X)
         X = to_num_datetime_df(self._drop_duplicated_cols(X))
         return X
@@ -125,7 +133,8 @@ class LW_Base():
 
 
 class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
-    '''
+    '''data cleaning
+    
     - clean(convert to numeric/str & drop na or uid columns); 
     - recognize null and replace them with np.nan
     - filter columns of specific dtypes; 
@@ -327,8 +336,7 @@ class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
 
 
 def basic_cleandata(df):
-    """
-    remove spaces string as np.nan;
+    """remove spaces string as np.nan;
     
     replace ',' in number to make it convertible to numeric data;
     
@@ -344,7 +352,6 @@ def basic_cleandata(df):
         data frame.
 
     """
-
     # -- remove '^/s*$' for each cell
     data = df.replace('^[-\s]*$', np.nan, regex=True)
     # convert accounting number to digits by remove ','
@@ -352,8 +359,8 @@ def basic_cleandata(df):
     return data
 
 def _convert_numeric(x_str):
-    """
-    check if x_str is numeric convertible
+    """check if x_str is numeric convertible
+    
     if true, replace ',' '%' in x_str and then convert it to numeric
     if false return x_str
     integer code string starting with '0' will be ingored
@@ -383,7 +390,8 @@ def _convert_numeric(x_str):
         
     if isinstance(x_str, str):
         x_str_r = re.sub("[,\%\$]", '', x_str)
-        if _is_numeric_pattern(x_str_r):
+        
+        if re.match(numeric_pattern, x_str_r):
             if re.match(code_pattern, x_str_r) is None:
                 try:
                     x_str_r =  int(x_str_r) 

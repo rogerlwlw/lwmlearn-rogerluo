@@ -25,8 +25,10 @@ def _tree_univar_bin(arr_x, arr_y, **kwargs):
         data to be discretized.
     arr_y : 1d binary array
         target class y.
-        
-    **kwargs : other key words
+    
+    Keyword args
+    ------------    
+    kwargs : other key words
         key words used by :class:`DecisionTreeClassifier`
 
     Returns
@@ -156,12 +158,15 @@ def bin_tree(X,
             cols.append(name)
     
     # log process
-    logger = init_log('woe')
+    logger = init_log()
+    
     msg1 = '''total of {2} unchaged (unique counts less 
            than {1} or categorical dtype) =\n "{0}" 
            '''.format(pd.Index(cols), cat_num_lim, len(cols))
+    
     msg2 = '''total of {1} unsplitable features = \n {0} ...
            '''.format(pd.Index(un_split), len(un_split))
+           
     msg3 = 'total of {} bin_edges obtained \n'.format(len(bin_edges))
     if cols:
         logger.info(msg1)
@@ -178,15 +183,18 @@ def _check_binning_keywords(bins, q, max_leaf_nodes, mono):
     value, if not assign q=10 and bins=max_leaf_nodes=mono=None
     
     '''
-    import warnings
+    logger = init_log()
     if sum([i is not None for i in (bins, q, max_leaf_nodes, mono)]) != 1:
+        msg =\
+            '''warning: (q={}, bins={}, max_leaf_nodes={}, mono={}) but only one of 
+            (bins, q, max_leaf_nodes, mono) can be input, if not, parameters will be 
+            reset as q=10 and bins=max_leaf_nodes=mono=None
+            '''.format(q, bins, max_leaf_nodes, mono)
+        
+        logger.warning(msg)
+        
         bins = max_leaf_nodes = mono = None
         q = 10
-        msg = '''q={}, bins={}, max_leaf_nodes={}, mono={} but only one of 
-        (bins, q, max_leaf_nodes, mono) can be input, if not, parameters will be 
-        reset as q=10 and bins=max_leaf_nodes=mono=None
-        '''.format(q, bins, max_leaf_nodes, mono)
-        warnings.warn(msg)
 
     return bins, q, max_leaf_nodes, mono
 
@@ -203,6 +211,8 @@ def binning(y_pre=None,
     
     of y_pre based on y_true if y_true is not None
     
+    .. _binningmeth:
+        
     parameters
     -----------
     y_pre : 1d array_like
@@ -213,13 +223,6 @@ def binning(y_pre=None,
     bins : int 
         number of equal width bins
         
-        .. _binningmeth:
-
-        .. note::
-        
-            arguments [ q, bins, max_leaf_nodes, mono ] control binning method 
-            and only 1 of them can be specified. 
-            
     q : int 
         number of equal frequency bins 
          
@@ -229,16 +232,25 @@ def binning(y_pre=None,
         
     mono : int
         number of bins that increases monotonically with "y" mean value  
-    
+        
+        .. note::
+            
+            arguments [ q, bins, max_leaf_nodes, mono ] control binning method 
+            and only 1 of them can be specified. 
+            if not valid assign q=10 and bins=max_leaf_nodes=mono=None
+            
     labels : bool
         see pd.cut, if False return integer indicator of bins, 
         if True return arrays of labels (or can be manually input)
         
-    **kwargs : Decision tree keyswords
-        for example :
-            min_impurity_decrease=0.001
+    Keyword args
+    -------------
+    kwargs : 
+        Decision tree keyswords
             
-            random_state=0 
+    min_impurity_decrease=0.001
+        
+    random_state=0 
         
     return 
     --------

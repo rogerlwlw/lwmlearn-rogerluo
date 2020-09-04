@@ -84,7 +84,7 @@ class Filter_loglevel(logging.Filter):
             return False
     
 
-def init_log(logger_name, 
+def init_log(logger_name='lwmlearn', 
              error_log='error.log',
              all_log='all.log', 
              file_mode='w'):
@@ -94,7 +94,7 @@ def init_log(logger_name,
     Parameters
     ----------
     logger_name : str
-        logger name other than 'root'. 
+        logger name other than 'root'. The default is 'lw'
         
     error_log : path
         The default is 'error.log'. output above ERROR level msg

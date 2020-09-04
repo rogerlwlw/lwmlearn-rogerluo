@@ -1262,7 +1262,7 @@ def plotter_binlift(x,
 
 
 def _cal_rate_vol(x_bin, y, kind='vol'):
-    """
+    """cal bin counts and percentage
     
 
     Parameters
