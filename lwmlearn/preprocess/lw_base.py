@@ -121,14 +121,17 @@ class LW_Base():
     def _drop_duplicated_cols(self, X):
         '''drop duplicated cols 
         '''
+        
         columns = X.columns
         if columns.is_unique:
             return X
         else:
             col_dup = columns[columns.duplicated('first')]
             if getattr(self, 'verbose') > 0:
-                print("{} duplicated columns '{}' are dropped\n ".format(
-                    len(col_dup), col_dup))
+                logger = init_log()
+                msg = "{} duplicated columns '{}' are dropped\n ".format(
+                        len(col_dup), col_dup)
+                logger.info(msg)
             return X.drop(columns=col_dup)
 
     def get_feature_names(self, ):
@@ -146,14 +149,14 @@ class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
     mainly performs
     
     - store input column labels
-    - clean accounting number or percentages like 1,234,000 or 20%
-    - space strings will be cleaned as np.nan
     - recognize na_values and replace them with np.nan
+    - space strings will be cleaned as np.nan
+    - clean accounting number or percentages like 1,234,000 or 20%
     - recognize all space strs values and replace them with np.nan
-    - clean(convert to numeric/str/datetime dtype)
+    - convert to numeric/str/datetime dtype
     - drop all na/constant/UID columns
     - fill in values for null for both numeric and categorical column
-    - filter columns of specific dtypes
+    - filter columns of specific dtypes specified
     - store output columns labels
     
             
@@ -216,7 +219,7 @@ class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
             default is 1
             
         na_values : list
-            default ['nan', 'NaN', 'null', 'NULL', -999, -99999], 
+            default ['nan', 'NaN', 'null', 'NULL','缺失值', -999, -99999]
             strings in na_values will be recognized as null and replaced
             with np.nan
                     
@@ -318,22 +321,25 @@ class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
             self.get_params()['dtype_filter']).tolist()
         # --
         if len(na_col) > 0:
-            print('{} ...\n total {} columns are null , have been dropped \n'.
-                  format(na_col, len(na_col)))
+            msg =\
+            '{} , total {} columns are null , have been dropped'.format(
+                na_col, len(na_col))
+            logger.info(msg)
+            
         if len(uid_col) > 0:
-            print('''{} ...\n total {} columns are uid , 
-                have been dropped \n'''.format(uid_col, len(uid_col),
-                                               self.uniq_cat))
+            msg ='''{}, total {} columns are uid, have been dropped
+                 '''.format(uid_col, len(uid_col))
+            logger.info(msg)
+            
         if len(const_col) > 0:
-            print(
-                ''''{} ...\n total {} columns are constant , have been dropped
-                \n'''.format(const_col, len(const_col)))
+            msg = '''{},  total {} columns are constant , have been dropped
+                  '''.format(const_col, len(const_col))
+            logger.info(msg)
 
-        if self.get_params()['verbose'] > 0:
-            for k, i in options.items():
-                print('data has {} of {} columns'.format(len(i.columns), k))
-            if len(na_col) > 0:
-                print('null columns:\n {}'.format(list(na_col)))
+        # if self.get_params()['verbose'] > 0:
+        for k, i in options.items():
+            logger.info('data has {} of {} columns'.format(len(i.columns), k))
+
         return self
 
     def transform(self, X):
@@ -365,20 +371,19 @@ class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
 
 
 def basic_cleandata(df):
-    """remove spaces string as np.nan;
+    """Try cleaning str value to numeric 
     
-    replace ',' in number to make it convertible to numeric data;
+    convert all space string , like '---  ' to np.nan, 
+    convert accounting number like 1,232,000 to 1232000 and percentage like
+    10% to 0.1.
     
-
     Parameters
     ----------
-    df : TYPE
-        data frame.
+    df : data frame.
 
     Returns
     -------
-    data : TYPE
-        data frame.
+    data : data frame.
 
     """
     # -- remove '^/s*$' for each cell

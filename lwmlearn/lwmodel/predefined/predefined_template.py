@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
+"""predefined operators template
+
 Created on Fri Feb 28 11:01:19 2020
 
 @author: roger luo
