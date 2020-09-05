@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""woe and vi 
+"""WOE and IV
 
 use example
 ------------
@@ -45,15 +45,16 @@ from lwmlearn.lwlogging import init_log
 class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
     '''woe encode feature matrix using auto-binning strategy
     
-    # calcualte woe & iv of each feature
+    #. calcualte woe & iv of each feature
     
-    # NaN values will be binned independently.
+    #. NaN values will be binned independently.
     
-    # By default binning edges are based on CART tree gini impurity
+    #. By default binning edges are based on CART tree gini impurity
     or could be specified by input_edges = {col : edges}.
     
-    # For discontinuous columns will have no binning edges, each of the 
+    #. For discontinuous columns will have no binning edges, each of the 
     category will be used as bins
+    
     
     Parameters
     ----------  

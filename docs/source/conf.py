@@ -148,7 +148,7 @@ autoapi_options = ['members',
                    'show-inheritance', 
                    'show-module-summary', 
                    'inherited-members',
-                   'show-inheritance-diagram',
+                    # 'show-inheritance-diagram',
                    ]
 autoapi_python_class_content = 'both'
 autoapi_member_order = 'groupwise'

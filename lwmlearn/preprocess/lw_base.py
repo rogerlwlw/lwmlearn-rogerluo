@@ -13,7 +13,10 @@ from pandas.core.dtypes import api
 from sklearn.utils import validation
 from sklearn.impute import SimpleImputer
 from sklearn.base import BaseEstimator, TransformerMixin
+
 from lwmlearn.utilis.utilis import get_flat_list, to_num_datetime_df
+from lwmlearn.lwlogging import init_log
+
 
 
 class LW_Base():
@@ -27,26 +30,28 @@ class LW_Base():
     input_labels : list
         labels for original input X columns
         
-    method
     -------   
-    _fit 
+    _fit :
+        
         to perform before fit method, to store input_labels
         
-    _filter_labels
+        
         - to perform before transform method 
         - filter only stored labels (self.input_labels) 
         
-    _check_df 
-        - convert X to DataFrame, 
-        - drop duplicated cols, 
+    _check_df
+    
+        - drop duplicated cols
         - try converting X to numeric or datetime or object dtype
         - recognize na_value strings in data
-        - convert values that solely are \t\f\n or space to np.nan
+        - convert values that solely are space strs to np.nan
         
     _check_is_fitted
+    
         - check if operator has been fitted
         
     get_feature_names
+    
         - return out_labels, to get selected feature names
         
     '''
@@ -135,27 +140,32 @@ class LW_Base():
 class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
     '''data cleaning
     
-    perform below functionality
-        - clean(convert to numeric/str & drop na or uid columns); 
-        - recognize null and replace them with np.nan
-        - filter columns of specific dtypes; 
-        - store input & output columns; 
-        - drop all na/constant/UID columns
-        - fill in values for both numeric and categorical data
-        - recognize na_values as null values
-        - comma seperated accounting number will be cleaned
+    mainly performs
+    
+    - store input column labels
+    - clean accounting number or percentages like 1,234,000 or 20%
+    - space strings will be cleaned as np.nan
+    - recognize na_values and replace them with np.nan
+    - recognize all space strs values and replace them with np.nan
+    - clean(convert to numeric/str/datetime dtype)
+    - drop all na/constant/UID columns
+    - fill in values for null for both numeric and categorical column
+    - filter columns of specific dtypes
+    - store output columns labels
     
             
     Attributes
-    ----
-    obj_na:
+    -----------
+    obj_na : instance
         imputer instance for categorical data 
-    num_na:
+    num_na : instance
         imputer instance for numerical data
-    objcols:
+    objcols : list
         column label for object dtype
-    numcols:
+    numcols : list
         column label for numeric dtype
+        
+        
     '''
     def __init__(self,
                  dtype_filter='not_datetime',
@@ -170,76 +180,60 @@ class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
                  count_frac=0.01,
                  drop_uid=True):
         """
-        Params
-        ------- 
+        Parameters
+        ----------- 
     
-        dtype_filter str:
+        dtype_filter : str
+            options are ['num', 'obj', 'datetime', 'not_datetime', 'all']
+            
             - num - filter only numeric dtype
             - obj - filter only obj dtype
             - datetime - filter only datetime dtype
             - not_datetime - exclude only datetime dtype
             - all - all dtypes
-            - default not_datetime
             
-        na1 str: fill in strategy for categorical data column
+            default is 'not_datetime'
+            
+        na1 : str
+            fill in strategy for categorical data column
+            
             - default None, don't fill
-            - 'most_frequent', fill in most frequent category 'xxx' 
-            - fill in 'xxx' string
-            
-        na2 int or 'mean': fill in stategy for numeric data column
+            - na1='most_frequent', fill in most frequent category 'xxx' 
+            - ma1='xxx', fill in 'xxx' string
+        
+        na2 : int or str
+            fill in stategy for numeric data column
+        
             - default None, don't fill
-            - 'mean', fill in mean value of column
+            - na2='mean', fill in mean value of column
+            - na2=int, fill in integer number
             
-        na_thresh:
-            - int or float(0.0-1.0) thresh number of non-null values to drop,
-            - default 1
+        na_thresh: int or float(0.0~1.0)
+            thresh number of non-null values to drop, 
+            default is 1
             
-        na_values:
-            - default ['nan', 'NaN', 'null', 'NULL', -999, -99999], 
+        na_values : list
+            default ['nan', 'NaN', 'null', 'NULL', -999, -99999], 
             strings in na_values will be recognized as null and replaced
             with np.nan
                     
-        uniq_frac fraction int or float:
-            - if drop_uid is True for numerical data, the fraction of number of 
+        uniq_frac : int or float(0.0-1.0)
+            if drop_uid is True for numerical data, the fraction of number of 
             unique values limit, remove column over the limit
+            
             - defaul 0.95
             - the greater (1.0) the value less likely column will be dropped
         
-        count_frac fraction:
+        count_frac : fraction
             for categirical column ,the maximum of fraction of counts for each 
             category must be greater than, otherwise the column will be dropped.
+            
             - default is 0.01
             - the less the value, less likely column will be dropped
             
-        drop_uid bool:
-            - whether or not to drop uid columns
-            - defualt True        
-
-        Parameters
-        ----------
-        dtype_filter : TYPE, optional
-            DESCRIPTION. The default is 'not_datetime'.
-        verbose : TYPE, optional
-            DESCRIPTION. The default is 0.
-        na1 : TYPE, optional
-            DESCRIPTION. The default is None.
-        na2 : TYPE, optional
-            DESCRIPTION. The default is None.
-        na_thresh : TYPE, optional
-            DESCRIPTION. The default is 1.
-        na_values : TYPE, optional
-            DESCRIPTION. The default is 
-            ['nan', 'NaN', 'null', 'NULL', 'None', '缺失值', -999, -99999].
-        uniq_frac : TYPE, optional
-            DESCRIPTION. The default is 0.95.
-        count_frac : TYPE, optional
-            DESCRIPTION. The default is 0.01.
-        drop_uid : TYPE, optional
-            DESCRIPTION. The default is True.
-
-        Returns
-        -------
-        None.
+        drop_uid : bool
+            whether or not to drop uid columns, 
+            defualt True        
 
         """
 
@@ -251,18 +245,21 @@ class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
         '''fit input_labels & out_labels 
         '''
         X = self._fit(X, self.na_values)
-
+        logger = init_log()
         # drop na columns over na_thresh
         na_col = X.columns[X.apply(lambda x: all(x.isna()))]
         length = len(X)
-
+        
+        # drop null column
         thresh = self.get_params()['na_thresh']
         if api.is_integer(thresh):
             pass
         elif api.is_float(thresh):
             thresh = length * thresh
         else:
-            raise ValueError("na_thresh' must be integer or float")
+            msg = "'na_thresh' must be integer or float"
+            logger.exception(msg, stack_info=True)
+            raise ValueError(msg)
         X.dropna(axis=1, how='any', thresh=thresh, inplace=True)
 
         # drop constant
@@ -388,11 +385,11 @@ def basic_cleandata(df):
     return data
 
 def _convert_numeric(x_str):
-    """check if x_str is numeric convertible
+    """check if x_str is accounting or percentage number
     
-    if true, replace ',' '%' in x_str and then convert it to numeric
-    if false return x_str
-    integer code string starting with '0' will be ingored
+    convent them to float or integer
+    
+    integer code string starting with '0' will be ingored, treated as code str
 
     Parameters
     ----------
@@ -420,7 +417,7 @@ def _convert_numeric(x_str):
     if isinstance(x_str, str):
         x_str_r = re.sub("[,\%\$]", '', x_str)
         
-        if re.match(numeric_pattern, x_str_r):
+        if re.match(numeric_pattern, x_str_r) is not None:
             if re.match(code_pattern, x_str_r) is None:
                 try:
                     x_str_r =  int(x_str_r) 
