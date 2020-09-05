@@ -30,17 +30,20 @@ class LW_Base():
     input_labels : list
         labels for original input X columns
         
+    methods
     -------   
     _fit :
         
         to perform before fit method, to store input_labels
         
+    _filter_labels:
         
         - to perform before transform method 
         - filter only stored labels (self.input_labels) 
         
     _check_df
     
+        - convert X to DataFrame
         - drop duplicated cols
         - try converting X to numeric or datetime or object dtype
         - recognize na_value strings in data
