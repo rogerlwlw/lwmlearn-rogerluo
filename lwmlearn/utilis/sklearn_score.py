@@ -5,7 +5,6 @@ Created on Tue Apr 14 13:30:12 2020
 @author: Administrator
 """
 
-import pandas as pd
 import numpy as np
 
 from sklearn.metrics import log_loss, roc_curve
@@ -13,8 +12,24 @@ from sklearn.metrics import make_scorer
 
 
 def ks_score(y_true, y_pred, pos_label=1):
-    '''return K-S score of preditions
-    '''
+    """return K-S score of y_pred over y_true
+
+    Parameters
+    ----------
+    y_true : 1d array
+        binary label of target class. Usually positive==1
+    y_pred : 1d array
+        predictions made by model. Usually float dtype
+    pos_label : int, optional
+        1 or 0. The default is 1.
+
+    Returns
+    -------
+    ks : float
+        K-S score.
+
+    """
+    
     fpr, tpr, _ = roc_curve(y_true, y_pred, pos_label=pos_label)
     ks = (tpr - fpr).max()
     return ks
@@ -23,13 +38,15 @@ def ks_score(y_true, y_pred, pos_label=1):
 def psi_score(act, ex):
     '''return psi score
     
+    parameters
+    -----------
     act:
         array of actual ratios
     ex:
         array of expected ratios
         
     return
-    ----
+    --------
     psi score
     '''
     act = np.array(act)
@@ -43,7 +60,15 @@ def psi_score(act, ex):
 
 
 def get_custom_scorer():
-    ''' return custom scorer dict, 'KS' scorer added
+    ''' return custom scorer dict
+    
+    'KS' scorer added
+    
+    return
+    -------
+    
+    d : dict
+        dict of scorer
     '''
     scorer_dict = {}
     scorer_dict['KS'] = make_scorer(ks_score, needs_threshold=True)

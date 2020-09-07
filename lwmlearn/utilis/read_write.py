@@ -177,6 +177,7 @@ class Reader(Path_File):
         except Exception:
             msg = "fail to read file '{}' ".format(self.file_)
             self.logger.exception(msg, stack_info=True)
+            raise IOError()
 
     def read_all(self, suffix=None, path=None, subfolder=False, **kwargs):
         '''return dict of all objects in given dirs as {filename : objects}
@@ -375,7 +376,7 @@ class Writer(Path_File):
         except Exception:
             msg = "<failure>: '{}' written failed ...".format(file)
             self.logger.exception(msg, stack_info=True)
-
+            raise IOError()
 
 def _wr_apis(file):
     '''return write api of given suffix of file

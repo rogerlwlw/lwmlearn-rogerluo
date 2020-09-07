@@ -167,13 +167,10 @@ def bin_tree(X,
     msg2 = '''total of {1} unsplitable features = \n {0} ...
            '''.format(pd.Index(un_split), len(un_split))
            
-    msg3 = 'total of {} bin_edges obtained \n'.format(len(bin_edges))
     if cols:
         logger.info(msg1)
     if un_split:
         logger.info(msg2)
-    if bin_edges:
-        logger.info(msg3)
 
     return bin_edges
 

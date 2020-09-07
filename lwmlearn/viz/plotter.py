@@ -42,7 +42,7 @@ plt.rcParams.update({
 })
 
 
-def txt_fontdict(**kwargs):
+def _txt_fontdict(**kwargs):
     '''
     '''
     font = {
@@ -232,8 +232,7 @@ def _filter_subset(data, filter_con, **kwargs):
 
 
 def plt_insp(artist):
-    """
-    inspect setters for matplotlib artist
+    """return inspect setters for matplotlib artist
     
     Parameters
     ----------
@@ -242,7 +241,8 @@ def plt_insp(artist):
 
     Returns
     -------
-    list of setters for given artist
+    list : List
+        setters for given artist for reference to attribute setting
 
     """
     from matplotlib.axes import Axes
@@ -267,8 +267,7 @@ def plotter_ridge(x,
                   start=1,
                   height=0.5,
                   **kwargs):
-    """
-    ridge plot to compare distribution between groups 
+    """ridge plot to compare distribution between groups 
 
     Parameters
     ----------
@@ -349,7 +348,7 @@ def plotter_ridge(x,
 
 
 def plotter_scatter(x, y, z, c=None, cmap='Spectral', alpha=0.85, **kwargs):
-    """
+    """scatter plot
     
 
     Parameters
