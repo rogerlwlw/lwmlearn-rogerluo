@@ -35,6 +35,7 @@ Created on Tue Feb 12 13:47:28 2019
 
 import re
 
+
 def common_regex_pattern(key):
     '''retrieve common regex pattern by key name
     
@@ -51,31 +52,32 @@ def common_regex_pattern(key):
         
     '''
     d = {
-        "numeric" : "^[-+]?\d*(?:\.\d*)?(?:\d[eE][+\-]?\d+)?(\%)?$",
-        "empty" : "^[-\s\_]*$",
-        "email" :"^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$",
-        "ID18" : "^((\d{18})|([0-9x]{18})|([0-9X]{18}))$",
-        "IP" : "((?:(?:25[0-5]|2[0-4]\\d|[01]?\\d?\\d)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d?\\d))",
+        "numeric": "^[-+]?\d*(?:\.\d*)?(?:\d[eE][+\-]?\d+)?(\%)?$",
+        "empty": "^[-\s\_]*$",
+        "email": "^\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$",
+        "ID18": "^((\d{18})|([0-9x]{18})|([0-9X]{18}))$",
+        "IP":
+        "((?:(?:25[0-5]|2[0-4]\\d|[01]?\\d?\\d)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d?\\d))",
         # 强密码(必须包含大小写字母和数字的组合，不能使用特殊字符，长度在8-10之间)：
-        "pass" : "^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,10}$",          
- 
-       }
-    
+        "pass": "^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,10}$",
+    }
+
     if key is None:
         return d.keys()
     else:
         reg = d.get(key)
         return reg
 
+
 if __name__ == '__main__':
-    
+
     from lwmlearn.utilis.regex_pattern import common_regex_pattern
     import re
     number = common_regex_pattern('numeric')
-    email  = common_regex_pattern('email')
-    
+    email = common_regex_pattern('email')
+
     common_regex_pattern(None)
-    
+
     re.match(number, '1e-3')
     re.match(number, '-1e+3')
     re.match(number, '10%')

@@ -26,7 +26,7 @@ from sklearn.utils import check_consistent_length
 
 from lwmlearn.utilis.utilis import get_flat_list, get_kwargs
 
-from .. lwlogging import init_log
+from ..lwlogging import init_log
 
 
 class Path_File():
@@ -44,12 +44,11 @@ class Path_File():
         if not exist create one
         
     '''
-    
     def _get_logger(self):
         '''init IO logger
         '''
         self.logger = init_log()
-    
+
     @property
     def path_(self):
         return self._p
@@ -64,7 +63,7 @@ class Path_File():
             self._p = os.path.relpath(path)
         except Exception:
             self.logger.exception("invalid path input '%s' " % path,
-                             stack_info=True)
+                                  stack_info=True)
             raise NotADirectoryError()
 
     @path_.deleter
@@ -74,7 +73,7 @@ class Path_File():
                 os.remove(os.path.join(root, i))
         shutil.rmtree(self._p, ignore_errors=True)
         self.logger.info("info: path '{}' removed... \n".format(self._p))
-        
+
     # file
     @property
     def file_(self):
@@ -86,7 +85,7 @@ class Path_File():
             self._f = os.path.relpath(file)
         else:
             self.logger.exception("file not found '%s' " % file,
-                             stack_info=True)            
+                                  stack_info=True)
             raise FileNotFoundError()
 
     @file_.deleter
@@ -104,7 +103,8 @@ class Path_File():
         try:
             if os.path.isfile(file):
                 os.remove(file)
-                self.logger.info("info: old file '{}' deleted...\n ".format(file))
+                self.logger.info(
+                    "info: old file '{}' deleted...\n ".format(file))
 
             dirs, filename = os.path.split(file)
             if not os.path.exists(dirs) and len(dirs) > 0:
@@ -113,7 +113,7 @@ class Path_File():
             self._nf = file
         except Exception:
             self.logger.exception('invalid path input {}'.format(file),
-                             stack_info=True)
+                                  stack_info=True)
             raise NotADirectoryError()
 
     @newfile_.deleter
@@ -171,8 +171,7 @@ class Reader(Path_File):
             kw = get_kwargs(read_api, **kwargs)
             rst = read_api(self.file_, **kw)
             self.logger.info("<obj>: '{}' read from '{}\n".format(
-                rst.__class__.__name__,
-                self.file_))
+                rst.__class__.__name__, self.file_))
             return rst
         except Exception:
             msg = "fail to read file '{}' ".format(self.file_)
@@ -215,7 +214,10 @@ class Reader(Path_File):
                 d[k] = load
         return d
 
-    def list_all(self, suffix=None, path=None, subfolder=False, 
+    def list_all(self,
+                 suffix=None,
+                 path=None,
+                 subfolder=False,
                  keep_suffix=True):
         '''return dict of {filename: filepath} in given dirs
         '''
@@ -223,12 +225,12 @@ class Reader(Path_File):
             path = self.path_
         else:
             path = os.path.join(self.path_, path)
-        
+
         if keep_suffix:
             return _get_files(path, suffix, subfolder)
         else:
             file_d = _get_files(path, suffix, subfolder)
-            return {os.path.splitext(k)[0] : v for k, v in file_d.items()}
+            return {os.path.splitext(k)[0]: v for k, v in file_d.items()}
 
 
 def _load_pkl(file):
@@ -276,6 +278,7 @@ def _get_files(dirpath, suffix=None, subfolder=False):
     }
     return rst
 
+
 def _rd_csv(file, **kwargs):
     '''try to read csv file using "utf-8" or "gbk" encoding
     
@@ -299,6 +302,7 @@ def _rd_csv(file, **kwargs):
     except UnicodeDecodeError:
         kwargs.update(encoding='gbk')
         return pd.read_csv(file, **kwargs)
+
 
 def _read_json(file):
     '''return dict obj from 'json' file
@@ -377,6 +381,7 @@ class Writer(Path_File):
             msg = "<failure>: '{}' written failed ...".format(file)
             self.logger.exception(msg, stack_info=True)
             raise IOError()
+
 
 def _wr_apis(file):
     '''return write api of given suffix of file
@@ -556,7 +561,11 @@ def traverse_all_dirs(rootDir):
                      for file in filenames)
     return file_dict
 
-def search_file(filename, search_path, suffix=None, subfolder=False, 
+
+def search_file(filename,
+                search_path,
+                suffix=None,
+                subfolder=False,
                 include_suffix=False):
     '''return searched file path by searching search_path
     
@@ -579,9 +588,11 @@ def search_file(filename, search_path, suffix=None, subfolder=False,
     file_collector = {}
     for i in np.array(search_path):
         file_collector.update(_get_files(i, suffix, subfolder))
-    
+
     if not include_suffix:
-        file_collector = {os.path.splitext(k)[0] : v 
-                          for k, v in file_collector.items()}    
-        
+        file_collector = {
+            os.path.splitext(k)[0]: v
+            for k, v in file_collector.items()
+        }
+
     return file_collector.get(filename)

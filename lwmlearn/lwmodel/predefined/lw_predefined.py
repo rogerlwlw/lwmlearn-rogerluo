@@ -109,7 +109,7 @@ def predefined_ops():
         'woem': WoeEncoder(mono=True),
         'oht': Oht_encoder(),
         'ordi': Ordi_encoder(),
-        
+
         # 'bin10': BinEncoder(bins=10, int_bins=True),  # 10 bin edges encoder
         # 'bin5': BinEncoder(bins=5, int_bins=True),  # 5 bin edges encoder
         # 'binm10': BinEncoder(max_leaf_nodes=10,

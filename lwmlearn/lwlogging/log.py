@@ -59,6 +59,7 @@ Created on Wed Aug 26 16:13:35 2020
 import logging
 import os
 
+
 class Filter_loglevel(logging.Filter):
     '''reconstruct filter method to filter logrecord by a loglevel
     
@@ -75,19 +76,19 @@ class Filter_loglevel(logging.Filter):
 
         '''
         super().__init__()
-        
+
         self.loglevel = loglevel
-    
+
     def filter(self, record):
         if record.levelname == self.loglevel:
             return True
         else:
             return False
-    
 
-def init_log(logger_name='lwmlearn', 
+
+def init_log(logger_name='lwmlearn',
              error_log='error.log',
-             all_log='all.log', 
+             all_log='all.log',
              file_mode='w'):
     """init and return logger instance
     
@@ -112,49 +113,50 @@ def init_log(logger_name='lwmlearn',
         logger instance.
 
     """
-    
+
     # get logger instance by logger_name, if not exist, create one
     logger = logging.getLogger(logger_name)
     logger.setLevel(logging.DEBUG)
 
     LOG_FMT = "%(levelname)s - logger: %(name)s - %(asctime)s: \n\t %(message)s"
-    DATE_FORMAT = "%m/%d/%Y %H:%M:%S %p"    
+    DATE_FORMAT = "%m/%d/%Y %H:%M:%S %p"
     fmt = logging.Formatter(LOG_FMT, datefmt=DATE_FORMAT)
-    
+
     if not logger.handlers:
         # make dirs for log files
         for item in [all_log, error_log]:
             dirs = os.path.split(item)[0]
             if len(dirs) > 0:
-                os.makedirs(dirs, exist_ok=True) 
+                os.makedirs(dirs, exist_ok=True)
         # Error above handler
         e_h = logging.FileHandler(error_log, file_mode)
         e_h.setLevel(logging.ERROR)
         e_h.setFormatter(fmt)
-        # add error handler 
+        # add error handler
         logger.addHandler(e_h)
-        
+
         # info handler only
         info_h = logging.FileHandler(all_log, file_mode)
         info_h.setLevel(logging.DEBUG)
         info_h.setFormatter(fmt)
-        # add info handler 
+        # add info handler
         logger.addHandler(info_h)
-        
+
         # streamhandler output all record to sys.stdout
         s_h = logging.StreamHandler()
         s_h.setLevel(logging.INFO)
         logger.addHandler(s_h)
-        
+
     return logger
+
 
 if __name__ == '__main__':
     pass
-    
+
     logging.disable(logging.NOTSET)
-    
+
     logger = init_log(logger_name='mylog',
-                      error_log='log/error.log', 
+                      error_log='log/error.log',
                       all_log='log/all_log.log')
     logger.info('this is a info message')
     logger.error("this is an error", exc_info=True)

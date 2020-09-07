@@ -1231,13 +1231,13 @@ def plotter_binlift(x,
         ax = plt.gca()
     # binning x features
     x_bin, bins_edges = binning(x,
-                                 y_true=y,
-                                 bins=bins,
-                                 q=q,
-                                 max_leaf_nodes=max_leaf_nodes,
-                                 mono=mono,
-                                 labels=labels,
-                                 **kwargs)
+                                y_true=y,
+                                bins=bins,
+                                q=q,
+                                max_leaf_nodes=max_leaf_nodes,
+                                mono=mono,
+                                labels=labels,
+                                **kwargs)
     if y is not None:
         df1 = _cal_rate_vol(x_bin, y)
         # plot
@@ -1281,7 +1281,6 @@ def _cal_rate_vol(x_bin, y, kind='vol'):
         DESCRIPTION.
 
     """
-    
 
     sort_index = x_bin.value_counts(
         dropna=False).sort_index().index.astype(str)
@@ -1433,13 +1432,13 @@ def plotter_lift_curve(y_pre,
     '''
 
     y_cut, bins = binning(y_pre,
-                           y_true=y_true,
-                           bins=bins,
-                           q=q,
-                           max_leaf_nodes=max_leaf_nodes,
-                           mono=mono,
-                           labels=labels,
-                           **kwargs)
+                          y_true=y_true,
+                          bins=bins,
+                          q=q,
+                          max_leaf_nodes=max_leaf_nodes,
+                          mono=mono,
+                          labels=labels,
+                          **kwargs)
     df0 = pd.DataFrame({'y_cut': y_cut, 'y_true': y_true})
     df_gb = df0.groupby('y_cut')
     df1 = pd.DataFrame()

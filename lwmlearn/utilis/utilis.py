@@ -66,7 +66,7 @@ def getmodules(pkg, subpkgs=True):
         module object under given path {module name: module object}
     '''
     from importlib import import_module
-    
+
     module = {}
 
     for p in get_flat_list(pkg):
@@ -506,7 +506,7 @@ def to_num_datetime(col, name='array', thresh=0.75, **kwargs):
         return col
     if col.astype(str).str.contains('^0\d+$').any():
         return col
-    
+
     is_numeric_convertible = False
     not_null_count = col.count()
 

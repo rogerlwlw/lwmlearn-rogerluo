@@ -13,7 +13,7 @@ from sklearn.cluster import KMeans
 from lwmlearn import get_lw_estimators, pipe_main
 from lwmlearn.lwmodel.operators_pool import get_featurenames
 from lwmlearn.viz.plotter import (plotter_binlift, _save_fig, plotter_scatter,
-                                   plotter_ridge)
+                                  plotter_ridge)
 
 from lwmlearn.dataset.load_data import get_local_data
 from lwmlearn.preprocess.lw_base import Cleaner
@@ -21,8 +21,8 @@ from lwmlearn.utilis.docstring import Appender, dedent
 
 from lwmlearn.viz.utilis import null_outlier, scale_data
 from lwmlearn.viz.mlens_plot import (corr_X_y, corrmat, pca_plot,
-                                      pca_comp_plot, clustered_corrmap,
-                                      exp_var_plot)
+                                     pca_comp_plot, clustered_corrmap,
+                                     exp_var_plot)
 import seaborn as sns
 
 

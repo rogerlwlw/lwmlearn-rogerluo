@@ -29,7 +29,7 @@ def ks_score(y_true, y_pred, pos_label=1):
         K-S score.
 
     """
-    
+
     fpr, tpr, _ = roc_curve(y_true, y_pred, pos_label=pos_label)
     ks = (tpr - fpr).max()
     return ks

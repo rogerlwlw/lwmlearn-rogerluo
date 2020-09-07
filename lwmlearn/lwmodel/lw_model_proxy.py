@@ -35,12 +35,12 @@ from lwmlearn.utilis.read_write import Objs_management
 from lwmlearn.utilis.docstring import Appender, dedent
 
 from lwmlearn.viz.plotter import (plotter_auc, plotter_cv_results_,
-                                   plotter_score_path, plotter_lift_curve)
+                                  plotter_score_path, plotter_lift_curve)
 from lwmlearn.hypertune.gridspace import pipe_grid
 from lwmlearn.utilis.binning import binning
 from lwmlearn.utilis.utilis import to_num_datetime_df
 from lwmlearn.utilis.lw_model_proxy_utlis import (split_cv,
-                                                   get_splits_combined)
+                                                  get_splits_combined)
 from lwmlearn.utilis.sklearn_score import get_custom_scorer
 from lwmlearn.lwmodel.operators_pool import pipe_main, get_featurenames
 
@@ -1208,8 +1208,8 @@ class LW_model(BaseEstimator):
 
             if pre_level:
                 y_pre, bins = binning(y_pre,
-                                       bins=self.estimator.bins,
-                                       labels=False)
+                                      bins=self.estimator.bins,
+                                      labels=False)
         return y_pre
 
     def predict_proba(self, X):

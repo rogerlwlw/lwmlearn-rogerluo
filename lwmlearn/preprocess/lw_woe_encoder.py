@@ -130,13 +130,12 @@ class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
                  random_state=0,
                  splitter='best',
                  min_samples_leaf_num=10,
-                 verbose=1): 
+                 verbose=1):
         '''
         '''
         L = locals().copy()
         L.pop('self')
         self.set_params(**L)
-        
 
     def _get_binned(self, X, labels=None):
         '''get binned matrix using self edges, cols without cutting edges
@@ -253,7 +252,8 @@ class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
 
         if cols_notcoded:
             logger = init_log()
-            logger.warning("{} have not been woe encoded".format(cols_notcoded))
+            logger.warning(
+                "{} have not been woe encoded".format(cols_notcoded))
 
         return pd.concat(cols, axis=1)
 
@@ -277,9 +277,9 @@ class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
         None
             
         """
-        
-        import os 
-        
+
+        import os
+
         woe_iv = self.woe_iv
         n = 0
         for keys, gb in woe_iv.groupby('FEATURE_NAME'):
@@ -297,20 +297,21 @@ class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
                 n += 1
                 plt.show()
 
+
 # class BinEncoder(WoeEncoder):
 #     '''
 #     parameters
-#     ------   
+#     ------
 
 #     int_bins bool:
 #         if true, return integer label for bins
 #         if false, return [low, upper] edges for bins
-#         default='False' 
-        
+#         default='False'
+
 #     input_edges={}
-#         - mannual input cutting edges as 
+#         - mannual input cutting edges as
 #         {colname : [-inf, point1, point2..., inf]}
-        
+
 #     cat_num_lim
 #         - number of unique value limit to be treated as continueous feature,
 #         default 5
@@ -318,27 +319,26 @@ class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
 #     bins
 #         - number of equal width or array of edges
 #     q
-#         - number of equal frequency              
+#         - number of equal frequency
 #     max_leaf_nodes
 #         - number of tree nodes using tree cut
 #         - if not None use supervised cutting based on decision tree
-#     mono 
+#     mono
 #         - binning edges that increases monotonically with "y" mean value
-        
+
 #     .. note::
-#         -  only 1 of (q, bins, max_leaf_nodes, mono) can be specified 
-        
-        
+#         -  only 1 of (q, bins, max_leaf_nodes, mono) can be specified
+
 #     max_leaf_nodes
 #         - max number of bins default None
 #     min_samples_leaf=0.02
 #         - minimum number of samples in leaf node as fraction
 #     min_samples_split=0.01
-#         - the minimum number of samles required to split a node   
+#         - the minimum number of samles required to split a node
 #     min_samples_leaf_num
 #         - minimum number of samples in leaf node as numbers
 #     **tree_params
-#         - other decision tree keywords 
+#         - other decision tree keywords
 #     '''
 #     def __init__(
 #             self,
@@ -368,14 +368,14 @@ class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
 #     def fit(self, X, y):
 #         '''fit X(based on CART Tree) to get cutting edges
 #         (updated by manual input edges)
-        
+
 #         parameter
 #         ----
 #         X:
 #             df
-         
+
 #         y:
-#             class label 
+#             class label
 #         '''
 #         X = self._fit(X)
 #         # --
@@ -400,7 +400,7 @@ class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
 #         Returns
 #         -------
 #         binned dataframe
-            
+
 #         """
 #         X = self._filter_labels(X)
 #         labels = None if not self.int_bins else False
@@ -434,7 +434,7 @@ def _get_binning(X,
     # reset index
     X = pd.DataFrame(X).reset_index(drop=True)
     y = pd.Series(y).reset_index(drop=True)
-    
+
     for name, col in X.iteritems():
         df = pd.DataFrame({'x': col, 'y': y})
         col_notna = df.dropna().x
@@ -442,8 +442,8 @@ def _get_binning(X,
         if (len(pd.unique(col_notna)) > cat_num_lim \
             and api.is_numeric_dtype(col_notna)):
             label, bin_edges[name] = binning(col_notna, bins, q,
-                                              max_leaf_nodes, mono, y_notna,
-                                              **kwargs)
+                                             max_leaf_nodes, mono, y_notna,
+                                             **kwargs)
     return bin_edges
 
 
@@ -472,7 +472,6 @@ def _single_mapping(X, Y, var_name='VAR'):
         woe mapping table of X .
 
     """
-    
     '''calculate woe and iv for single binned X feature, with binary Y target
 
     '''
@@ -571,7 +570,7 @@ def calc_woe(df_binned, y):
     logger.info('total of {} cols get woe & iv'.format(len(l)))
     # concatenate col_iv
     woe_iv = pd.concat(l, axis=0, ignore_index=True)
-    
+
     return woe_iv, woe_map, pd.Series(iv, var_names)
 
 
@@ -582,4 +581,3 @@ if __name__ == '__main__':
     y = data.pop('y')
     x = data
     data_f = woe.fit_transform(x, y)
-    

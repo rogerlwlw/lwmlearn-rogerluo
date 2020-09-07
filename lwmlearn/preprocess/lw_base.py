@@ -38,7 +38,6 @@ from lwmlearn.utilis.utilis import get_flat_list, to_num_datetime_df
 from lwmlearn.lwlogging import init_log
 
 
-
 class LW_Base():
     '''base class for all 'lw' developed preprocessing operators
 
@@ -103,15 +102,15 @@ class LW_Base():
             raise ValueError('input must be DataFrame convertible')
         if X.empty:
             raise ValueError('X empty')
-        
+
         # recognize na_values
         if na_values is not None:
             na_values = get_flat_list(na_values)
             X = X.apply(lambda x: x.where(~x.isin(na_values)))
 
-        # convert accounting number or space strings    
+        # convert accounting number or space strings
         X = basic_cleandata(X)
-                                                  
+
         # convert to dtype
         X = to_num_datetime_df(self._drop_duplicated_cols(X))
         return X
@@ -144,7 +143,7 @@ class LW_Base():
     def _drop_duplicated_cols(self, X):
         '''drop duplicated cols 
         '''
-        
+
         columns = X.columns
         if columns.is_unique:
             return X
@@ -153,7 +152,7 @@ class LW_Base():
             if getattr(self, 'verbose') > 0:
                 logger = init_log()
                 msg = "{} duplicated columns '{}' are dropped\n ".format(
-                        len(col_dup), col_dup)
+                    len(col_dup), col_dup)
                 logger.info(msg)
             return X.drop(columns=col_dup)
 
@@ -278,7 +277,7 @@ class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
         # drop na columns over na_thresh
         na_col = X.columns[X.apply(lambda x: all(x.isna()))]
         length = len(X)
-        
+
         # drop null column
         thresh = self.get_params()['na_thresh']
         if api.is_integer(thresh):
@@ -348,12 +347,12 @@ class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
             'columns {} , total {} columns are null , have been dropped'.format(
                 na_col, len(na_col))
             logger.info(msg)
-            
+
         if len(uid_col) > 0:
-            msg ='''columns {}, total {} columns are uid, have been dropped
+            msg = '''columns {}, total {} columns are uid, have been dropped
                  '''.format(uid_col, len(uid_col))
             logger.info(msg)
-            
+
         if len(const_col) > 0:
             msg = '''columns {},  total {} columns are constant , have been dropped
                   '''.format(const_col, len(const_col))
@@ -411,11 +410,12 @@ def basic_cleandata(df):
     """
     # -- remove '^\s*$' for each cell
     df = df.replace("[^[-\_\s]*$]", np.nan, regex=True)
-    
-    # convert accounting number to digits by remove ',' and percentages 
+
+    # convert accounting number to digits by remove ',' and percentages
     df = df.applymap(_convert_numeric)
-    
+
     return df
+
 
 def _convert_numeric(x_str):
     """check if x_str is accounting or percentage number
@@ -439,32 +439,33 @@ def _convert_numeric(x_str):
     numeric_pattern = "^[-+]?\d*(?:\.\d*)?(?:\d[eE][+\-]?\d+)?(\%)?$"
     # integer code starts with 0
     code_pattern = "^0\d+$"
-    
+
     def _is_numeric_pattern(x_str):
         try:
             float(x_str)
             return True
         except:
             return False
-        
+
     if isinstance(x_str, str):
         x_str_r = re.sub("[,\%\$]", '', x_str)
-        
+
         if re.match(numeric_pattern, x_str_r) is not None:
             if re.match(code_pattern, x_str_r) is None:
                 try:
-                    x_str_r =  int(x_str_r) 
+                    x_str_r = int(x_str_r)
                 except:
-                    x_str_r = float(x_str_r) 
-            
-                if  re.match('^.*\%$', x_str):
+                    x_str_r = float(x_str_r)
+
+                if re.match('^.*\%$', x_str):
                     # for percentage
                     return x_str_r / 100
                 else:
                     # not percentage
                     return x_str_r
-    # return input x_str       
+    # return input x_str
     return x_str
+
 
 def _get_imputer(imput):
     '''return imputer instance for given strategy
@@ -482,19 +483,18 @@ def _get_imputer(imput):
 
     return imputer
 
+
 if __name__ == '__main__':
     # from lwmlearn.dataset.load_data import get_local_data
     # from sklearn.datasets import  make_classification
     # data = get_local_data('heart.csv')
     # clean = Cleaner(na1='missing', na2='mean')
     # y = data.pop('y')
-    # x = data 
+    # x = data
     # data_clean = clean.fit_transform(x)
-    data0 = [   [1, '223,000', '+10%'],
-                [10, '1,000,001', '+12%'],
-                [12, '1,023,001', '+13%'],
-                ['--', np.nan, '-50%'],
-                ['nan', 'null', '缺失值']]
+    data0 = [[1, '223,000', '+10%'], [10, '1,000,001', '+12%'],
+             [12, '1,023,001', '+13%'], ['--', np.nan, '-50%'],
+             ['nan', 'null', '缺失值']]
     data0
     cln = Cleaner(na1=None, na2=None)
     cln.fit_transform(data0)
