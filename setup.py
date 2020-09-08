@@ -69,7 +69,6 @@ setup(
         'matplotlib>=3.0.0',
         'xgboost>=0.81',
         'imbalanced-learn>=0.4.0',
-        'mlens>=0.2.3',
         'scikit-optimize',
     ],
     
