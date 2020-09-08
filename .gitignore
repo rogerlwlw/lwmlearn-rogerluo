@@ -133,5 +133,5 @@ lwmlearn/dataset/data/realworld/large
 
 docs/**/autoapi/*
 
-/tests
+/tests/**/*
 !/tests/**/*.py
