@@ -1,20 +1,9 @@
 # -*- coding: utf-8 -*-
 """Operators pool
 
-this module offers a pool for ML operators like transformers & classifiers
-
-Main Function
-
-    - get_lw_estimators():
-        Return any operators by input `name string` of operators. 
-        if input=None, a dict of available operator `name string` 
-        will be output giving guidence for user.
-     
-    - pipe_main()
-    
-    - count_operators()
-    
-    
+this module offers a pool for ML operators like transformers & classifiers. 
+Hyper parameters of operators could be predefined otherwise will be initialized
+with defautlts.
 
 Created on Thu Dec 12 16:53:52 2019
 
@@ -32,7 +21,7 @@ from imblearn.under_sampling.base import BaseCleaningSampler, BaseUnderSampler
 from imblearn.pipeline import Pipeline
 
 from sklearn.base import (ClassifierMixin, TransformerMixin, RegressorMixin,
-                          ClusterMixin, OutlierMixin)
+                          ClusterMixin, OutlierMixin, MetaEstimatorMixin)
 
 from sklearn.feature_selection.base import SelectorMixin
 from sklearn.linear_model.base import LinearClassifierMixin
@@ -42,12 +31,13 @@ from lwmlearn.utilis.utilis import get_flat_list, getmodules
 
 
 def predifined_instance():
-    '''crawls predefined package collecting predefined operator instances as
-    initialized in `predefined` package in `predefined_ops` function. Most often 
-    it will at first be called by get_lw_estimators() and Operators not in 
-    predefined_instance will be initialized with defaults.
-
-    Return:
+    '''crawls predefined package collecting predefined operator instances
+    
+    as a dict returned by all `predefined_ops` functions in `predefined` package
+    
+    Return 
+    ------
+    d : dict
         dict of user defined none-default instances of operators
     '''
     from lwmlearn.lwmodel import predefined
@@ -61,23 +51,28 @@ def predifined_instance():
 
 
 def get_lw_estimators(oper_str=None, type_filter=None):
-    '''return an estimator class instance for given oper_str as `class.__name__`, 
-    classes included are from packages ['lwmlearn', 'sklearn', 'imblearn'] 
+    '''return instance of estimator given oper_str as `class.__name__`, 
+    
+    classes included are from packages ['lwmlearn', 'sklearn', 'imblearn'],
+    MetaEstimator will be excluded
+    
+    first look at predefined instances, if not found, initialize one with 
+    defaults
     
     Parameters
     ----------
-    oper_str (str) :
-        
+    oper_str : str
         name of estimators
         
-    type_filter (string, list of string,  or None, default=None) :
-        
+    type_filter : str, list of str, None
         available values are 'classifier', 'regressor', 'cluster' and 
         'transformer' to get estimators only of these specific types, or a 
-        list of these to get the estimators that fit at least one of the types        
+        list of these to get the estimators that fit at least one of the types.
+        default is None        
     
-    Return :
-    
+    Return
+    ---------
+    instance :
         if oper_str is None, return dict of available classifers and regressors
         and transformers, classified by class type, 
         categorized as 'default' and 'predefined'
@@ -119,6 +114,7 @@ def _get_keys():
 
 def _categorize_operators(estimator_dict):
     '''to categorize estimators by classes
+    
     ['classifier', 'linearclassifier', 'baggingclassifier']
     
     estimator_dict:
@@ -166,16 +162,20 @@ def _categorize_operators(estimator_dict):
 
 
 def count_operators():
-    '''
+    '''count all operators
+    
     Return 
-        dict, number of operators for each operator type
+    -------
+    d : dict
+        number of operators for each operator type
         
     '''
     return {k: len(v) for k, v in _get_keys()['default'].items()}
 
 
 def lw_all_estimators(type_filter=None):
-    """Get a list of all estimators from  package 'lwmlearn' and 'sklearn'
+    """Get a list of all estimators from  package 'lwmlearn' and 'sklearn' and
+    'imblearn'
 
     This function crawls the module and gets all classes that inherit
     from BaseEstimator of sklearn. Classes that are defined in test-modules 
@@ -184,8 +184,7 @@ def lw_all_estimators(type_filter=None):
 
     Parameters
     ----------
-    type_filter (string, list of string,  or None, default=None):
-        
+    type_filter : string, list of string,  or None, default=None:
         available values are 'classifier', 'regressor', 'cluster' and 
         'transformer' to get estimators only of these specific types, or a 
         list of these to get the estimators that fit at least one of the types
@@ -225,7 +224,8 @@ def lw_all_estimators(type_filter=None):
         c for c in all_classes
         if (issubclass(c[1], BaseEstimator)
             and c[0] not in ['BaseEstimator', 'Pipeline', 'LW_model']
-            and not c[0].startswith('_'))
+            and not c[0].startswith('_')
+            and not issubclass(c[1], MetaEstimatorMixin))
     ]
     # get rid of abstract base classes
     estimators = [c for c in estimators if not is_abstract(c[1])]
@@ -274,6 +274,7 @@ def pipe_main(pipe=None):
     classifiers currently
     
     .. note::
+        
         data flows through a pipeline consisting of steps as below:
             raw data --> clean --> encoding --> scaling --> feature construction 
             --> feature selection --> resampling --> final estimator
@@ -281,14 +282,16 @@ def pipe_main(pipe=None):
     
     Parameters
     ----------
-    pipe - str 
-        - in the format of 'xx_xx' of which 'xx' means steps in pipeline,
-          default None
+    pipe : str 
+        in the format of 'xx_xx' of which 'xx' means steps in pipeline,
+        default None
     
     Return
     ------
-        * pipeline instance of chosen steps
-        * if pipe is None, a dict indicating possible choice of 'steps'
+    instance : 
+        pipeline instance of chosen steps
+        
+        if pipe is None, a dict indicating possible choice of 'steps'
     '''
     def _index_duplicated(string_list):
         '''index duplicated item in a list to make an unique list

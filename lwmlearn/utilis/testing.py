@@ -11,7 +11,7 @@ from sklearn.datasets import make_classification
 import os
 
 
-def get_data(dataset, test_size=0.3, sample=None):
+def _get_data(dataset, test_size=0.3, sample=None):
     '''
     '''
     if dataset == 'make_classification':
@@ -27,10 +27,38 @@ def get_data(dataset, test_size=0.3, sample=None):
     return train_test_split(x, y, test_size=test_size)
 
 
-def test_dataset(dataset, sample=None, test_size=0.3, **kwargs):
-    '''
-    '''
-    x_train, x_test, y_train, y_test = get_data(dataset,
+def testlocaldataset(dataset, sample=None, test_size=0.3, **kwargs):
+    """test :meth:`~.LW_model.run_autoML` method on given dataset
+    
+
+    Parameters
+    ----------
+    dataset : str
+        options ['make_classification', 'givemesomecredit.csv', ..], data file
+        names in dataset folder
+    sample : int, optional
+        sample given number of records from data. The default is None.
+    test_size : float, optional
+        fraction to use as testset. The default is 0.3.
+    **kwargs : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    m : TYPE
+        DESCRIPTION.
+    x_train : TYPE
+        DESCRIPTION.
+    x_test : TYPE
+        DESCRIPTION.
+    y_train : TYPE
+        DESCRIPTION.
+    y_test : TYPE
+        DESCRIPTION.
+
+    """
+    
+    x_train, x_test, y_train, y_test = _get_data(dataset,
                                                 test_size=test_size,
                                                 sample=sample)
     path, file = os.path.splitext(dataset)

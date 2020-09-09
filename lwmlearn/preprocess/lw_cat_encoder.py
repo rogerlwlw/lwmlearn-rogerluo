@@ -14,7 +14,7 @@ from lwmlearn.preprocess.lw_base import LW_Base
 from lwmlearn.lwlogging import init_log
 
 
-class Oht_encoder(BaseEstimator, TransformerMixin, LW_Base):
+class OhtEncoder(BaseEstimator, TransformerMixin, LW_Base):
     '''transform categorical features to  one-hot encoded
     
     transform only object dtype column, other dtype will remain unchanged
@@ -108,7 +108,7 @@ class Oht_encoder(BaseEstimator, TransformerMixin, LW_Base):
         return rst
 
 
-class Ordi_encoder(BaseEstimator, TransformerMixin, LW_Base):
+class OrdiEncoder(BaseEstimator, TransformerMixin, LW_Base):
     '''transform categorical features to ordinal encoded
     
     out of training categories will be treated as np.nan and encoded as -1,
