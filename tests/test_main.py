@@ -7,7 +7,6 @@ Created on Thu Mar 28 15:26:59 2019
 import pytest
 
 
-import numpy as np
 import traceback
 from lwmlearn import pipe_main, LW_model
 from sklearn.datasets import make_classification
@@ -16,9 +15,7 @@ from sklearn.datasets import make_classification
 def data():
     '''retrun fake data
     '''
-    X, y = make_classification(100, n_features=25, n_informative=10)
-    # non negative
-    X = np.where(X<0, -X, X)
+    X, y = make_classification(100, n_features=25, n_informative=15, shift=100)
     return X, y
 
 @pytest.fixture
@@ -80,7 +77,7 @@ def test_fit_transform(data):
          'SMOTENC', 'SparseCoder', 'MultiTaskLasso', 'LabelEncoder', 
          'MultiTaskElasticNetCV', 'HashingVectorizer', 'KernelCenterer',
          'GaussianRandomProjection', 'MultiTaskLassoCV', 'FeatureUnion', 
-         'LabelBinarizer', 'MultiTaskElasticNet']
+         'LabelBinarizer', 'MultiTaskElasticNet', 'GammaRegressor']
        
     operator_set = operator_set.difference(not_test_operators)
     # test
