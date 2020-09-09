@@ -70,6 +70,8 @@ setup(
         'xgboost>=0.81',
         'imbalanced-learn>=0.4.0',
         'scikit-optimize',
+        'seaborn',
+        'yapf',
     ],
     
     extras_require={
