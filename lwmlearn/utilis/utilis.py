@@ -552,5 +552,5 @@ def to_num_datetime_df(X, thresh=0.8):
     except Exception:
         raise ValueError('X must be df or convertible to df')
     lamf = lambda x: to_num_datetime(x, name=x.name, thresh=thresh)
-    rst = X.apply(lamf, axis=0, result_type='reduce')
+    rst = X.apply(lamf, axis=0)
     return rst
