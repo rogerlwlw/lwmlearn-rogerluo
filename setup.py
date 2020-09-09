@@ -72,6 +72,7 @@ setup(
         'scikit-optimize',
         'seaborn',
         'yapf',
+        'sqlalchemy',
     ],
     
     extras_require={
