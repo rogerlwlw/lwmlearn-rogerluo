@@ -18,25 +18,32 @@ def yapf_allfile(rootdir='.',
                  subfolder=False,
                  suffix=['.py'],
                  **knobs):
-    ''' codeformat all filies under rootdir
+    ''' code format all filies under rootdir
     
-    rootdir:
+    parameters
+    ----------
+    rootdir : path
         dir of files
-    style:
+    style : str
         'pep8'/'google'/'chromium'/'facebook'
-    subfolder bool:
+    subfolder : bool
         default True, including subfolders
-    suffix:
+    suffix : suffix
         default '.py'
+    
+    return
+    -------
+    None
+    
     '''
     styles = {'google', 'pep8', 'chromium', 'facebook'}
     if style not in styles:
         raise KeyError('invalid style input')
 
     if subfolder:
-        files = (file for k, file in file_traverse(rootdir).items())
+        files = (file for k, file in _file_traverse(rootdir).items())
     else:
-        files = (file for k, file in listDir(rootdir).items())
+        files = (file for k, file in _listDir(rootdir).items())
 
     for file in files:
         try:
@@ -57,14 +64,16 @@ def yapf_allfile(rootdir='.',
             print(file, 'code formation failed')
 
 
-def listDir(rootDir):
+def _listDir(rootDir):
     '''
+    
     return
-    ----
-    dict - {filename : filepath} under rootDir not including subfolder
+    ------
+    dict : dict
+        {filename : filepath} under rootDir not including subfolder
     '''
     file_dict = {}
-    for filename in os.listdir(rootDir):
+    for filename in os._listDir(rootDir):
         pathname = os.path.join(rootDir, filename)
         if os.path.isfile(pathname):
             file_dict[filename] = pathname
@@ -73,11 +82,12 @@ def listDir(rootDir):
     return file_dict
 
 
-def file_traverse(rootDir):
+def _file_traverse(rootDir):
     '''
     return
-    ----
-    dict - {filename : filepath} under rootDir including subfolders
+    ------
+    dict : dict
+        {filename : filepath} under rootDir including subfolders
     '''
     file_dict = dict([file, os.path.join(dirpath, file)]
                      for dirpath, dirnames, filenames in os.walk(rootDir)

@@ -10,7 +10,6 @@ inherited from matplotlib.doctring
 from inspect import cleandoc
 import re
 
-
 _whitespace_only_re = re.compile('^[ \t]+$', re.MULTILINE)
 _leading_whitespace_re = re.compile('(^[ \t]*)(?:[^ \t\n])', re.MULTILINE)
 
@@ -147,6 +146,7 @@ def copy_dedent(source):
     #  http://mail.python.org/pipermail/patches/2007-February/021687.html
     return lambda target: dedent(copy(source)(target))
 
+
 def dedent_str(text):
     """Remove any common leading whitespace from every line in `text`.
 
@@ -196,6 +196,7 @@ def dedent_str(text):
     if margin:
         text = re.sub(r'(?m)^' + margin, '', text)
     return text
+
 
 if __name__ == '__main__':
     key = \

@@ -42,7 +42,7 @@ plt.rcParams.update({
 })
 
 
-def txt_fontdict(**kwargs):
+def _txt_fontdict(**kwargs):
     '''
     '''
     font = {
@@ -232,8 +232,7 @@ def _filter_subset(data, filter_con, **kwargs):
 
 
 def plt_insp(artist):
-    """
-    inspect setters for matplotlib artist
+    """return inspect setters for matplotlib artist
     
     Parameters
     ----------
@@ -242,7 +241,8 @@ def plt_insp(artist):
 
     Returns
     -------
-    list of setters for given artist
+    list : List
+        setters for given artist for reference to attribute setting
 
     """
     from matplotlib.axes import Axes
@@ -267,8 +267,7 @@ def plotter_ridge(x,
                   start=1,
                   height=0.5,
                   **kwargs):
-    """
-    ridge plot to compare distribution between groups 
+    """ridge plot to compare distribution between groups 
 
     Parameters
     ----------
@@ -349,7 +348,7 @@ def plotter_ridge(x,
 
 
 def plotter_scatter(x, y, z, c=None, cmap='Spectral', alpha=0.85, **kwargs):
-    """
+    """scatter plot
     
 
     Parameters
@@ -1232,13 +1231,13 @@ def plotter_binlift(x,
         ax = plt.gca()
     # binning x features
     x_bin, bins_edges = binning(x,
-                                 y_true=y,
-                                 bins=bins,
-                                 q=q,
-                                 max_leaf_nodes=max_leaf_nodes,
-                                 mono=mono,
-                                 labels=labels,
-                                 **kwargs)
+                                y_true=y,
+                                bins=bins,
+                                q=q,
+                                max_leaf_nodes=max_leaf_nodes,
+                                mono=mono,
+                                labels=labels,
+                                **kwargs)
     if y is not None:
         df1 = _cal_rate_vol(x_bin, y)
         # plot
@@ -1282,7 +1281,6 @@ def _cal_rate_vol(x_bin, y, kind='vol'):
         DESCRIPTION.
 
     """
-    
 
     sort_index = x_bin.value_counts(
         dropna=False).sort_index().index.astype(str)
@@ -1434,13 +1432,13 @@ def plotter_lift_curve(y_pre,
     '''
 
     y_cut, bins = binning(y_pre,
-                           y_true=y_true,
-                           bins=bins,
-                           q=q,
-                           max_leaf_nodes=max_leaf_nodes,
-                           mono=mono,
-                           labels=labels,
-                           **kwargs)
+                          y_true=y_true,
+                          bins=bins,
+                          q=q,
+                          max_leaf_nodes=max_leaf_nodes,
+                          mono=mono,
+                          labels=labels,
+                          **kwargs)
     df0 = pd.DataFrame({'y_cut': y_cut, 'y_true': y_true})
     df_gb = df0.groupby('y_cut')
     df1 = pd.DataFrame()

@@ -16,6 +16,7 @@ import scipy.stats as stats
 
 from lwmlearn.lwlogging import init_log
 
+
 def _tree_univar_bin(arr_x, arr_y, **kwargs):
     """univariate binning based on binary decision Tree
     
@@ -37,7 +38,7 @@ def _tree_univar_bin(arr_x, arr_y, **kwargs):
         array of cutting points of binning edges, while cut_edges[0] = -inf,
         cut_edges[-1]=inf.
     """
-    
+
     validation.check_consistent_length(arr_x, arr_y)
     clf = DecisionTreeClassifier(
         **get_kwargs(DecisionTreeClassifier, **kwargs))
@@ -73,7 +74,7 @@ def _mono_cut(X, Y):
         DESCRIPTION.
 
     """
-    
+
     r = 0
     n = 10
     while np.abs(r) < 1 and n > 2:
@@ -156,24 +157,21 @@ def bin_tree(X,
                 un_split.append(name)
         else:
             cols.append(name)
-    
+
     # log process
     logger = init_log()
-    
+
     msg1 = '''total of {2} unchaged (unique counts less 
            than {1} or categorical dtype) =\n "{0}" 
            '''.format(pd.Index(cols), cat_num_lim, len(cols))
-    
+
     msg2 = '''total of {1} unsplitable features = \n {0} ...
            '''.format(pd.Index(un_split), len(un_split))
-           
-    msg3 = 'total of {} bin_edges obtained \n'.format(len(bin_edges))
+
     if cols:
         logger.info(msg1)
     if un_split:
         logger.info(msg2)
-    if bin_edges:
-        logger.info(msg3)
 
     return bin_edges
 
@@ -190,9 +188,9 @@ def _check_binning_keywords(bins, q, max_leaf_nodes, mono):
             (bins, q, max_leaf_nodes, mono) can be input, if not, parameters will be 
             reset as q=10 and bins=max_leaf_nodes=mono=None
             '''.format(q, bins, max_leaf_nodes, mono)
-        
+
         logger.warning(msg)
-        
+
         bins = max_leaf_nodes = mono = None
         q = 10
 
@@ -200,13 +198,13 @@ def _check_binning_keywords(bins, q, max_leaf_nodes, mono):
 
 
 def binning(y_pre=None,
-             bins=None,
-             q=None,
-             max_leaf_nodes=None,
-             mono=None,
-             y_true=None,
-             labels=None,
-             **kwargs):
+            bins=None,
+            q=None,
+            max_leaf_nodes=None,
+            mono=None,
+            y_true=None,
+            labels=None,
+            **kwargs):
     '''supervised binning 
     
     of y_pre based on y_true if y_true is not None
@@ -268,13 +266,13 @@ def binning(y_pre=None,
     if y_true is not None:
         y_true = to_num_datetime(y_true)
         y_true = np.array(y_true)
-    
+
     # drop na values for y_pre & y_true pairs in case of supervised cutting
     df = pd.DataFrame({'ypre': np.array(y_pre), 'ytrue': y_true})
     df = df.dropna(subset=['ypre'])
     y_pre = df.pop('ypre')
     y_true = df.pop('ytrue')
-    
+
     # if y_pre is not numeric data type, do not perform cut
     if not api.is_numeric_dtype(y_pre):
         return y_pre_input, y_pre.unique()
@@ -312,8 +310,8 @@ def binning(y_pre=None,
         labels = None
 
     y_binlabel, bin_edge = pd.cut(y_pre_input,
-                          bins,
-                          duplicates='drop',
-                          retbins=True,
-                          labels=labels)
+                                  bins,
+                                  duplicates='drop',
+                                  retbins=True,
+                                  labels=labels)
     return y_binlabel, bin_edge

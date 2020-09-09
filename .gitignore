@@ -128,9 +128,10 @@ dmypy.json
 *.docx
 
 # custom design
-tests/
-!tests/*.py
 examples/
-lwmlearn/dataset/data/realworld/largev
+lwmlearn/dataset/data/realworld/large
 
 docs/**/autoapi/*
+
+/tests/**/*
+!/tests/**/*.py

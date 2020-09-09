@@ -7,4 +7,4 @@ Created on Thu Aug 13 14:27:10 2020
 
 """
 
-from . load_data import get_local_data
+from .load_data import get_local_data

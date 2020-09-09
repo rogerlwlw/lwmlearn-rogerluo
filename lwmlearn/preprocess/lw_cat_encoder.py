@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""
+"""Categorical encoder
+
 Created on Mon Dec 16 16:53:08 2019
 
 @author: roger luo
@@ -10,30 +11,24 @@ import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import OneHotEncoder
 from lwmlearn.preprocess.lw_base import LW_Base
+from lwmlearn.lwlogging import init_log
 
 
 class Oht_encoder(BaseEstimator, TransformerMixin, LW_Base):
-    ''' 
-    - transform categorical features to  one-hot encoded; 
+    '''transform categorical features to  one-hot encoded
     
-    parameters
-    -----
-    handle_unknown 
-        - default 'ignore', for one-hot encoding, unknown feature category
-          will be treated as zeros, 'raise' error encountered unknow category
-          
-    sparse
-        - default False, for one-hot encoding, which will return 2D arrays
-
-    strategy 
-        - The imputation strategy."mean"/"median"/"most_frequent"/"constant"
-  
-    attributes
-    ----       
-    encoder
-        - sklearn transformer instance
-    encode_mapper - categories mapper of each column
-        - dict egg. {cloname : array(category names)}, 
+    transform only object dtype column, other dtype will remain unchanged
+    
+    Attributes
+    ----------
+    encoder : instance
+        sklearn transformer instance
+    out_labels : list
+        column labels of transformed matrix
+    encode_mapper : dict
+        categories mapper of each column, 
+        dict egg. {cloname : array(category names)}
+        
     '''
     def __init__(
             self,
@@ -42,15 +37,25 @@ class Oht_encoder(BaseEstimator, TransformerMixin, LW_Base):
             sparse=False,
             dtype=np.float64,
     ):
-        '''
-        '''
+        """
+        
+        parameters
+        -----------
+        handle_unknown : str
+            default 'ignore', for one-hot encoding, unknown feature category
+            will be treated as zeros, 'raise' error encountered unknow category
+              
+        sparse : bool
+            default False, for one-hot encoding, which will return 2D arrays
+
+        """
         L = locals().copy()
         L.pop('self')
         self.set_params(**L)
 
     def _check_categories(self, X):
-        '''check if feature category are out of categories scope, treat them as 
-        null
+        '''check if feature category are out of categories strained, 
+        treat them as np.nan
         '''
         if len(self.encode_mapper) == 0: return X
         #
@@ -59,12 +64,13 @@ class Oht_encoder(BaseEstimator, TransformerMixin, LW_Base):
                            axis=0)
         out_c = np.ravel(~isin_cat).sum()
         if out_c > 0:
-            print('''total of {} element out of categories and 
-                  will be treated as np.nan '''.format(out_c))
+            logger = init_log()
+            logger.warning('''total of {} element out of categories and 
+                        will be treated as np.nan '''.format(out_c))
         return X
 
     def fit(self, X, y=None):
-        '''fit df to get categorical feature using ordinal & one-hot encoder 
+        '''fit X using one-hot encoder 
         '''
         X = self._fit(X)
         self.obj_cols = X.select_dtypes('object').columns
@@ -80,8 +86,14 @@ class Oht_encoder(BaseEstimator, TransformerMixin, LW_Base):
         return self
 
     def transform(self, X):
-        '''transform categorical columns in X  to dummy variable , other columns 
-        remain unchaged
+        '''transform  X  to dummy variable
+        
+        transform only object dtype and other columns remain unchaged
+        
+        return
+        -------
+        X : dataframe
+            encoded dataframe
         '''
         X = self._filter_labels(X)
         # --obj cols
@@ -97,17 +109,18 @@ class Oht_encoder(BaseEstimator, TransformerMixin, LW_Base):
 
 
 class Ordi_encoder(BaseEstimator, TransformerMixin, LW_Base):
-    ''' 
-    - transform categorical features to ordinal encoded, out of training 
-    categories will be treated as np.nan and encoded as -1; 
+    '''transform categorical features to ordinal encoded
     
-    parameters
-    -----
- 
-    attributes
-    ----       
-    encode_mapper - categories mapper for each column
-        - dict egg. {cloname : {category1 : 0, category2 : 1, ...}}, 
+    out of training categories will be treated as np.nan and encoded as -1,
+    transform only object dtype column others will remain unchanged.
+     
+    Attributes
+    ----------       
+    encode_mapper : dict
+        categories mapper for each column, 
+        dict egg. {cloname : {category1 : 0, category2 : 1, ...}}
+    out_labels : list
+        column labels of output matrix
     '''
     def __init__(self, categories='auto', dtype=np.float64):
         '''
@@ -127,13 +140,14 @@ class Ordi_encoder(BaseEstimator, TransformerMixin, LW_Base):
                            axis=0)
         out_c = np.ravel(~isin_cat).sum()
         if out_c > 0:
-            print('''total of {} element out of categories and 
+            logger = init_log()
+            logger.warning('''total of {} element out of categories and 
                   will be treated as np.nan '''.format(out_c))
         X = X.where(isin_cat, np.nan)
         return X
 
     def fit(self, X, y=None):
-        '''fit df to get categorical feature using ordinal & one-hot encoder 
+        '''fit X using ordinal encoder 
         '''
         X = self._fit(X)
         self.obj_cols = X.select_dtypes('object').columns
@@ -151,8 +165,9 @@ class Ordi_encoder(BaseEstimator, TransformerMixin, LW_Base):
         return self
 
     def transform(self, X):
-        '''transform categorical columns in X  to dummy variable , 
-        other columns remain unchaged
+        '''transform  X  to oridinal encoded
+        
+        transform only object dtype column others will remain unchanged.
         '''
         X = self._filter_labels(X)
         # --obj cols

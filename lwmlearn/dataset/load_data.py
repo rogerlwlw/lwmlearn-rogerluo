@@ -53,8 +53,8 @@ def get_local_data(data_name=None, all_datafile=False, rel_path=None):
     reader = Objs_management(data_path)
     if all_datafile is True:
         d_df = reader.read_all(path=rel_path,
-                                 suffix=['.csv', '.xlsx', '.pkl'],
-                                 subfolder=True)
+                               suffix=['.csv', '.xlsx', '.pkl'],
+                               subfolder=True)
         return d_df
 
     available_files = reader.list_all(path=rel_path,
@@ -112,4 +112,3 @@ def _remove_label(df):
 
 if __name__ == '__main__':
     pass
-

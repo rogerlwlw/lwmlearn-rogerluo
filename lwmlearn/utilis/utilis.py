@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-"""
+""" common functions
+
+
+
 Created on Fri Nov  9 11:55:15 2018
 
 @author: roger
@@ -14,19 +17,18 @@ from functools import wraps, reduce
 
 
 def ppdf(df, decimals=1):
-    """
+    """ pretty print a dataframe table
     
-
     Parameters
     ----------
-    df : TYPE
-        dataframe.
+    df : dataframe
+    
     decimals : int, optional
         number of decimals to keep. The default is 1.
 
     Returns
     -------
-    df :
+    df : dataframe
         data frame with each cell as str.
 
     """
@@ -48,6 +50,9 @@ def ppdf(df, decimals=1):
 def getmodules(pkg, subpkgs=True):
     '''crawls packages and get all modules
     
+    parameters
+    ----------
+    
     pkg (list of packages): 
         list of packages to look for modules
         
@@ -56,10 +61,12 @@ def getmodules(pkg, subpkgs=True):
         if False only sub-modules, not sub-packages
                 
     return
-    ----
-    dict of module object under given path, {module name: module object}
+    -------
+    d : dict
+        module object under given path {module name: module object}
     '''
     from importlib import import_module
+
     module = {}
 
     for p in get_flat_list(pkg):
@@ -82,8 +89,21 @@ def getmodules(pkg, subpkgs=True):
 
 
 def join_embed_keys(dictionary, delimiter='_'):
-    ''' join keys by delimiter '_' from embedding dicts, for instance:
-        {k1 : {k2 : v}} to {k1_k2 : v}
+    ''' join keys by delimiter of embedding dicts
+    
+    like {k1 : {k2 : v}} to {k1_k2 : v}
+    
+    parameters
+    ----------
+    dictionary : dict
+        
+    delimiter : str
+        delimiter to use
+        
+    return
+    -------
+    d : ditc
+        
     '''
     d = dictionary.copy()
     while any([api.is_dict_like(d[k]) for k in d]):
@@ -97,7 +117,16 @@ def join_embed_keys(dictionary, delimiter='_'):
 
 
 def merge_dfs(df_list, how='inner', **kwargs):
-    '''return merged  DataFrames of all in 'df_list'
+    '''merge list of DataFrames recursively
+    
+    parameters
+    ----------
+    df_list : list
+        list of dataframe
+    
+    how : str
+        merge method
+        
     '''
     lamf = lambda left, right: pd.merge(left, right, how=how, **kwargs)
     return reduce(lamf, df_list)
@@ -110,12 +139,16 @@ def get_file_path():
 
 
 def get_flat_list(x):
-    '''
-    list and flatten object into one dimension list
+    '''list and flatten object into one dimension list
     
+    parameters
+    ----------
+    x : list
+        input list
     return
-    ----
-    one dimension list
+    -------
+    l :  List
+        1d list output list
     '''
     if isinstance(x, list) and not isinstance(x, (str, bytes)):
         return [a for i in x for a in get_flat_list(i)]
@@ -139,15 +172,39 @@ def default_func(func, new_funcname=None, **kwargs_outer):
 
 
 def dict_subset(d, keys):
-    '''return dict inlcude only a subset of keys
+    '''return subset of dict by list of keys
     
-    keys --> iterable of keys
+    parameters
+    -----------
+    d : dict
+        input dict
+    keys : list
+        list of keys
+        
+    return
+    -------
+    d : dict
+        subset of input dict
+        
     '''
     return {i: d.get(i) for i in keys}
 
 
 def dict_diff(d, keys):
-    '''return subset of dicts with a series of keys removed    
+    '''subset of dicts with a series of keys removed
+ 
+    parameters
+    -----------
+    d : dict
+        input dict
+    keys : list
+        list of keys
+        
+    return
+    -------
+    d : dict
+        subset of input dict with keys removed
+        
     '''
     d_keys = set(d.keys())
     in_keys = d_keys.difference(keys)
@@ -155,7 +212,18 @@ def dict_diff(d, keys):
 
 
 def interset_update(d1, d2):
-    '''return intersection of d1 and d2, update with d2's value
+    '''return intersection of d1 and d2 and update with d2's value
+    
+    parameters
+    ----------
+    d1 : dict
+    
+    d2 : dict
+    
+    return
+    --------
+    d : dict
+        intersection of d1 and d2 update d2's value
     '''
     k_intersect = d1.keys() & d2.keys()
     d3 = dict_subset(d2, k_intersect)
@@ -164,43 +232,47 @@ def interset_update(d1, d2):
 
 
 def var_gen(size, kind='p', **kwargs):
-    '''for given size, to generate random variables of specific kind
+    '''generate random variables of specific kind for given size
     
+    parameters
+    -----------
     size:
         size of ndarray, for example, 1D-100, 2D-(100, 3) 
         
-    kind = ['p', 'bin',  'cat', 'time', 'int', 'float', 'ID', 'w']
+    kind : str 
+        ['p', 'bin',  'cat', 'time', 'int', 'float', 'ID', 'w']
     
-    'p' :
-        probability (0, 1), could be constrained by beta distribution, 
-        'alpha=3', 'beta=3'
-    
-    'float':
-         float number, could be constrained by specified 
-         'low=0', 'mode=None', 'high=10'
-    
-    'bin':
-        binary 0/1, could be controlled by pos_ratio=0.18
+        'p' :
+            probability (0, 1), could be constrained by beta distribution, 
+            'alpha=3', 'beta=3'
         
-    'int':
-        integer, could be be constained by low=0, high=10,
-        if sequence is specified, select from sequence, egg: 
-        sequence_set =[3, 6, 12], weights = [0.2, 0.2, 0.6]
+        'float':
+             float number, could be constrained by specified 
+             'low=0', 'mode=None', 'high=10'
         
-    'cat':
-        categorical, requires sequence_set=[],  weights=[], 
-
-    'time':
-        datetime, requires start=, end=, [periods=, freq=], to draw samples
-        from date_range
+        'bin':
+            binary 0/1, could be controlled by pos_ratio=0.18
+            
+        'int':
+            integer, could be be constained by low=0, high=10,
+            if sequence is specified, select from sequence, egg: 
+            sequence_set =[3, 6, 12], weights = [0.2, 0.2, 0.6]
+            
+        'cat':
+            categorical, requires sequence_set=[],  weights=[], 
     
-    'ID':
-        uniqueID, prefix + range, egg['ID0', 'ID1']
+        'time':
+            datetime, requires start=, end=, [periods=, freq=], to draw samples
+            from date_range
         
-    'w': weithts
-        random positive array sum=1
+        'ID':
+            uniqueID, prefix + range, egg['ID0', 'ID1']
+            
+        'w': weithts
+            random positive array sum=1
     
-    **kwargs
+    keyword args
+    -------------
     
     'low', 'high', 'mode':
         for continueous dist, lower, upper bound and mode number
@@ -216,6 +288,12 @@ def var_gen(size, kind='p', **kwargs):
     
     'seed':
         random seed, default=None
+      
+    return
+    -------
+    array : ndarray
+        generated random variable matrix
+        
     '''
     def _weights_gen(size):
         '''
@@ -240,7 +318,7 @@ def var_gen(size, kind='p', **kwargs):
         prefix='ID',
     )
     defaults.update(**kwargs)
-    if not pd.core.dtypes.api.is_scalar(size):
+    if pd.core.dtypes.api.is_array_like(size):
         size = np.shape(size)
 
     # set random seed
@@ -341,6 +419,19 @@ def get_current_function_name():
 
 def get_kwargs(func, **kwargs):
     '''return subset of **kwargs that are of func arguments
+    
+    parameters
+    ------------
+    func : function
+        function object
+    
+    kwargs : keyword agrs
+    
+    return
+    -------
+    d : dict
+        keyword args of func
+        
     '''
     func_args = set(inspect.getfullargspec(func).args)
     func_args.intersection_update(kwargs)
@@ -369,25 +460,36 @@ def to_num_datetime(col, name='array', thresh=0.75, **kwargs):
     unchaged 
     
     parameters
-    ----
-    col --> series, scalar or ndarry will be turned into series type
+    -----------
+    col : series scalar or ndarry
+        input sequence
     
-    name --> name of the col series 
+    name : str
+        name of the col series 
     
-    thresh --> default 0.8 
-        - if more than the thresh percentage of X could be converted, 
+    thresh : float
+        default 0.8,  
+        if more than the thresh percentage of X could be converted, 
           then should commit conversion   
-    **kwargs 
     
-    - errors - {'ignore', 'raise', 'coerce'}, default --> 'coerce'
-        - If 'raise', then invalid parsing will raise an exception
-        - If 'coerce', then invalid parsing will be set as NaN
-        - If 'ignore', then invalid parsing will return the input
+    keyword args
+    ------------
     other pandas to_datetime key words
     
+    errors : {'ignore', 'raise', 'coerce'}
+        default 'coerce'
+        
+        If 'raise', then invalid parsing will raise an exception
+        
+        If 'coerce', then invalid parsing will be set as NaN
+        
+        If 'ignore', then invalid parsing will return the input
+    
+    
     return
-    ----
-    converted series or df
+    --------
+    s : series
+        converted col
     '''
     try:
         col = pd.Series(col)
@@ -404,7 +506,7 @@ def to_num_datetime(col, name='array', thresh=0.75, **kwargs):
         return col
     if col.astype(str).str.contains('^0\d+$').any():
         return col
-    
+
     is_numeric_convertible = False
     not_null_count = col.count()
 
@@ -430,13 +532,20 @@ def to_num_datetime(col, name='array', thresh=0.75, **kwargs):
     return col
 
 
-def to_num_datetime_df(X, thresh=0.75):
+def to_num_datetime_df(X, thresh=0.8):
     '''convert each column to numeric or datetime if possible, otherwise remain
     unchanged 
     
-    thresh --> default 0.8 
-        - if more than the thresh percentage of col could be converted, 
-          then should commit conversion     
+    parameters
+    -----------
+    X : dataframe
+        input dataframe to convert
+    
+    thresh : float
+        default 0.8,  
+        if more than the thresh percentage of col could be converted, 
+        then should commit conversion
+        
     '''
     try:
         X = pd.DataFrame(X)

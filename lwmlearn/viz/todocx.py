@@ -15,11 +15,11 @@ import pandas as pd
 import numpy as np
 import re
 
-from lwmlearn.utilis.read_write import  search_file
+from lwmlearn.utilis.read_write import search_file
 from lwmlearn.utilis.utilis import get_flat_list
 
 from docx import Document
-from docx.shared import Pt, Cm, RGBColor,Inches
+from docx.shared import Pt, Cm, RGBColor, Inches
 from docx.oxml.ns import qn
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
@@ -30,8 +30,8 @@ from docx.enum.style import WD_STYLE_TYPE
 def table_style():
     document = Document()
     styles = document.styles
-    
-    return [ s.name for s in styles if s.type == WD_STYLE_TYPE.TABLE]
+
+    return [s.name for s in styles if s.type == WD_STYLE_TYPE.TABLE]
 
 
 def _bool(x_str):
@@ -39,10 +39,13 @@ def _bool(x_str):
     '''
     return not str(x_str).upper() in {'FALSE'}
 
+
 class WordContainer():
-    
-    def __init__(self, docx=None, search_path='.',
-                 title_txt=None, title_align='CENTER'):
+    def __init__(self,
+                 docx=None,
+                 search_path='.',
+                 title_txt=None,
+                 title_align='CENTER'):
         '''
         
 
@@ -67,12 +70,14 @@ class WordContainer():
         self.set_search_path(search_path)
         if title_txt is not None:
             self._write_title(title_txt, alignment=title_align)
-    
-        
-    def _searchfile(self, filename, suffix=None, subfolder=True,
+
+    def _searchfile(self,
+                    filename,
+                    suffix=None,
+                    subfolder=True,
                     include_suffix=False):
 
-        return search_file(filename, self.search_path, suffix, subfolder, 
+        return search_file(filename, self.search_path, suffix, subfolder,
                            include_suffix)
 
     def _write_title(self, txt, style='Title', alignment='CENTER'):
@@ -97,7 +102,7 @@ class WordContainer():
         if style:
             p.style = style
         p.add_run(txt)
-        
+
     def _split_fmt_txt(self, txt, pattern='({[^{}]*})', **kwargs):
         """
         splitted 'txt' by pattern, then format each {key} with **kwargs
@@ -117,12 +122,11 @@ class WordContainer():
             formatted list of text string.
 
         """
-        
-        
+
         txt_lst = re.split(pattern, txt)
-        
+
         return [i.format_map(kwargs) for i in txt_lst]
-              
+
     def set_search_path(self, search_path):
         """
         
@@ -153,22 +157,21 @@ class WordContainer():
                 in a tree hiearchy.
         '''
         return self._report_component
-    
+
     @report_component_list.setter
     def report_component_list(self, report_component_list):
         """
         """
         if not isinstance(report_component_list, list):
             raise ValueError('component_lst must be list type')
-        if np.ndim(report_component_list) !=2:
+        if np.ndim(report_component_list) != 2:
             raise ValueError('Dimension of component_lst must be 2')
-        if np.shape(report_component_list)[-1] !=5:
-            raise ValueError('length of each iterable in component_lst must be 5')
-        
+        if np.shape(report_component_list)[-1] != 5:
+            raise ValueError(
+                'length of each iterable in component_lst must be 5')
+
         self._report_component = report_component_list
-        
-        
-            
+
     def get_docx(self, docx):
         """
         initialize self.document        
@@ -183,11 +186,11 @@ class WordContainer():
         None.
 
         """
-        
+
         self.document = Document(docx)
         self.set_styles()
         return self
-    
+
     def set_styles(self, style_name='Normal', fontsize=12):
         """
         
@@ -205,18 +208,17 @@ class WordContainer():
             DESCRIPTION.
 
         """
-        
+
         document = self.document
         style = document.styles['Normal']
         document.styles['Normal'].font.name = u'仿宋'
-        document.styles['Normal']._element.rPr.rFonts.set(qn('w:eastAsia'), 
-                                                          u'仿宋')
+        document.styles['Normal']._element.rPr.rFonts.set(
+            qn('w:eastAsia'), u'仿宋')
         font = style.font
-        font.size = Pt(fontsize)    
-        
+        font.size = Pt(fontsize)
+
         return self
-        
-    
+
     def write_header(self, txt):
         """
         write page header for self.document
@@ -237,8 +239,7 @@ class WordContainer():
         r = paragraph.add_run(txt)
         r.font.size = Pt(10)
         return
-    
-    
+
     def write_heading(self, level, txt, fontsize=12, style=None):
         """
         
@@ -258,13 +259,12 @@ class WordContainer():
             DESCRIPTION.
 
         """
-        
 
         document = self.document
         header = document.add_heading('', level=level)
         run = header.add_run(txt)
         if style:
-            header.style = style  
+            header.style = style
         else:
             run.font.name = '宋体'
             run.font.color.rgb = RGBColor(0, 83, 133)
@@ -273,10 +273,9 @@ class WordContainer():
         run.bold = True
         run.italic = False
         return self
-    
-    
-    def write_paragraph(self, 
-                        txt, 
+
+    def write_paragraph(self,
+                        txt,
                         fontsize=12,
                         style=None,
                         key_style='Intense Emphasis',
@@ -306,34 +305,34 @@ class WordContainer():
         None.
 
         """
-        
+
         document = self.document
         p = document.add_paragraph()
         if style:
             p.style = style
-            
+
         txt_list = self._split_fmt_txt(txt, **kwargs)
         for i, item in enumerate(txt_list):
-            if i%2 >0 and key_style:
+            if i % 2 > 0 and key_style:
                 run = p.add_run(item, style=key_style)
-                run.font.size = Pt(fontsize) 
+                run.font.size = Pt(fontsize)
                 run.font.underline = True
                 run.font.italic = False
             else:
                 run = p.add_run(item)
-                run.font.size = Pt(fontsize) 
-        return 
-        
-    def write_graph_obj(self, 
-                    pic_path, 
-                    width=6, 
-                    with_header=True, 
-                    headerlevel=2,
-                    txt_above=False, 
-                    txt_below=False, 
-                    fontsize=10,
-                    output=True,
-                    **kwargs):
+                run.font.size = Pt(fontsize)
+        return
+
+    def write_graph_obj(self,
+                        pic_path,
+                        width=6,
+                        with_header=True,
+                        headerlevel=2,
+                        txt_above=False,
+                        txt_below=False,
+                        fontsize=10,
+                        output=True,
+                        **kwargs):
         """
         
 
@@ -372,19 +371,19 @@ class WordContainer():
         # write txt above graph
         if txt_above:
             self.write_paragraph(txt_above, fontsize, **kwargs)
-        
+
         if output:
             document = self.document
             width = Inches(width)
             document.add_picture(pic_path, width=width)
             last_paragraph = document.paragraphs[-1]
-            last_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER  
+            last_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
         # write txt below graph
         if txt_below:
             self.write_paragraph(txt_below, fontsize, **kwargs)
-        
+
         return self
-    
+
     def write_table(self, df, style='Colorful List Accent 3'):
         """
         
@@ -403,36 +402,32 @@ class WordContainer():
             DESCRIPTION.
 
         """
-        
+
         document = self.document
         rows, cols = np.shape(df)
         rows += 1
-        table = document.add_table(
-                                    rows=rows,
-                                    cols=cols, 
-                                    style=style)
-        table.autofit=True
+        table = document.add_table(rows=rows, cols=cols, style=style)
+        table.autofit = True
         table.alignment = WD_TABLE_ALIGNMENT.LEFT
         hdr_names = df.columns
         for i, cell in enumerate(table.rows[0].cells):
             cell.text = str(hdr_names[i])
         for ndindex, val in np.ndenumerate(df):
             i, j = ndindex
-            table.cell(i+1, j).vertical_alignment = WD_ALIGN_VERTICAL.CENTER
-            table.cell(i+1, j).text = str(val).strip()
+            table.cell(i + 1, j).vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+            table.cell(i + 1, j).text = str(val).strip()
         self.write_paragraph('')
         return self
-    
-    def write_table_obj(self, 
-                        df_path, 
-                        with_header=True, 
+
+    def write_table_obj(self,
+                        df_path,
+                        with_header=True,
                         headerlevel=2,
                         txt_above=False,
-                        txt_below=False, 
+                        txt_below=False,
                         fontsize=10,
                         output=True,
-                        **kwargs
-                        ):
+                        **kwargs):
         """
         
 
@@ -459,13 +454,13 @@ class WordContainer():
         None.
 
         """
-        
+
         # header
         dirs, file_ext = os.path.split(df_path)
         filename, suffix = os.path.splitext(file_ext)
         if with_header:
             self.write_heading(headerlevel, filename)
-        
+
         if txt_above:
             self.write_paragraph(txt_above, fontsize, **kwargs)
         # read and write table
@@ -479,20 +474,20 @@ class WordContainer():
         # write txt below
         if txt_below:
             self.write_paragraph(txt_below, fontsize, **kwargs)
-        
-        return 
-    
+
+        return
+
     def save_docx(self, tofile):
         '''
         save docx to 'tofile'
         '''
-        
+
         self.document.save(tofile)
-    
+
     def run_container(self,
-                      report_component_list, 
-                      headtext_level=1, 
-                      search_path=None, 
+                      report_component_list,
+                      headtext_level=1,
+                      search_path=None,
                       **kwargs):
         """
         run report_component_list to write component to docx file
@@ -525,8 +520,8 @@ class WordContainer():
         if search_path is not None:
             self.set_search_path(search_path)
 
-        self.report_component_list = report_component_list 
-        
+        self.report_component_list = report_component_list
+
         for i in report_component_list:
             # key name of object, str
             key = str(i[0])
@@ -536,61 +531,59 @@ class WordContainer():
             text_above = i[2]
             # text below object
             text_below = i[3]
-            # subitems 
+            # subitems
             subitems = i[4]
             # file_path searched by key
             filepath = self._searchfile(key)
-            
+
             # for subitems add_text after object
             if filepath:
                 dir_file, suffix = os.path.splitext(filepath)
                 if suffix in {'.csv', '.xlsx'}:
                     self.write_table_obj(filepath,
-                                         with_header=True, 
+                                         with_header=True,
                                          headerlevel=headtext_level,
                                          output=is_output,
                                          txt_above=text_above,
-                                         txt_below=text_below, 
-                                         **kwargs
-                    )
+                                         txt_below=text_below,
+                                         **kwargs)
                 else:
-                    self.write_graph_obj(filepath, 
-                                         with_header=True, 
+                    self.write_graph_obj(filepath,
+                                         with_header=True,
                                          headerlevel=headtext_level,
                                          output=is_output,
                                          txt_above=text_above,
-                                         txt_below=text_below, 
-                                         **kwargs
-                                         )
+                                         txt_below=text_below,
+                                         **kwargs)
             else:
                 self.write_heading(headtext_level, str(key))
                 if text_above:
                     self.write_paragraph(text_above)
                     self.write_paragraph(text_below)
-            
-            # add subitems    
+
+            # add subitems
             if len(subitems) > 0:
                 sub_headtext_level = headtext_level + 1
                 self.run_container(subitems, sub_headtext_level, **kwargs)
         return self
-             
+
+
 if __name__ == '__main__':
     pass
-    
-    path = [r'D:\GitHub\Fintech_viz\fintech_cat\graph_output',
-            r'D:\GitHub\Fintech_viz\fintech_cat\table_output']
+
+    path = [
+        r'D:\GitHub\Fintech_viz\fintech_cat\graph_output',
+        r'D:\GitHub\Fintech_viz\fintech_cat\table_output'
+    ]
     d = WordContainer(search_path=path, title_txt='title', title_align='LEFT')
-    ob1 = ("流程监控图1", True, 'above this is a {a9}', 'below', [] )
-    ob2 = ("业务统计表1", True, 'above', 'below', [] )
+    ob1 = ("流程监控图1", True, 'above this is a {a9}', 'below', [])
+    ob2 = ("业务统计表1", True, 'above', 'below', [])
     report = [
-        ("流程监控图1", True, 'above', 'below', [ob1, ob2] ),
-        ("业务统计表1", True, 'above', 'below', [ob1, ob2] ),
-        ]
+        ("流程监控图1", True, 'above', 'below', [ob1, ob2]),
+        ("业务统计表1", True, 'above', 'below', [ob1, ob2]),
+    ]
     d.report_component_list = report
     d.run_container(report, a9="(a variable)")
     d.write_header("\t\t headers")
     d.write_paragraph('test test')
     d.save_docx('123.docx')
-
-
-
