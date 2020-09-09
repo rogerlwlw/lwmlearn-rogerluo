@@ -4,9 +4,11 @@ Created on Thu Mar 28 15:26:59 2019
 
 @author: rogerluo
 """
+
+import warnings
+warnings.filterwarnings("ignore")
+
 import pytest
-
-
 import traceback
 from lwmlearn import pipe_main, LW_model
 from sklearn.datasets import make_classification
