@@ -73,6 +73,7 @@ setup(
         'seaborn',
         'yapf',
         'sqlalchemy',
+        'python-docx',
     ],
     
     extras_require={
