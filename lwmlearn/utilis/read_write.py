@@ -28,6 +28,7 @@ from lwmlearn.utilis.utilis import get_flat_list, get_kwargs
 
 from ..lwlogging import init_log
 
+logger = init_log()
 
 class Path_File():
     '''descriptor to initialize file attributes
@@ -44,10 +45,6 @@ class Path_File():
         if not exist create one
         
     '''
-    def _get_logger(self):
-        '''init IO logger
-        '''
-        self.logger = init_log()
 
     @property
     def path_(self):
@@ -58,11 +55,12 @@ class Path_File():
         try:
             if not os.path.exists(path):
                 os.makedirs(path, exist_ok=True)
-                self.logger.info("info: path '{}' created ...".format(path))
+                logger.info("info: path '{}' created ...".format(path))
 
             self._p = os.path.relpath(path)
         except Exception:
-            self.logger.exception("invalid path input '%s' " % path,
+            
+            logger.exception("invalid path input '%s' " % path,
                                   stack_info=True)
             raise NotADirectoryError()
 
@@ -72,7 +70,8 @@ class Path_File():
             for i in file:
                 os.remove(os.path.join(root, i))
         shutil.rmtree(self._p, ignore_errors=True)
-        self.logger.info("info: path '{}' removed... \n".format(self._p))
+        
+        logger.info("info: path '{}' removed... \n".format(self._p))
 
     # file
     @property
@@ -84,14 +83,14 @@ class Path_File():
         if os.path.isfile(file):
             self._f = os.path.relpath(file)
         else:
-            self.logger.exception("file not found '%s' " % file,
+            logger.exception("file not found '%s' " % file,
                                   stack_info=True)
             raise FileNotFoundError()
 
     @file_.deleter
     def file_(self):
         os.remove(self._f)
-        self.logger.info("info: file '{}' removed".format(self._f))
+        logger.info("info: file '{}' removed".format(self._f))
 
     ## newfile
     @property
@@ -103,23 +102,23 @@ class Path_File():
         try:
             if os.path.isfile(file):
                 os.remove(file)
-                self.logger.info(
+                logger.info(
                     "info: old file '{}' deleted...\n ".format(file))
 
             dirs, filename = os.path.split(file)
             if not os.path.exists(dirs) and len(dirs) > 0:
                 os.makedirs(dirs, exist_ok=True)
-                self.logger.info("info: path '{}' created...\n".format(dirs))
+                logger.info("info: path '{}' created...\n".format(dirs))
             self._nf = file
         except Exception:
-            self.logger.exception('invalid path input {}'.format(file),
+            logger.exception('invalid path input {}'.format(file),
                                   stack_info=True)
             raise NotADirectoryError()
 
     @newfile_.deleter
     def newfile_(self):
         os.remove(self._nf)
-        self.logger.info("info: file '{}' removed".format(self._nf))
+        logger.info("info: file '{}' removed".format(self._nf))
 
 
 class Reader(Path_File):
@@ -141,7 +140,6 @@ class Reader(Path_File):
         ''' init path and logger variable 
         '''
         self.path_ = path
-        self._get_logger()
 
     def read(self, file, **kwargs):
         '''read obj from file
@@ -170,12 +168,12 @@ class Reader(Path_File):
         try:
             kw = get_kwargs(read_api, **kwargs)
             rst = read_api(self.file_, **kw)
-            self.logger.info("<obj>: '{}' read from '{}\n".format(
+            logger.info("<obj>: '{}' read from '{}\n".format(
                 rst.__class__.__name__, self.file_))
             return rst
         except Exception:
             msg = "fail to read file '{}' ".format(self.file_)
-            self.logger.exception(msg, stack_info=True)
+            logger.exception(msg, stack_info=True)
             raise IOError()
 
     def read_all(self, suffix=None, path=None, subfolder=False, **kwargs):
@@ -348,7 +346,6 @@ class Writer(Path_File):
         '''init path and logger variable   
         '''
         self.path_ = path
-        self._get_logger()
 
     def write(self, obj, file, **kwargs):
         '''dump obj into file under self.path_
@@ -376,10 +373,10 @@ class Writer(Path_File):
             wr_api(obj, self.newfile_, **kwargs)
             msg = "<obj>: '{}' dumped into '{}...\n".format(
                 obj.__class__.__name__, file)
-            self.logger.info(msg)
+            logger.info(msg)
         except Exception:
             msg = "<failure>: '{}' written failed ...".format(file)
-            self.logger.exception(msg, stack_info=True)
+            logger.exception(msg, stack_info=True)
             raise IOError()
 
 

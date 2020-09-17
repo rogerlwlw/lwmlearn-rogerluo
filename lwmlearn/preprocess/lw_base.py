@@ -37,6 +37,8 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from lwmlearn.utilis.utilis import get_flat_list, to_num_datetime_df
 from lwmlearn.lwlogging import init_log
 
+logger = init_log()
+
 
 class LW_Base():
     '''base class for all 'lw' developed preprocessing operators
@@ -150,7 +152,6 @@ class LW_Base():
         else:
             col_dup = columns[columns.duplicated('first')]
             if getattr(self, 'verbose') > 0:
-                logger = init_log()
                 msg = "{} duplicated columns '{}' are dropped\n ".format(
                     len(col_dup), col_dup)
                 logger.info(msg)
@@ -168,13 +169,12 @@ class LW_Base():
 class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
     '''data cleaning
     
-    mainly performs
+    mainly performs step by step
     
     - store input column labels
-    - space strings will be cleaned as np.nan
     - recognize na_values and replace them with np.nan
-    - clean accounting number or percentages like 1,234,000 or 20%
     - recognize all space strs values and replace them with np.nan
+    - clean accounting number or percentages like 1,234,000 or 20%
     - convert to numeric/str/datetime dtype
     - drop all na/constant/UID columns
     - fill in values for null for both numeric and categorical column
@@ -273,7 +273,6 @@ class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
         '''fit input_labels & out_labels 
         '''
         X = self._fit(X, self.na_values)
-        logger = init_log()
         # drop na columns over na_thresh
         na_col = X.columns[X.apply(lambda x: all(x.isna()))]
         length = len(X)
@@ -307,15 +306,15 @@ class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
                         X.drop(k, axis=1, inplace=True)
                         uid_col.append(k)
 
-        # drop too small fractions of categorical data
-        count_frac = []
-        for k, col in X.iteritems():
-            if api.is_object_dtype(col):
-                n = len(col)
-                max_frac = col.value_counts().max() / n
-                if max_frac < self.count_frac:
-                    X.drop(k, axis=1, inplace=True)
-                    count_frac.append(k)
+            # drop too small fractions of categorical data
+            count_frac = []
+            for k, col in X.iteritems():
+                if api.is_object_dtype(col):
+                    n = len(col)
+                    max_frac = col.value_counts().max() / n
+                    if max_frac < self.count_frac:
+                        X.drop(k, axis=1, inplace=True)
+                        count_frac.append(k)
 
         # filter dtypes
         options = {
@@ -359,8 +358,11 @@ class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
             logger.info(msg)
 
         # if self.get_params()['verbose'] > 0:
-        for k, i in options.items():
-            logger.info('matrix has {} of {} columns'.format(len(i), k))
+        logger.info(
+            'matrix has valid {} columns; {} numeric columns; {} categorical columns; {} datetime columns'.format(
+                X.shape[-1], len(self.numcols), len(self.objcols), len(self.datetimecols)
+            
+            ))
 
         return self
 
@@ -395,7 +397,7 @@ class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
 def basic_cleandata(df):
     """Try cleaning mapping value of df to numeric 
     
-    convert all space string , like '---  ' to np.nan, 
+    convert all space string , like '-._-   ' to np.nan, 
     convert accounting number like 1,232,000 to 1232000 and percentage like
     10% to 0.1.
     
@@ -409,7 +411,7 @@ def basic_cleandata(df):
 
     """
     # -- remove '^\s*$' for each cell
-    df = df.replace("[^[-\_\s]*$]", np.nan, regex=True)
+    df = df.replace("^[-\_\s\.]*$", np.nan, regex=True)
 
     # convert accounting number to digits by remove ',' and percentages
     df = df.applymap(_convert_numeric)
@@ -492,8 +494,8 @@ if __name__ == '__main__':
     # y = data.pop('y')
     # x = data
     # data_clean = clean.fit_transform(x)
-    data0 = [[1, '223,000', '+10%'], [10, '1,000,001', '+12%'],
-             [12, '1,023,001', '+13%'], ['--', np.nan, '-50%'],
+    data0 = [[1.0, '223,000', '+10%'], [10, '1,000,001', '+12%'],
+             [1.2, '1,023,001', '+13%'], ['-..-', np.nan, '-50%'],
              ['nan', 'null', '缺失值']]
     data0
     cln = Cleaner(na1=None, na2=None)

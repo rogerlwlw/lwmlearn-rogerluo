@@ -41,6 +41,7 @@ from lwmlearn.viz.plotter import plotter_rateVol
 from lwmlearn.utilis.binning import binning
 from lwmlearn.lwlogging import init_log
 
+logger = init_log()
 
 class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
     '''woe encode feature matrix using auto-binning strategy
@@ -251,7 +252,7 @@ class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
                 cols_notcoded.append(col.name)
 
         if cols_notcoded:
-            logger = init_log()
+            
             logger.warning(
                 "{} have not been woe encoded".format(cols_notcoded))
 
@@ -555,7 +556,7 @@ def calc_woe(df_binned, y):
         colname index iv value 
     
     '''
-    logger = init_log()
+    
     l = []
     woe_map = {}
     iv = []

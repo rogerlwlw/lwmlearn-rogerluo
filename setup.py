@@ -74,6 +74,7 @@ setup(
         'yapf',
         'sqlalchemy',
         'python-docx',
+        'loguru',
     ],
     
     extras_require={

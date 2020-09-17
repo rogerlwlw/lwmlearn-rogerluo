@@ -1,9 +1,67 @@
 # -*- coding: utf-8 -*-
 """
-`lw_model_proxy` module
+Class ``LW_model`` provides common methods for ML proccess such as model 
+evaluation and feature selecting
 
-offers a `LW_model` class that provides common methods for ML proccess
+use example
+------------
+.. ipython::
+    :okwarning:
+    
+    @supress    
+    In [1]: import warnings
+       ...: warnings.filterwarnings("ignore")
+       
+    In [2]: from lwmlearn import LW_model
+       ...: from sklearn.datasets import make_classification
+       ...: from sklearn.model_selection import train_test_split
+    
+    In [4]: X, y = make_classification(10000, n_redundant=20, n_features=50, flip_y=0.1)
 
+    In [5]: X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+    
+    In [6]: m = LW_model('clean_oht_frf_OneSidedSelection_XGBClassifier', verbose=1)
+    
+    In [7]: m.fit(X_train, y_train)
+    
+    In [9]: m.predict(X_test)   
+    
+    In [11]: m.test_score(X_test, y_test, cv=1, scoring=['KS', 'roc_auc'])
+    
+    In [12]: m.cv_validate(X_train, y_train, scoring=['roc_auc', 'KS'])
+
+    # auto tuning parameters by bayesian search and update model
+    In [13]: m.opt_sequential((X, y), kind='bayesiancv')
+
+.. ipython::
+    :okwarning:
+        
+    # plot search learning curve
+    @savefig plot_learning_curve.png
+    In [14]: m.plot_gridcv(m.kws_attr['gridcvtab'][0]) 
+    
+.. ipython::
+    :okwarning:
+        
+    # plot lift curve for trainset
+    @savefig plot_lift_train.png
+    In [46]: m.plot_lift(X_train, y_train, max_leaf_nodes=10)
+
+.. ipython::
+    :okwarning:
+        
+    # plot lift curve for test set with bins cut by trainset
+    @savefig plot_lift_test.png
+    In [45]: m.plot_lift(X_test, y_test, use_self_bins=True)
+
+.. ipython::
+    :okwarning:
+        
+    # plot two plots together
+    @savefig plot_auclift.png
+    In [47]: m.plot_AucLift(X_test, y_test, fit_train=False)
+    
+   
 Created on Wed Dec 11 18:39:56 2019
 
 @author: Rogerluo
@@ -13,13 +71,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-import traceback
 
 from functools import wraps
 from shutil import rmtree
 from copy import deepcopy
 
-from imblearn.pipeline import Pipeline
 from sklearn.model_selection import (GridSearchCV, RandomizedSearchCV,
                                      cross_val_score, cross_validate)
 from sklearn.base import BaseEstimator
@@ -38,12 +94,14 @@ from lwmlearn.viz.plotter import (plotter_auc, plotter_cv_results_,
                                   plotter_score_path, plotter_lift_curve)
 from lwmlearn.hypertune.gridspace import pipe_grid
 from lwmlearn.utilis.binning import binning
-from lwmlearn.utilis.utilis import to_num_datetime_df
+from lwmlearn.utilis.utilis import to_num_datetime_df, dict_subset
 from lwmlearn.utilis.lw_model_proxy_utlis import (split_cv,
                                                   get_splits_combined)
 from lwmlearn.utilis.sklearn_score import get_custom_scorer
 from lwmlearn.lwmodel.operators_pool import pipe_main, get_featurenames
+from lwmlearn.lwlogging import init_log
 
+logger = init_log()
 
 @dedent
 def run_modellist(
@@ -54,89 +112,79 @@ def run_modellist(
         dirs='auto',
         scoring=['roc_auc', 'KS', 'average_precision', 'neg_log_loss'],
         verbose=1,
-        on_error='raise',
+        on_error='ignore',
         **kwargs):
-    '''
-    run a series of pre-defined models as returned by get_default_models(),
-    list of models can be specified by keyword 'model_list', return evaluation
-    table for each model, and dict of models instances
+    '''run a series of pre-defined models as returned by get_default_models()
+    
+    list of models can be specified by keyword 'model_list'.
+    
         
     Parameters
     ----------
-    X
+    X : 2d array
         feature matrix
-    y
+        
+    y : 1d array
         classifiction calss label 0/1
         
-    test_set:
-        (X_test, y_test) tuple to use as test set, if None, no valuation
-        will be performed on testset.
-           
-    dirs - str:
+    test_set : tuple (X_test, y_test)
+        use as test set, if None, no valuation  on testset.
+        
+    dirs : path
         directory to dump analyze models, default='auto'
         
-    model_list - list:
-        list of  string represented stepped pipeline model
+    model_list : list
+        list of  string represented stepped pipeline model like 'XX_XXX_XX'
         
-    scoring (list):
-        scoring metrics, 
-        like ['roc_auc', 'KS', 'average_precision', 'neg_log_los'] where 'KS' 
+    scoring : list
+        list of scoring metrics, the default is
+        ['roc_auc', 'KS', 'average_precision', 'neg_log_los'] where 'KS' 
         is a custom scorer
-            
-    on_error - ['raise', 'ignore'], default 'ignore'
+        
+    on_error : ['raise', 'ignore'] default 'ignore'
+        
         - if 'raise', raise error
-        - if 'ignore', continue iteration of models, output error to 
-        'error_log.txt'
         
-    **Kwargs
+        - if 'ignore', continue iteration of models
+    
+    
+    keyword args
     ----------------
-    see LW_model.run_analysis() method 
-    
-    is_search bool: default=True
-        if True, predefined param_grid will be tuned automatically
-        if False, run default hyper parameters without tuning
-        
-    out_searchstep bool:
-        if true cv results of each search step will be output in gridcvtab
-        default=False
-    
-    cv (int):
+    is_search : bool
+        default=True
+        - if True, predefined param_grid will be tuned automatically
+        - if False, run default hyper parameters without tuning
+    out_searchstep : bool
+        if true, param_grid will be searched step by step and cv results of 
+        each search step will be output in gridcvtab, default=False
+    cv : int
        n of cross validation folds, cv should be greater thant 1
-       
-    kind str: ['gridcv', 'bayesiancv', 'randomcv'], search method to use
-    
-    default is 'bayesiancv'
-        - if kind == 'bayesiancv' use bayesian optimization
+    kind : str ['gridcv', 'bayesiancv', 'randomcv']
+        search method to use,the default is bayesiancv.
         
+        - if kind == 'bayesiancv' use bayesian optimization
+       
         - if kind == 'gridcv' sequentially update the best parameter 
         settings in each dict of param_grid by grid search
         
         - if kind == 'randomcv' sequentially update the best parameter 
-        settings in each dict of param_grid by random grid search    
+        settings in each dict of param_grid by random grid search
         
-    Plot lift curve
-    ------------------
-    q
-        - number of equal frequency 
-    bins
-        - number of equal width or array of edges
-    max_leaf_nodes
-        - if not None perform supervised cutting, 
-        - number of tree nodes using tree cut        
-    mono 
-        - binning edges that increases monotonically with "y" mean value
-        
-    .. note::
-        -  only 1 of (q, bins, max_leaf_nodes, mono) can be specified 
-        if all None, no lift curve plot
-        
-    return 
-    ------------------
-    autocv_score: df
-        cross validation score for both trainset & testset
+        see :meth:`~.LW_model.opt_sequential` method 
     
-    models: dict
-        dict of model instances evaluated
+    binning_kws : 
+        :ref:`bins, q, mono, max_leaf_nodes <binningmeth>`
+        
+        used to bin predictions and  plot lift curve
+        
+    
+    return 
+    ------
+    autocv_score : dataframe
+        cross validation score of scoring metrics for both trainset & testset
+    
+    models : dict
+        dict of fitted model instances
     '''
     # --
     if model_list is None:
@@ -146,7 +194,7 @@ def run_modellist(
 
     score_list = []
     models = {}
-
+    
     for i in l:
         try:
             path = os.path.join(dirs, i)
@@ -155,9 +203,9 @@ def run_modellist(
                                test_set=test_set,
                                scoring=scoring,
                                **kwargs)
-            print("\n '{}' complete \n".format(i))
+            logger.info("'{}' run successfully".format(i))
             # --
-            score_metrics = pd.Series()
+            score_metrics = pd.Series(dtype=object)
             score_metrics['Model_represent'] = i
 
             train = pd.Series(model.kws_attr.get('trainscore'))
@@ -172,12 +220,11 @@ def run_modellist(
             score_list.append(score_metrics)
             models.update({i: model})
         except Exception as e:
+            msg = "{} failed".format(i)
+            logger.exception(msg)
             if on_error == 'raise':
                 raise e
-            else:
-                traceback.print_exc()
-                traceback.print_exc(file=open('error_log.txt', 'a+'))
-
+                
     if len(score_list) > 0:
         autocv_score = pd.concat(score_list, axis=1, ignore_index=True).T
         autocv_score = to_num_datetime_df(autocv_score)
@@ -188,126 +235,60 @@ def run_modellist(
 
 
 class LW_model(BaseEstimator):
-    ''' an meta-estimator for quantifying predictions and offers many common
-    methods for ML 
+    '''Classifier wrapper for evaluating prediction 
+    
+    offers many common methods for ML process 
 
-    Parameters
-    ----------
-    estimator (str)
-        - operator 'str' seperated by '_', like 'XXX_XXX_XXX'
-        - 'XXX' represents instance name of sklearn estimator or predefined
-        estimator operator name
-        - default='LogisticRegression'
-    path
-        - dir to place model and other files, default 'model' under current 
-        directory
-    seed
-        - random state seed, 0 default
-    pos_label
-            - positive label default 1
        
-    
-    attributes
+    Attributes
     ----------
-    estimator
-        - model instance, usually a pipeline
-        - has attributes
-            bins(bin edges cut of predictions of estimator)
-            
-    modelsteps
-        - return estimator's operator str representation 'xxx_xxx_xxx'
-    
-    featurenames
-        - series of features that actually used as model input     
-   
-    loaddump
-        - read_write object to load/dump datafiles from self.path
-    
-    kws_attr attributes
-    -------------------  
-
-    NInputFeatures
-        - number of features for an fitted estimator
-   
-    NSamples
-        - number of samples for an fitted estimator
-        
-    ycounts
-        - class label counts for an fitted estimator
-        
-    gridcvtab (list of df) 
-        - cv_results after running searchcv
-        
-    testscore (Series)
-        - averaged score for test set returned by run_anlysis
-        
-    trainscore (Series)
-        - averaged score for train set returned by run_anlysis
-        
-    optional attributes
-    -------------------
-    autocv_score df
-        - cv_score after running auto_run for both training and test dataset  
-    automodels dict
-        - dict of model instances used in run_autoML
-    _plot_all_auc_data
-        - data to plot auc comarison curves for fitted estimators for auto_run
-    
-    method
-    ---------
-    load:
-        load pickled LW_model instance
-    fit:
-        perform fit of estimator
-    predict:
-        perform predict of estimator
-    predict_proba:
-        perform predict_proba of estimator
-    opt_sequential
-        grid_search of parameter grid space sequentially iterating hyper-param
-    run_train
-        run CV for train set, return cv score of multiple metrics
-    run_test
-        run cv splitted test for test set, return score of multiple metrics
-    run_analysis
-        run gridsearch and trainset and testset together
-    run_autoML:
-        update self.estimator as best model of predefined pipeline
-            
-    cv_score:
-        return cross score of estimator
-    cv_validate:
-        return cross score of estimator, allowing multi scorers
-    test_score:
-        return test_score of estimator, given X_test, y_test data, support
-        splitting data into groups
-    searchcv:
-        perform grid search of param_grid, update self esimator estimator,
-        support 3 search method kind=['bayesiancv', 'gridcv', 'randomcv']
-      
-    plot_auc:
-        plot auc of test data
-    plot_auc_traincv:
-        plot auc of train data
-    plot_lift:
-        plot lift curve of model
-    plot_gridcv:
-        plot  grid seach cv results of model
+    estimator : instance
+        usually a pipeline, has attributes bins for fitted estimator
+        (bin edges cut of predictions of estimator)
+    modelsteps : str
+        estimator's operator str representation 'xxx_xxx_xxx'
+    featurenames : Series
+        series of features that actually used as final model input, sometimes
+        transform operations will reduce or convert features.
+    loaddump : read/write instance
+        read_write object to load/dump datafiles from self.path
+    autocv_score : dataframe
+        cv_score after running auto_run for both training and test dataset  
+    automodels : dict
+        dict of model instances used in run_autoML
+    _plot_all_auc_data : data
+        data to plot auc comarison curves for fitted estimators for auto_run
+    kws_attr : dict
+        NInputFeatures : int
+            number of features for an fitted estimator
+        NSamples : int
+            number of samples for an fitted estimator
+        ycounts : int
+            class label counts for an fitted estimator
+        gridcvtab (list of df) 
+            cv_results after running searchcv
+        testscore : Series
+            averaged score for many metricx for test set returned by 
+            run_anlysis
+        trainscore : Series
+            averaged score fro many metricx for train set returned by 
+            run_anlysis        
     '''
     @staticmethod
     def load(lwpkl, path='model'):
-        ''' load 'LW_model' istance and set self.path to 'path'
+        ''' load pickled 'LW_model' istance and set self.path to 'path'
         
         Parameters
-        ----
-        lwpkl:
-           LW_model pickled file
-        path:
+        ----------
+        lwpkl : path
+           path of LW_model pickled file
+        path: path
             directory to for model output
         
         return
-        ----
-            model instance
+        ------
+        LW_model : instance
+        
         '''
         import pickle
         with open(lwpkl, 'rb') as f:
@@ -323,15 +304,61 @@ class LW_model(BaseEstimator):
                  verbose=1,
                  pos_label=1,
                  kws_attr={}):
-        '''             
-        '''
+        """    
+
+        Parameters
+        ----------
+        estimator : str, optional
+            operator name 'str' seperated by '_', like 'XXX_XXX_XXX', where
+            'XXX' represents instance name of sklearn estimator or predefined
+            estimator. The default is 'LogisticRegression'.
+        path : path, optional
+            path folder to save model results. The default is 'model'.
+        seed : int, optional
+            random seed to initiate model. The default is 0.
+        verbose : int, optional
+            verbosity for output info. The default is 1. 
+            
+            - if verbosity <= 1, do not output spreadsheets
+            
+            - if verbosity > 1, output spreadsheets of grid search table
+            
+        pos_label : 0, 1, optional
+            possitve class label. The default is 1.
+        kws_attr : dict, optional
+            dict to store calculated results. The default is {}.
+
+        Returns
+        -------
+        None.
+
+        """
+        
         self.path = path
         self.verbose = verbose
         self.pos_label = pos_label
         self.seed = seed
-        self.set_estimator(estimator)
+        self._set_estimator(estimator)
         self.kws_attr = kws_attr
 
+    def _set_estimator(self, estimator):
+        '''update self.estimator as instance 
+        
+        input should be name representation of estimator or an estimator 
+        instance
+        
+        '''
+        if isinstance(estimator, str):
+            model = pipe_main(estimator)
+        elif hasattr(estimator, '_estimator_type'):
+            model = estimator
+        else:
+            msg = 'invalid estimator input type: {}'.format(
+                    estimator.__class__.__name__)
+            logger.exception(msg, stack_info=True)
+            raise ValueError()
+        self.estimator = model
+        
     def _shut_temp_loaddump(self):
         '''shut temp loaddump directory
         '''
@@ -339,7 +366,7 @@ class LW_model(BaseEstimator):
             while os.path.exists(self.estimator.memory):
                 rmtree(self.estimator.memory, ignore_errors=True)
 
-            print('%s has been removed' % self.estimator.memory)
+            logger.info('%s has been removed' % self.estimator.memory)
             self.estimator.memory = None
 
     def _check_fitted(self, estimator):
@@ -355,15 +382,21 @@ class LW_model(BaseEstimator):
         '''
         classes_ = getattr(estimator, 'classes_')
         if len(classes_) > 2:
-            raise ValueError(' estimator should only output binary classes...')
-
+            msg = 'estimator should only output binary classes'
+            logger.exception(msg)
+            raise ValueError()
+        
+        has_pre = -1
         for i in ['decision_function', 'predict_proba']:
             if hasattr(estimator, i):
                 pre_func = getattr(estimator, i)
+                has_pre = 1
                 break
 
-        if pre_func is None:
-            raise ValueError('estimator have no continuous predictions')
+        if has_pre < 0:
+            msg = 'estimator have no continuous predictions'
+            logger.exception(msg)
+            raise ValueError()
 
         y_pre = pre_func(X, **kwargs)
         if np.ndim(y_pre) > 1:
@@ -403,8 +436,8 @@ class LW_model(BaseEstimator):
                        groups=None,
                        refit=False,
                        **fit_params):
-        '''return array of fpr, tpr, roc_auc value for given X and  yy (y_true) 
-        on a series of threshold
+        '''return array of fpr, tpr, roc_auc value for given X and  y (y_true) 
+        on a series of threshold to plot roc_auc curve series
         '''
         estimator = deepcopy(model)
         # split test set by cv
@@ -431,7 +464,7 @@ class LW_model(BaseEstimator):
         return fprs, tprs, aucs, data_splits
 
     def _get_gridspace(self, kind):
-        '''return predefined gridspace
+        '''return predefined gridspace by calling pipe_grid
         '''
         param_grid = []
         for k, v in self.estimator.named_steps.items():
@@ -449,12 +482,15 @@ class LW_model(BaseEstimator):
         d = {}
         for i in param_grid:
             d.update(i)
-        print('param_grid has been combined into one space: \n {}'.format(d))
+            
+        logger.info(
+            'param_grid has been combined into one dict space: \n {}'.format(d))
         return [d]
 
     def _update_bestmodel(self, by_metrics='roc_auc_Trainset', **kwargs):
         '''update model's estimator by the best model after running 
-        run_autoML, 'by_metrics' is used to select best model
+        run_autoML, 'by_metrics' is used to select best model, for trainset and
+        testset data metrics are suffixed by "Trainset" and  "Testset" respectly
         '''
         argmax = self.autocv_score[by_metrics].argmax()
         best_model = self.autocv_score.loc[argmax, 'Model_represent']
@@ -468,8 +504,26 @@ class LW_model(BaseEstimator):
                  fig=None,
                  default_saved_name=None,
                  closefig=True):
-        '''
-        save current fig to designated cwd/folder_file
+        '''save current fig to `savefig` path
+        
+        parameters
+        ----------
+        savefig : bool or path
+            - if False, do nothing
+            - if True, save `fig` or current fig object to `default_saved_name`
+            path
+            - if path, save `fig` or current fig object to `savefig` path
+        fig : figure
+            figure object
+        default_saved_name : path
+            fig path file
+        closefig : bool
+            if True, close the fig after saving
+        
+        return
+        -------
+        None
+        
         '''
 
         if save_fig is False:
@@ -480,10 +534,13 @@ class LW_model(BaseEstimator):
 
         if save_fig is True:
             if default_saved_name is None:
+                logger.excetpion('default_saved_name must be given')
                 raise ValueError('default_saved_name must be given')
             else:
                 save_fig = default_saved_name
+        # save fig
         self.loaddump.write(fig, save_fig)
+        
         if closefig:
             plt.close(fig)
         return
@@ -508,15 +565,14 @@ class LW_model(BaseEstimator):
         ----------
         fitted_estimator : TYPE
             DESCRIPTION.
-        X : TYPE
+        X : 2d array
             DESCRIPTION.
-        y : TYPE
+        y : 1d array
             DESCRIPTION.
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        self : self instance
 
         """
         self.kws_attr.update(
@@ -535,10 +591,15 @@ class LW_model(BaseEstimator):
                         y_test=None):
         """
         return basic info of a fitted model
-
+            
+        - NSamples
+        - NInputFeatures
+        - NUsedFeatures
+        - classifer_name
+        
         Parameters
         ----------
-        out_str : TYPE, optional
+        out_str : bool, optional
             DESCRIPTION. The default is False.
         prepend : TYPE, optional
             str to prepend header_str. The default is ''.
@@ -611,7 +672,12 @@ class LW_model(BaseEstimator):
 
     @property
     def loaddump(self):
-        ''' return obj_management instance to load or dump object
+        '''return IO object
+        
+        return
+        ------
+        obj_management : instance 
+            to load or dump object
         '''
         return Objs_management(self.path)
 
@@ -626,19 +692,6 @@ class LW_model(BaseEstimator):
         else:
             raise NameError('no estimator input')
 
-    def set_estimator(self, estimator):
-        '''update self.estimator, input should be name of estimator or an 
-        instance
-        '''
-        if isinstance(estimator, str):
-            model = pipe_main(estimator)
-        elif hasattr(estimator, '_estimator_type'):
-            model = estimator
-        else:
-            raise ValueError('invalid estimator input type: {}'.format(
-                estimator.__class__.__name__))
-
-        self.estimator = model
 
     def plot_auc(self,
                  X,
@@ -649,44 +702,53 @@ class LW_model(BaseEstimator):
                  ax=None,
                  save_fig=False,
                  fit_train=False):
-        '''plot roc_auc curve for given fitted estimator(must have continuous
-        predicton, like decision_function or predict_proba) to evaluate model. 
+        '''plot roc_auc curve for fitted estimator
+        
+        the estimator must have continuous predicton, like decision_function 
+        or predict_proba.
         single pair of X, y can be splited into folds using cv > 1 to assess 
-        locality of data, cross validated auc for traindata could be plotted 
+        locality of data. 
+        Cross validated auc scores for train data could be plotted 
         by fit_train=True
+        
+        parameters
+        -----------
 
-        X
-            -2D array or list of 2D ndarrays
-        y
-            -binary or list of class label
-        cv 
-            -int, cross-validation generator or an iterable
-            - if cv>1, generate splits by StratifyKfold method
-        title
-            - title added to plot header, default ''
-            
+        X : 2d array
+            matrix features
+        y : 1d array
+            binary class label
+        cv : int
+            cross-validation generator or an iterable of dataset folds
+            if cv>1, generate splits by StratifyKfold method, if cv==1, do not
+            split X, y
+        title : str
+            title added to plot header. The default is ''
         fit_train: bool
             if True, refit estimator using other folds data than current k fold
-            each time;fit current estimator using entire (X, y)
-            if False, only test a fitted estimator
-        
-        save_fig bool:
-            if True, save plotted fig to default pdf file
-            if Falsee, do not save fig
+            each iteration. 
+            if False, only test a fitted estimator, no refit of estimator
+        save_fig : bool
+            if True, save plotted fig to default file ``'plots/auc.png'``
+            if False, do not save fig
             if file_dir, save fig to file_dir
+            
             
         return
         --------
-        - ax
-        - mean-auc
-        - std-auc       
-        - data_splits:
+        ax : ax
+            Fig.axe object instance
+        mean-auc : float
+            mean AUC score of cross validation
+        std-auc : float
+            std of AUC
+        data_splits : list
             list of test data set in the form of DataFrame (combined X & y)
         '''
 
         estimator = self.estimator
         if fit_train:
-            self.fit(X, y)
+            self.fit(X, y) # fit estimator using entire dataset
         # split test set by cv
         fprs, tprs, aucs, data_splits = self._cal_fprs_tprs(estimator,
                                                             X,
@@ -694,14 +756,13 @@ class LW_model(BaseEstimator):
                                                             cv,
                                                             groups,
                                                             refit=fit_train)
-
         # -- plot
         # title info
         title = '' if title is None else title
         header = self._get_basic_info(True, title, x_test=X)
         ax = plotter_auc(fprs, tprs, ax=ax, title=header)
         # -- save plot
-        self._savefig(save_fig, default_saved_name='plots/auc.pdf')
+        self._savefig(save_fig, default_saved_name='plots/auc.png')
 
         rst = (ax, np.mean(aucs), np.std(aucs),
                get_splits_combined(data_splits))
@@ -722,56 +783,66 @@ class LW_model(BaseEstimator):
             save_fig=False,
             tree_kws={},
     ):
-        '''plot list curve of (X, y) data, update self bins
+        '''plot list curve of (X, y) data and update bins as estimators 
+        attribute
         
-            given bins(n equal width) or q( n equal frequency) or 
-            max_leaf_nodes cut by tree or monotonically cut
-        X :
-            -2D array
-        y :
-            -binary class labels , 1D array
+        parameters
+        -----------
+        
+        X : 2D array
+            feature matrix
+        y : 1D array
+            binary class labels 
             
-        bins:
-            - number of equal width or array of edges
+        bins : int 
+            number of equal width bins
             
-        q:
-            - number of equal frequency    
+        q : int 
+            number of equal frequency bins 
+             
+        max_leaf_nodes : int
+            number of tree nodes bins using tree cut
+            if not None use supervised cutting based on decision tree
             
-        max_leaf_nodes:
-            - number of tree nodes using tree cut
-            - if not None use supervised cutting based on decision tree
+        mono : int
+            number of bins that increases monotonically with "y" mean value  
             
-        mono :
-            - binning edges that increases monotonically with "y" mean value
-
-        use_self_bins:
-            - use self.estimator.bins if true
+            .. note::
+                
+                arguments [ q, bins, max_leaf_nodes, mono ] control binning method 
+                and only 1 of them can be specified. 
+                if not valid assign q=10 and bins=max_leaf_nodes=mono=None
+                
+        use_self_bins : bool
+            if true, use previously calculated binning edges to plot lift curve,
+            self.estimator.bins will be updated after plot_lift call
+        
+        labels : bool
+            see pd.cut, if False return integer indicator of bins, 
+            if True return arrays of labels (or can be manually input)
             
-        .. note::
-            -  only 1 of (q, bins, max_leaf_nodes, mono) can be specified 
-            
-        labels bool:
-            - see pd.cut, if False return integer indicator of bins, 
-            - if True return arrays of labels (or can be manually input)
-            
-        tree_kws dict:
-            - Decision tree keyswords, egg:
+        tree_kws : dict
             - min_impurity_decrease=0.001
             - random_state=0 
             
-        title str :
-            - title of plot, output format: 'title' + estimator's name +
+        title : str
+            title of plot, output format: 'title' + estimator's name +
             NSamples + n_features, default '', usually for 'Train' or 
             'Test' data info indication.
 
-        save_fig bool:
-            if True, save plotted fig to default pdf file
-            if Falsee, do not save fig
+        save_fig : bool or path
+            if True, save plotted fig to default pdf file, 
+            if Falsee, do not save fig, 
             if file_dir, save fig to file_dir
+            
             
         return
         -------
-        ax,  plotted_data;
+        ax : 
+            plt.axe
+        
+        data :
+            plotted_data
         '''
         estimator = self.estimator
         self._check_fitted(estimator)
@@ -780,14 +851,14 @@ class LW_model(BaseEstimator):
 
         # use_self_bins stored during training
         if use_self_bins is True:
-            if getattr(self.estimator, 'bins') is not None:
+            if hasattr(self.estimator, 'bins'):
                 bins = self.estimator.bins
                 q = None
                 max_leaf_nodes = None
                 mono = None
             else:
-                print("'self.estimator.bins' is None, no lift curve plot \n")
-                return
+                logger.info("'self.estimator.bins' is None")
+                
         # title info
         title = '' if title is None else title
         header = self._get_basic_info(True, title, x_test=X)
@@ -808,33 +879,37 @@ class LW_model(BaseEstimator):
         # update self bins
         self.estimator.bins = bins
         # save fig
-        self._savefig(save_fig, default_saved_name='plots/lift.pdf')
+        self._savefig(save_fig, default_saved_name='plots/lift.png')
         return ax, plotted_data
 
     def plot_all_auc(self, use_selfdata, save_fig=True, **kwargs):
-        '''plot roc_auc curves of all model instance under path directory to
-        compare model performance by auc metrics, update self._plotdata_all_auc
+        '''plot roc_auc curves of all model instance in one figure
+        
+        perform this after running :meth:`~run_autoML`, all model instance 
+        will be saved under self.path directory.
+        compare performance of all models by roc_auc metrics. And update data
+        self._plotdata_all_auc which can be used later by sepcifying 
+        ``use_selfdata=True``
         
         parameters
         ----------
         
-        use_selfdata bool: 
-            default True
+        use_selfdata : bool 
             
-            if True, used stored self._plotdata_all_auc to plot all auc 
-            comparisons;
+            - if True, used stored self._plotdata_all_auc to plot all auc 
+            comparisons
             
-            if False, use input X, y to calculate data, 
+            - if False, use input X, y to calculate data, 
             update self._plotdata_all_auc, then plot all auc comparisons
         
-        **kwargs
-        ---------
-        X
-            -2D array
-        y
-            -binary class label , 1D array
+        keyword args
+        -------------
+        X :
+            2D array
+        y :
+            binary class label , 1D array
             
-        save_fig bool or str:
+        save_fig : bool or str
             if False do not save fig,
             if True or str, save fig to 'plots' folder giving  a filename as 
             'savae_fig'
@@ -862,7 +937,7 @@ class LW_model(BaseEstimator):
         fig.tight_layout()
 
         # save fig
-        self._savefig(save_fig, default_saved_name='plots/roc_all.pdf')
+        self._savefig(save_fig, default_saved_name='plots/roc_all.png')
 
         return
 
@@ -873,8 +948,45 @@ class LW_model(BaseEstimator):
                      title=None,
                      save_fig=False,
                      **kwargs):
-        '''plot AUC curve and Lift curve together
-        '''
+        """plot AUC curve and Lift curve together in one figure
+        
+        .. hint::
+            
+            if fit_train=False, need to get to ``self.estimator.bins`` 
+            by calling plot_lift with training dataset
+            
+
+        Parameters
+        ----------
+        X : TYPE
+            DESCRIPTION.
+        y : TYPE
+            DESCRIPTION.
+        fit_train : bool, optional
+        
+            - if True fit the estimator by X, y. The default is False.
+            
+        title : TYPE, optional
+            DESCRIPTION. The default is None.
+        save_fig : TYPE, optional
+            DESCRIPTION. The default is False.
+        
+        keyword args
+        -------------
+        binning_kws : 
+            :ref:`bins, q, mono, max_leaf_nodes <binningmeth>`
+            
+            used to bin predicted probability and plot lift curve
+
+        Returns
+        -------
+        train_auc : TYPE
+            DESCRIPTION.
+        lift_data : TYPE
+            DESCRIPTION.
+
+        """
+
         # plot roc_auc
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
         title = title if title is not None else ''
@@ -893,7 +1005,7 @@ class LW_model(BaseEstimator):
                                    **get_kwargs(self.plot_lift, **kwargs))
 
         # save fig
-        self._savefig(save_fig, default_saved_name='plots/AucLift.pdf')
+        self._savefig(save_fig, default_saved_name='plots/AucLift.png')
 
         return train_auc, lift_data
 
@@ -958,14 +1070,14 @@ class LW_model(BaseEstimator):
             columns=['kfolds', 'NSamples', 'NInputFeatures', 'NUsedFeatures'])
         plotter_score_path(plot_data, title=header)
         # save fig
-        self._savefig(save_fig, default_saved_name='plots/ScorePath.pdf')
+        self._savefig(save_fig, default_saved_name='plots/ScorePath.png')
         return cv_score
 
     def plot_gridcv(self, gridcvtab, title=None, save_fig=False):
         '''plot grid seatch cv results
         '''
         if gridcvtab is None:
-            print('no cv_result table output')
+            logger.info('no cv_result table output')
             return
 
         # title info
@@ -973,14 +1085,18 @@ class LW_model(BaseEstimator):
         header = self._get_basic_info(True, title)
         plotter_cv_results_(gridcvtab, title=header)
         # save fig
-        self._savefig(save_fig, default_saved_name='plots/searchcv.pdf')
+        self._savefig(save_fig, default_saved_name='plots/searchcv.png')
         return
 
     @wraps(cross_val_score)
     def cv_score(self, X, y, scoring='roc_auc', cv=5, **kwargs):
         '''
         return cross validated score of estimator (see cross_val_score)
-        ---------
+        
+        see also
+        ----------
+        :func:`sklearn.model_selection.cross_val_score`
+        
         '''
         scorer = self._get_scorer(scoring)
         return cross_val_score(self.estimator,
@@ -999,22 +1115,30 @@ class LW_model(BaseEstimator):
                     return_estimator=False,
                     return_train_score=False,
                     **kwargs):
-        '''       
-        return cross_validate results of estimator(see cross_validate)
-        -----
-        cv_results: 
-            (as DataFrame, allowing for multi-metrics) in the form of
+        '''return cross_validate results of estimator
+        
+        see also
+        ------------
+        :func:`sklearn.model_selection._validation.cross_validate`
+        
+        return
+        -------
+        cv_results : DataFrame
+             allowing for multi-metrics, in the form of
             'test_xxx', train_xxx' where  'xxx' is scorer name
         '''
         estimator = self.estimator
-        L = locals().copy()
-        L.pop('self')
-        L.pop('scoring')
         scorer = self._get_scorer(scoring)
         # --
-        cv_results = cross_validate(scoring=scorer,
-                                    **get_kwargs(cross_validate, **L,
-                                                 **kwargs))
+        cv_results = cross_validate(
+            estimator,
+            X,
+            y,
+            scoring=scorer,
+            cv=cv,
+            **dict_subset(kwargs, ['return_estimator', 'return_train_score',
+                                 'n_jobs', 'fit_params'])
+            )
         return pd.DataFrame(cv_results)
 
     def test_score(self, X, y, cv, scoring):
@@ -1031,8 +1155,6 @@ class LW_model(BaseEstimator):
         scores = pd.DataFrame(scores).reset_index(drop=True)
         return scores
 
-    @Appender(GridSearchCV.__doc__, join='\n')
-    @dedent
     def searchcv(self,
                  X,
                  y,
@@ -1041,22 +1163,23 @@ class LW_model(BaseEstimator):
                  combine_param_space=None,
                  scoring='roc_auc',
                  cv=3,
-                 n_iter=20,
                  refit=['roc_auc'],
                  error_score=-999,
                  iid=False,
                  return_train_score=True,
+                 n_iter=20,
                  n_jobs=-1,
                  fit_params={},
                  **kwargs):
-        '''
+        '''search param grid space
+        
         The parameters of the estimator are optimized
-        by cross-validated search over a parameter grid. 
+        by searching over a parameter grid measureing cross-validated performance. 
         update self.estimator as best model and update self.gridcvtab
     
         Parameters
         ----------
-        X
+        X 
             feature matrix
         y
             classifiction calss label 0/1
@@ -1069,9 +1192,18 @@ class LW_model(BaseEstimator):
             of parameter settings.the same parameter for 'search_spaces' 
             in bayesian and for 'param_distributions'  in RandomizedSearchCV
 
-        kind: ['gridcv', 'bayesiancv', 'randomcv'], search method to use
-        
-        combine_param_space bool:
+        kind : str ['gridcv', 'bayesiancv', 'randomcv'] 
+            method options 
+            
+            - if kind=='bayesiancv' use bayesian optimization
+            
+            - if kind == 'gridcv' sequentially update the best parameter 
+            settings in each dict of param_grid by grid search
+            
+            - if kind == 'randomcv' sequentially update the best parameter 
+            settings in each dict of param_grid by random grid search
+            
+        combine_param_space : bool
             if True make param_grid into list of single one dict,
             thus only one cv_result table could be output.        
             by default, for 'gridcv' combine_param_space is set to False
@@ -1100,9 +1232,9 @@ class LW_model(BaseEstimator):
             Consider increasing n_points if you want to try more parameter 
             settings in parallel.
 
-        optimizer_kwargsdict, optional (for bayesian)
-            Dict of arguments passed to Optimizer. For example, 
-            {'base_estimator': 'RF'} would use a Random Forest surrogate 
+        optimizer kwargs : dict
+            Dict of arguments passed to Optimizer,optional for bayesian search. 
+            For example, {'base_estimator': 'RF'} would use a Random Forest surrogate 
             instead of the default Gaussian Process.    
             
         n_jobs: int or None, optional (default=None)
@@ -1112,11 +1244,10 @@ class LW_model(BaseEstimator):
             for more details.
                             
         return
-        -----
-        cv_results as DataFrame
+        -------
+        cv_results : DataFrame
+            cross validated results table
         
-        Appended see GridSearchCV()
-        --------
         '''
         L = locals().copy()
         L.pop('self')
@@ -1163,11 +1294,16 @@ class LW_model(BaseEstimator):
             self.kws_attr.get('gridcvtab').append(cv_results)
             return cv_results
         else:
-            print('''no gridcvtab output because multi-step search, 
-                  set out_searchstep to 'True' if gridcvtab is desired ''')
+            logger.info('''no gridcvtab output because multi-step search, 
+                        set out_searchstep to 'True' if gridcvtab is desired 
+                        ''')
 
     def fit(self, X, y, **fit_params):
         '''perform fit of estimator
+            
+        dimensionality shape of X, postive ratio of y, finally used number of 
+        features are stored in kws_attr dict
+        
         '''
         self.estimator.fit(X, y, **fit_params)
         self._update_fitted_estimator(self.estimator, X, y)
@@ -1180,26 +1316,60 @@ class LW_model(BaseEstimator):
                 pos_label=1,
                 pre_1d_positive=True,
                 **kwargs):
-        '''return predictions of estimator
+        """return predictions of estimator
         
-        pre_method: list of str
-            priority of sklearn estimator method to use: ['decision_function',
-            'predict_proba', 'predict']
-        pre_level: bool
-             if true, output score as integer rankings starting from 0
-        pos_label
-            index of predicted class
-        '''
-        estimator = self.estimator
 
+        Parameters
+        ----------
+        X : 2d array
+            feature matrix.
+        
+        pre_method : TYPE, optional
+            sequence of prediction method to use. use the first available one
+            The default is ['decision_function', 'predict_proba', 'predict'].
+        
+        pre_level : bool, optional
+            if True predict integer index indicating probability level of positive 
+            label. The default is False.
+            
+        pos_label : int, optional
+            usually 1 indicate positive in class label. The default is 1. Use
+            other value if not the usual case.
+        
+        pre_1d_positive : bool, optional
+            if True, output 1d array for positive class. 
+            if False, output (n, 2) array indicating both classes. 
+            The default is True.
+        
+        other kwargs : 
+            key words used by ``pre_method``
+
+        Raises
+        ------
+        ValueError
+            if ``pre_method`` not in ``estimator``. raise value error
+
+        Returns
+        -------
+        y_pre : TYPE
+            predicted value array.
+
+        """
+        
+        estimator = self.estimator
+        
+        has_pre = -1
         for i in pre_method:
             if hasattr(estimator, i):
                 pre_func = getattr(estimator, i)
+                has_pre = 1
                 break
 
-        if pre_func is None:
-            print('{} has no {} method'.format(self._get_estimator_name(),
-                                               pre_method))
+        if has_pre < 0:
+            msg = '{} has no {} method'.format(self._get_estimator_name(),
+                                               pre_method)
+            logger.exception(msg)
+            raise ValueError()
 
         y_pre = pre_func(X, **kwargs)
         if pre_1d_positive:
@@ -1213,7 +1383,7 @@ class LW_model(BaseEstimator):
         return y_pre
 
     def predict_proba(self, X):
-        '''
+        '''use predic_proba to make predictions 
         '''
         if hasattr(self.estimator, 'predict_proba'):
             return self.estimator.predict_proba(X)
@@ -1233,62 +1403,44 @@ class LW_model(BaseEstimator):
             labels=False,
             tree_kws={},
     ):
-        '''run cross validation of estimator on data_set, output 
-        1) evaluation AucLift plot
-        2) score path plot
+        """run cross validation of estimator
+        
+        do:
+            
+        1) evaluation AucLift plot of dataset on estimator
+        2) score path plot of scoring metricx
         
         parameters
-        ----
-        
-        dataset: 
-            2 element tuple, (X, y) of train data
-        
+        -----------
+        dataset : tuple 
+            2 element tuple, (X, y) of dataset
         is_train: bool
-            type of data, True 'Train' dataset, 'False' 'Test' dataset
+            type of process. If True 'Train' dataset, estimator will be fitted 
+            for each fold iteration, if 'False' 'Test' dataset, do not fit the 
+            estimator.
+        cv : int
+           number of cross validation folds, cv should be greater thant 1
+        fit_params : keyword args
+            other fit parameters of estimator
+        binning_kws : 
+            :ref:`bins, q, max_leaf_nodes, mono <binningmeth>`
+        save_fig : bool
+            if true, save plot as .png to 'plots' under model path
+        labels : bool
+            see pd.cut, if False return integer indicator of bins, 
+            if True return arrays of labels (or can be manually input)
+        verbosity : optional
             
-        cv (int):
-           n of cross validation folds, cv should be greater thant 1
-           
-        fit_params
-            -other fit parameters of estimator
-            
-        bins
-            - number of equal width or array of edges
-        q
-            - number of equal frequency              
-        max_leaf_nodes
-            - number of tree nodes using tree cut
-            - if not None use supervised cutting based on decision tree
-        mono 
-            - binning edges that increases monotonically with "y" mean value
-
-        use_self_bins
-            - use self.estimator.bins if true
-            
-        .. note::
-            -  only 1 of (q, bins, max_leaf_nodes, mono) can be specified 
-            
-        save_fig (bool):
-            if true, save plot as .pdf to 'plots' under self.loaddump.path_
-            
-        labels
-            - see pd.cut, if False return integer indicator of bins, 
-            - if True return arrays of labels (or can be manually input)
-            
-        optionally 
-        if self.verbose > 0
-            - plot AucLift curve for cv splitted train data 
-             dump .pdf to 'plots' under self.loaddump.path_
-        if self.verbose > 1     
-            - dump spreadsheets of calculated data
+            - if self.verbose > 1, output spreadsheets of calculated cross
+            validated scores
             
         return
-        ----
-        series: averaged score for each scoring metrics
+        -------
+        cvscore : Series
+            averaged score for each scoring metrics
         
-        AucLift chart for train dataset
 
-        '''
+        """
         L = locals().copy()
         L.pop('self')
         L.pop('save_fig')
@@ -1300,11 +1452,12 @@ class LW_model(BaseEstimator):
         fit_train = True if is_train else False
         data_title = 'Train' if is_train else 'Test'
         if save_fig is True:
-            pdf_file1 = 'plots/{}AucLift.pdf'.format(data_title)
-            pdf_file2 = 'plots/{}ScorePath.pdf'.format(data_title)
+            pdf_file1 = 'plots/{}AucLift.png'.format(data_title)
+            pdf_file2 = 'plots/{}ScorePath.png'.format(data_title)
         else:
             pdf_file1 = pdf_file2 = False
-
+        
+        # plot auclift curve
         auclift_param = get_kwargs(self.plot_AucLift, **L)
         auccv, lift_data = self.plot_AucLift(X,
                                              y,
@@ -1325,20 +1478,22 @@ class LW_model(BaseEstimator):
         )
 
         if self.verbose > 1:
-            # dump excel
+            # dump excel spreadsheets
             lift = lift_data[-1]
-            print('lift data & cv_score & cv_splits data are being saved...')
+            file_path = 'spreadsheet/{}Perfomance.xlsx'.format(data_title)
+            logger.info(
+                'cross validation data saved to spreadsheet {}'.format(file_path))
             loaddump.write([lift, cv_score],
-                           'spreadsheet/{}Perfomance.xlsx'.format(data_title),
+                           file_path,
                            sheet_name=['liftcurve', 'score'])
-            loaddump.write(auccv[3],
-                           'spreadsheet/{}Splits.xlsx'.format(data_title))
-
+            file_path = 'spreadsheet/{}Splits.xlsx'.format(data_title)
+            loaddump.write(auccv[3], file_path)
         return cv_score.mean()
 
     def opt_sequential(self,
                        train_set,
                        param_grid=-1,
+                       cv=3,
                        kind='bayesiancv',
                        out_searchstep=False,
                        refit='roc_auc',
@@ -1349,49 +1504,88 @@ class LW_model(BaseEstimator):
                        title=None,
                        **kwargs):
         '''
-        run sequential model-based optimization of param_grid space, using
-        cross-validated performance(if param_grid=-1, use pre-difined space)    
-        - update self estimator as best estimator and update self gridcvtab
+        run sequential model-based optimization of param_grid space
         
-        - dump plots/spreadsheets optional
+        using cross-validated performance metrics specified by refit,
+        if param_grid=-1, use pre-difined grid space. After search complete, 
+        update ``self.estimator`` as the best estimator and update ``gridcvtab``
+        and dump ``plots/spreadsheets`` optionally for analysis
         
         .. note::
-            hyper parameters of each operator are tuned sequentially. for each
-            operator the best of each parameter is updated sequentially 
-            too
+            
+            hyper parameters of each operator are tuned sequentially. For each
+            operator the best parameter dict combination is updated sequentially 
+            also.
             
         
-        parmameters
-        ----
-        train_set: 
-            2 element tuple, (X, y) of train data
-        title (str):
-            title prefix for Gridsearch results plot
-        param_grid:
+        parameters
+        -----------
+        train_set : 2 elemet tuple
+            (X, y) as trainset data
+
+        param_grid : list of dict
             parameter grid space, if -1, use pipe_grid() to return predifined 
-            param_grid
+            param_grid, otherwise specify explicitly.
+            
+            Dictionary with parameters names (string) as keys and lists of
+            parameter settings to try as values, or a list of such
+            dictionaries, in which case the grids spanned by each dictionary
+            in the list are explored. This enables searching over any sequence
+            of parameter settings.the same parameter for 'search_spaces' 
+            in bayesian and for 'param_distributions'  in RandomizedSearchCV
 
-        kind str: ['gridcv', 'bayesiancv', 'randomcv'], search method to use
-            - if kind == 'bayesiancv' use bayesian optimization
+        cv : int
+           number of cross validation folds, cv should be greater thant 1
+       
+        kind : str ['gridcv', 'bayesiancv', 'randomcv'] 
+        
+            - if kind=='bayesiancv' use bayesian optimization
             
-            - if kind == 'gridcv' sequentially update the best parameter 
-            settings in each dict of param_grid by grid search
+            - if kind == 'gridcv' use grid search
             
-            - if kind == 'randomcv' sequentially update the best parameter 
-            settings in each dict of param_grid by random grid search
+            - if kind == 'randomcv' use random search
 
-        out_searchstep bool:
-            if True, output grid search cv result for each step
-            default False
+        out_searchstep : bool
+            if True, output grid search cv result for each step (parameter dict)
+            default False. Use this to analyze learning curve
+        
+        refit : bool
+            measure metrics to select as bets estimator and refit model
             
-        memory_cache:
+        scoring: string, callable, list/tuple, dict or None
+            
+            A single string (see :ref:`scoring_parameter`) or a callable
+            (see :ref:`scoring`) to evaluate the predictions on the test set.
+    
+            For evaluating multiple metrics, either give a list of (unique) strings
+            or a dict with names as keys and callables as values.
+    
+            NOTE that when using custom scorers, each scorer should return a single
+            value. Metric functions returning a list/array of values can be wrapped
+            into multiple scorers that return one value each.
+            for bayesian search multi-metrics are not supported refit scoring are
+            used
+    
+            See :ref:`multimetric_grid_search` for an example.
+    
+            If None, the estimator's score method is used.
+        
+        save_fig : bool
+            if true, save plot figure to file
+            
+        memory_cache : bool
             Used to cache the fitted transformers of the pipeline, 
             Caching the transformers is advantageous when fitting is time 
             consuming.
 
-                  
-        **kwargs:
-            GridSearchCV keywords
+        title :str
+            title prefix for Gridsearch results plot
+            
+        keyword args
+        -------------
+        `GridSearchCV` keywords :
+            see :class:`.GridSearchCV`
+        
         '''
 
         L = locals().copy()
@@ -1402,11 +1596,11 @@ class LW_model(BaseEstimator):
         X, y = train_set
 
         # get predefined grid space
-        if param_grid is -1:
+        if param_grid == -1:
             param_grid = self._get_gridspace(kind)
 
         if len(param_grid) == 0:
-            print('no param_grid found, fit and skip grid search')
+            logger.info('no param_grid found, fit and skip grid search')
             self.fit(X, y, **fit_params)
             return
 
@@ -1414,6 +1608,7 @@ class LW_model(BaseEstimator):
         if hasattr(self.estimator, 'memory') and memory_cache:
             self.estimator.memory = os.path.relpath(
                 os.path.join(self.loaddump.path_, 'temploaddump'))
+        
         # reinitialize self.gridcvtab
         # store cv results in each sequential step
         self.kws_attr.update(gridcvtab=[])
@@ -1427,7 +1622,7 @@ class LW_model(BaseEstimator):
                                      param_grid=grid,
                                      combine_param_space=False,
                                      **params)
-                file = "plots/{}_{}.pdf".format(kind, i)
+                file = "plots/{}_{}.png".format(kind, i)
                 self.plot_gridcv(gdcv, save_fig=file, title=kind + str(i))
         else:
             gdcv = self.searchcv(X, y, param_grid, **params)
@@ -1435,8 +1630,8 @@ class LW_model(BaseEstimator):
 
         self._shut_temp_loaddump()
 
-        if self.verbose > 0:
-            print('sensitivity results are being saved... ')
+        if self.verbose > 1:
+            logger.info('sensitivity results are saved to spreadsheets')
             title = 0 if title is None else str(title)
             loaddump.write(self.kws_attr.get('gridcvtab'),
                            'spreadsheet/GridcvResults{}.xlsx'.format(title))
@@ -1447,14 +1642,15 @@ class LW_model(BaseEstimator):
                      is_search=True,
                      save_fig=True,
                      **kwargs):
-        '''
-        run analysis of estimator
+        '''run analysis of estimator
         
         1. run self.opt_sequential(if grid_search=True)
         2. run self.run_cvscore for train_set if not None,
         3. run self.run_cvscpre for test_set of not None
-        4. store self trainscore & testscore
+        4. store trainscore & testscore to kws_attr dict
         
+        parameters
+        ----------
         train_set:
             (X, y) tuple to use as train set
         
@@ -1465,29 +1661,22 @@ class LW_model(BaseEstimator):
         is_search bool:
             if true, perform opt_search
             if false, skip opt_search
-
-        cv (int):
+        
+        save_fig : bool
+            if True save plots figure to file
+            
+        keyword args
+        ------------
+        cv :int
            n of cross validation folds, cv should be greater thant 1
         
-        scoring (list):
+        scoring : list
             scoring metrics, like ['roc_auc', 'KS', 'average_precision']
-        
-        q
-            - number of equal frequency 
-        
-        bins
-            - number of equal width or array of edges
-        
-        max_leaf_nodes
-            - if not None perform supervised cutting, 
-            - number of tree nodes using tree cut        
-        
-        mono 
-            - binning edges that increases monotonically with "y" mean value
+       
+        binning_kws : 
+            :ref:`bins, q, mono, max_leaf_nodes <binningmeth>`
             
-        .. note::
-            -  only 1 of (q, bins, max_leaf_nodes, mono) can be specified 
-            if all None, no lift curve plot
+            used to bin predicted probability and plot lift curve
         
         return
         -------
@@ -1509,7 +1698,7 @@ class LW_model(BaseEstimator):
             self.kws_attr.update(trainscore=trainscore)
         # splitted test performance of test_set
         if test_set is None:
-            print('no test_set, skip run_test method ...\n')
+            logger.info('no test_set, skip run_test method ...\n')
         else:
             testscore = self.run_cvscore(test_set, is_train=False, **params)
             self.kws_attr.update(testscore=testscore)
@@ -1526,7 +1715,7 @@ class LW_model(BaseEstimator):
         loaddump.write(self, ''.join([self.modelsteps, '.lwpkl']))
 
     def delete_model(self):
-        '''delete self.loaddump.path_ loaddump containing model
+        '''delete model path folder containing model
         '''
         del self.loaddump.path_
 
@@ -1555,22 +1744,18 @@ class LW_model(BaseEstimator):
         
         Parameters
         ----------
-        X
+        X : 2d array
             feature matrix
-        y
+        y : 1d array
             classifiction calss label 0/1     
-            
-        test_set:
-            (X_test, y_test) tuple to use as test set, if None, no valuation
-            will be performed on testset.
-            
-        by_metrics str:
+        test_set : tuple (X_test, y_test)
+            use as test set, if None, no valuation will be performed on testset.
+        by_metrics : str
             metrics used to select best model default='roc_auc_Trainset',
             [_'Trainset', _'Test_set'] suffix to indicate dataset from which
             metrics is calculated
-        
-        Appended see run_analy()'s doc
-        ------------------------------
+        other kwargs : 
+            see :func:`run_modellist` 
         
         '''
         auto_path = os.path.join(self.path, 'auto')
@@ -1587,9 +1772,37 @@ class LW_model(BaseEstimator):
         self.run_analysis((X, y), test_set, **kwargs)
         return autocv_score
 
-
+# %% main
 if __name__ == '__main__':
+    from lwmlearn import LW_model
     from sklearn.datasets import make_classification
-    X, y = make_classification(5000, n_redundant=5, n_features=50)
+    from sklearn.model_selection import train_test_split
+    
+    # make some fake classification data
+    X, y = make_classification(10000, n_redundant=20, n_features=50, flip_y=0.1)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+    
     m = LW_model('clean_oht_frf_OneSidedSelection_XGBClassifier', verbose=1)
+    # fit the model
     m.fit(X, y)
+    # predict
+    m.predict(X)
+    # calculate evaluation metrics
+    m.test_score(X, y, cv=1, scoring=['KS', 'roc_auc'])
+    m.cv_validate(X, y, scoring=['roc_auc', 'KS'])
+    # plot auc curve
+    m.plot_auc(X, y, cv=4)
+    # plot lift curve
+    m.plot_lift(X, y, max_leaf_nodes=10)
+    # predict by integer index
+    m.predict(X, pre_level=True)
+    # hyper-parameter tuning, search param_grid space
+    m.opt_sequential((X, y), kind='bayesiancv')
+    # plot search learning curve
+    m.plot_gridcv(m.kws_attr['gridcvtab'][0])
+    # plot cv score path
+    m.plot_cvscore(X, y, False, cv=5)
+    # plot lift and auc together
+    m.plot_AucLift(X, y, fit_train=False)
+    
+    m.run_analysis((X, y))

@@ -27,7 +27,7 @@ def _get_data(dataset, test_size=0.3, sample=None):
     return train_test_split(x, y, test_size=test_size)
 
 
-def testlocaldataset(dataset, sample=None, test_size=0.3, **kwargs):
+def runlocaldataset(dataset, sample=None, test_size=0.3, dirs=None, **kwargs):
     """test :meth:`~.LW_model.run_autoML` method on given dataset
     
 
@@ -45,8 +45,8 @@ def testlocaldataset(dataset, sample=None, test_size=0.3, **kwargs):
 
     Returns
     -------
-    m : TYPE
-        DESCRIPTION.
+    m : instance
+        :class:`LW_model` instance.
     x_train : TYPE
         DESCRIPTION.
     x_test : TYPE
@@ -62,6 +62,9 @@ def testlocaldataset(dataset, sample=None, test_size=0.3, **kwargs):
                                                 test_size=test_size,
                                                 sample=sample)
     path, file = os.path.splitext(dataset)
+    if dirs is not None:
+        path = os.path.join(dirs, path)
+        
     m = LW_model(path=path)
     m.run_autoML(x_train, y_train, (x_test, y_test), **kwargs)
 

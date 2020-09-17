@@ -433,7 +433,8 @@ def get_kwargs(func, **kwargs):
         keyword args of func
         
     '''
-    func_args = set(inspect.getfullargspec(func).args)
+    func_args = set(inspect.signature(func).parameters.keys())
+    
     func_args.intersection_update(kwargs)
     return {i: kwargs[i] for i in func_args}
 

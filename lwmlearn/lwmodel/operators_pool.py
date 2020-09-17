@@ -195,8 +195,9 @@ def lw_all_estimators(type_filter=None):
     Return
     -------
     estimators : list of tuples
-        List of (name, class), where ``name`` is the class name as string
-        and ``class`` is the actuall type of the class.
+        (name, class)
+        - ``name`` is the class name as string
+        - ``class`` is the class object
     """
 
     from sklearn.base import (BaseEstimator, ClassifierMixin, ClusterMixin,
@@ -219,11 +220,21 @@ def lw_all_estimators(type_filter=None):
                                   subpkgs=True).items():
         classes = inspect.getmembers(module, inspect.isclass)
         all_classes.extend(classes)
-
+    
+    not_test_operators = [
+          'BaseEstimator', 'Pipeline', 'LW_model',
+          'FeatureHasher', 'DictVectorizer', 
+          'ColumnTransformer', 'SparseRandomProjection', 'MultiLabelBinarizer',
+          'SMOTENC', 'SparseCoder', 'MultiTaskLasso', 'LabelEncoder', 
+          'MultiTaskElasticNetCV', 'HashingVectorizer', 'KernelCenterer',
+          'GaussianRandomProjection', 'MultiTaskLassoCV', 'FeatureUnion', 
+          'LabelBinarizer', 'MultiTaskElasticNet', 'IsotonicRegression',
+          'GammaRegressor', 'PoissonRegressor']
+    
     estimators = [
         c for c in all_classes
         if (issubclass(c[1], BaseEstimator)
-            and c[0] not in ['BaseEstimator', 'Pipeline', 'LW_model']
+            and c[0] not in not_test_operators
             and not c[0].startswith('_')
             and not issubclass(c[1], MetaEstimatorMixin))
     ]
