@@ -98,70 +98,70 @@ def test_fit_transform(data0, data1):
     
     assert check == 0       
 
-def test_runautoML(testing_path):
-    '''
-    test runautoML for local data set
-    '''
-    check = 0
-    try:
-        runlocaldataset(
-            'givemesomecredit.csv',
-            dirs=testing_path,
-            sample=5000,
-            out_searchstep=False,
-            is_search=True,
-            kind='bayesiancv',
-            model_list=[
-                'cleanNA_woe8_fxgb_TomekLinks_XGBClassifier',
-                'cleanNA_woe8_fxgb_inlierLocal_NeighbourhoodCleaningRule_SGDClassifier',
-            ],
-        )
-    except:
-        traceback.print_exc()
-        check = -1
+# def test_runautoML(testing_path):
+#     '''
+#     test runautoML for local data set
+#     '''
+#     check = 0
+#     try:
+#         runlocaldataset(
+#             'givemesomecredit.csv',
+#             dirs=testing_path,
+#             sample=5000,
+#             out_searchstep=False,
+#             is_search=True,
+#             kind='bayesiancv',
+#             model_list=[
+#                 'cleanNA_woe8_fxgb_TomekLinks_XGBClassifier',
+#                 'cleanNA_woe8_fxgb_inlierLocal_NeighbourhoodCleaningRule_SGDClassifier',
+#             ],
+#         )
+#     except:
+#         traceback.print_exc()
+#         check = -1
 
-    assert check == 0
+#     assert check == 0
         
-def test_LW_model_method(datar, testing_path):
-    '''test LW_model method using real data
-    '''
+# def test_LW_model_method(datar, testing_path):
+#     '''test LW_model method using real data
+#     '''
     
-    path = testing_path / 'lw_model_method'
-    # test
-    check = 0
-    X, y = datar
-    try:
-        m = LW_model('clean_oht_frf_OneSidedSelection_XGBClassifier', 
-                      path=path,
-                      verbose=2)
-        # fit the model
-        m.fit(X, y)
-        # predict
-        m.predict(X)
-        # calculate evaluation metrics
-        m.test_score(X, y, cv=1, scoring=['KS', 'roc_auc'])
-        m.cv_validate(X, y, scoring=['roc_auc', 'KS'])
-        # plot auc curve
-        m.plot_auc(X, y, cv=4)
-        # plot lift curve
-        m.plot_lift(X, y, max_leaf_nodes=10)
-        # predict by integer index
-        m.predict(X, pre_level=True)
-        # hyper-parameter tuning, search param_grid space
-        m.opt_sequential((X, y), kind='bayesiancv')
-        # plot search learning curve
-        m.plot_gridcv(m.kws_attr['gridcvtab'][0])
-        # plot cv score path
-        m.plot_cvscore(X, y, False, cv=5)
-        # plot lift and auc together
-        m.plot_AucLift(X, y, fit_train=False)
+#     path = testing_path / 'lw_model_method'
+#     # test
+#     check = 0
+#     X, y = datar
+#     try:
+#         m = LW_model('clean_oht_frf_OneSidedSelection_XGBClassifier', 
+#                       path=path,
+#                       verbose=2)
+#         # fit the model
+#         m.fit(X, y)
+#         # predict
+#         m.predict(X)
+#         # calculate evaluation metrics
+#         m.test_score(X, y, cv=1, scoring=['KS', 'roc_auc'])
+#         m.cv_validate(X, y, scoring=['roc_auc', 'KS'])
+#         # plot auc curve
+#         m.plot_auc(X, y, cv=4)
+#         # plot lift curve
+#         m.plot_lift(X, y, max_leaf_nodes=10)
+#         # predict by integer index
+#         m.predict(X, pre_level=True)
+#         # hyper-parameter tuning, search param_grid space
+#         m.opt_sequential((X, y), kind='bayesiancv')
+#         # plot search learning curve
+#         m.plot_gridcv(m.kws_attr['gridcvtab'][0])
+#         # plot cv score path
+#         m.plot_cvscore(X, y, False, cv=5)
+#         # plot lift and auc together
+#         m.plot_AucLift(X, y, fit_train=False)
         
-        m.run_analysis((X, y))
+#         m.run_analysis((X, y))
         
-    except:
-        traceback.print_exc()
-        check = -1
-    assert check == 0
+#     except:
+#         traceback.print_exc()
+#         check = -1
+#     assert check == 0
     
 
 # def test_clean(testing_path):
