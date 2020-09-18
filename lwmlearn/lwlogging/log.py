@@ -64,15 +64,16 @@ import sys
 from os import makedirs
 from os.path import dirname, exists
 
-USE_LOG = 'loguru' # loguru for loguru logger; logging for python logger
+USE_LOG = 'loguru'  # loguru for loguru logger; logging for python logger
 
 loggers = {}
 logger_guru = None
 
-LOG_ENABLED = True  # 
-LOG_TO_CONSOLE = True  # 
+LOG_ENABLED = True  #
+LOG_TO_CONSOLE = True  #
 LOG_TO_FILE = True  #
-    
+
+
 class Filter_loglevel(logging.Filter):
     '''reconstruct filter method to filter logrecord by a loglevel
     
@@ -98,15 +99,17 @@ class Filter_loglevel(logging.Filter):
         else:
             return False
 
+
 def init_log():
     '''
     '''
     if USE_LOG == 'logging':
         return python_logger()
-    
+
     if USE_LOG == 'loguru':
         return loguru_logger()
-    
+
+
 def python_logger():
     """init and return logger instance of python standard logging
     
@@ -133,43 +136,43 @@ def python_logger():
 
     LOG_FMT = '%(asctime)s - %(levelname)s - process: %(process)d - %(filename)s - %(name)s - %(lineno)d - %(module)s - %(message)s'  # 每条日志输出格式
     DATE_FORMAT = "%m/%d/%Y %H:%M:%S %p"
-    file_mode='a'
-    name='lwmlearn'
-    log_path='./runtime.log'
-    log_level='DEBUG'
+    file_mode = 'a'
+    name = 'lwmlearn'
+    log_path = './runtime.log'
+    log_level = 'DEBUG'
 
     if not name: name = __name__
- 
+
     if loggers.get(name):
         return loggers.get(name)
- 
+
     logger = logging.getLogger(name)
     logger.setLevel(log_level)
     fmt = logging.Formatter(LOG_FMT, datefmt=DATE_FORMAT)
     fmt_console = logging.Formatter(
-        "%(asctime)s - %(levelname)s: \n\t %(message)s", 
-        datefmt=DATE_FORMAT)             
+        "%(asctime)s - %(levelname)s: \n\t %(message)s", datefmt=DATE_FORMAT)
     # out to console
     if LOG_ENABLED and LOG_TO_CONSOLE:
         stream_handler = logging.StreamHandler(sys.stdout)
         stream_handler.setLevel(level=log_level)
         stream_handler.setFormatter(fmt_console)
-        logger.addHandler(stream_handler)       
-    
+        logger.addHandler(stream_handler)
+
     # out to file
     if LOG_ENABLED and LOG_TO_FILE:
         log_dir = dirname(log_path)
         if not exists(log_dir): makedirs(log_dir)
         # FileHandler
-        file_handler = logging.FileHandler(log_path, 
-                                           file_mode, 
+        file_handler = logging.FileHandler(log_path,
+                                           file_mode,
                                            encoding='utf-8')
         file_handler.setLevel(level=log_level)
         file_handler.setFormatter(fmt)
         logger.addHandler(file_handler)
-                 
-    loggers[name] = logger    
+
+    loggers[name] = logger
     return logger
+
 
 def loguru_logger():
     '''init and return loguru logger
@@ -181,27 +184,30 @@ def loguru_logger():
         - runtime_{time}.log file handler, retention 10 days rotation 3 days
     '''
     global logger_guru
-    
+
     # date_fmt = "time:YYYYMMDD"
     # stderr_time = "time:HH:mm:ss A"
     if logger_guru is None:
         from loguru import logger
         logger.remove()
         # out to console
-        logger.add(sys.stderr, format='{time} {level}: \n  {message}',
+        logger.add(sys.stderr,
+                   format='{time} {level}: \n  {message}',
                    level='INFO')
         if LOG_TO_FILE:
             # out to runtime.log file
-            logger.add('./logs/runtime_{time:YYYYMMDD}.log', 
-                       level='DEBUG',
-                       rotation="3 days", 
-                       retention='10 days',
-                       backtrace=True, 
-                       diagnose=True,
-                       enqueue=True, # Multiprocess-safe
-                       )
-    
+            logger.add(
+                './logs/runtime_{time:YYYYMMDD}.log',
+                level='DEBUG',
+                rotation="3 days",
+                retention='10 days',
+                backtrace=True,
+                diagnose=True,
+                enqueue=True,  # Multiprocess-safe
+            )
+
     return logger
+
 
 if __name__ == '__main__':
     pass

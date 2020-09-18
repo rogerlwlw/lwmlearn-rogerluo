@@ -220,21 +220,20 @@ def lw_all_estimators(type_filter=None):
                                   subpkgs=True).items():
         classes = inspect.getmembers(module, inspect.isclass)
         all_classes.extend(classes)
-    
+
     not_test_operators = [
-          'BaseEstimator', 'Pipeline', 'LW_model',
-          'FeatureHasher', 'DictVectorizer', 
-          'ColumnTransformer', 'SparseRandomProjection', 'MultiLabelBinarizer',
-          'SMOTENC', 'SparseCoder', 'MultiTaskLasso', 'LabelEncoder', 
-          'MultiTaskElasticNetCV', 'HashingVectorizer', 'KernelCenterer',
-          'GaussianRandomProjection', 'MultiTaskLassoCV', 'FeatureUnion', 
-          'LabelBinarizer', 'MultiTaskElasticNet', 'IsotonicRegression',
-          'GammaRegressor', 'PoissonRegressor']
-    
+        'BaseEstimator', 'Pipeline', 'LW_model', 'FeatureHasher',
+        'DictVectorizer', 'ColumnTransformer', 'SparseRandomProjection',
+        'MultiLabelBinarizer', 'SMOTENC', 'SparseCoder', 'MultiTaskLasso',
+        'LabelEncoder', 'MultiTaskElasticNetCV', 'HashingVectorizer',
+        'KernelCenterer', 'GaussianRandomProjection', 'MultiTaskLassoCV',
+        'FeatureUnion', 'LabelBinarizer', 'MultiTaskElasticNet',
+        'IsotonicRegression', 'GammaRegressor', 'PoissonRegressor'
+    ]
+
     estimators = [
         c for c in all_classes
-        if (issubclass(c[1], BaseEstimator)
-            and c[0] not in not_test_operators
+        if (issubclass(c[1], BaseEstimator) and c[0] not in not_test_operators
             and not c[0].startswith('_')
             and not issubclass(c[1], MetaEstimatorMixin))
     ]

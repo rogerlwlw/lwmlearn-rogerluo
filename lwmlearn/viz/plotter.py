@@ -800,7 +800,7 @@ def plotter_cv_results_(results,
                     label_list.append(i.split('__')[-1])
             if len(label_list) < nn:
                 label_list.append('(..total {} variables)'.format(nn))
-             
+
             xlabel = ' + '.join(label_list)
 
         df.sort_index(inplace=True)

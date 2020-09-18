@@ -30,6 +30,7 @@ from ..lwlogging import init_log
 
 logger = init_log()
 
+
 class Path_File():
     '''descriptor to initialize file attributes
     
@@ -45,7 +46,6 @@ class Path_File():
         if not exist create one
         
     '''
-
     @property
     def path_(self):
         return self._p
@@ -59,9 +59,9 @@ class Path_File():
 
             self._p = os.path.relpath(path)
         except Exception:
-            
+
             logger.exception("invalid path input '%s' " % path,
-                                  stack_info=True)
+                             stack_info=True)
             raise NotADirectoryError()
 
     @path_.deleter
@@ -70,7 +70,7 @@ class Path_File():
             for i in file:
                 os.remove(os.path.join(root, i))
         shutil.rmtree(self._p, ignore_errors=True)
-        
+
         logger.info("info: path '{}' removed... \n".format(self._p))
 
     # file
@@ -83,8 +83,7 @@ class Path_File():
         if os.path.isfile(file):
             self._f = os.path.relpath(file)
         else:
-            logger.exception("file not found '%s' " % file,
-                                  stack_info=True)
+            logger.exception("file not found '%s' " % file, stack_info=True)
             raise FileNotFoundError()
 
     @file_.deleter
@@ -102,8 +101,7 @@ class Path_File():
         try:
             if os.path.isfile(file):
                 os.remove(file)
-                logger.info(
-                    "info: old file '{}' deleted...\n ".format(file))
+                logger.info("info: old file '{}' deleted...\n ".format(file))
 
             dirs, filename = os.path.split(file)
             if not os.path.exists(dirs) and len(dirs) > 0:
@@ -112,7 +110,7 @@ class Path_File():
             self._nf = file
         except Exception:
             logger.exception('invalid path input {}'.format(file),
-                                  stack_info=True)
+                             stack_info=True)
             raise NotADirectoryError()
 
     @newfile_.deleter

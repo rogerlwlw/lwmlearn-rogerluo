@@ -434,7 +434,7 @@ def get_kwargs(func, **kwargs):
         
     '''
     func_args = set(inspect.signature(func).parameters.keys())
-    
+
     func_args.intersection_update(kwargs)
     return {i: kwargs[i] for i in func_args}
 

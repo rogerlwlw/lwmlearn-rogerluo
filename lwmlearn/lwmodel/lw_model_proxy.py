@@ -103,6 +103,7 @@ from lwmlearn.lwlogging import init_log
 
 logger = init_log()
 
+
 @dedent
 def run_modellist(
         X,
@@ -194,7 +195,7 @@ def run_modellist(
 
     score_list = []
     models = {}
-    
+
     for i in l:
         try:
             path = os.path.join(dirs, i)
@@ -224,7 +225,7 @@ def run_modellist(
             logger.exception(msg)
             if on_error == 'raise':
                 raise e
-                
+
     if len(score_list) > 0:
         autocv_score = pd.concat(score_list, axis=1, ignore_index=True).T
         autocv_score = to_num_datetime_df(autocv_score)
@@ -333,7 +334,7 @@ class LW_model(BaseEstimator):
         None.
 
         """
-        
+
         self.path = path
         self.verbose = verbose
         self.pos_label = pos_label
@@ -354,11 +355,11 @@ class LW_model(BaseEstimator):
             model = estimator
         else:
             msg = 'invalid estimator input type: {}'.format(
-                    estimator.__class__.__name__)
+                estimator.__class__.__name__)
             logger.exception(msg, stack_info=True)
             raise ValueError()
         self.estimator = model
-        
+
     def _shut_temp_loaddump(self):
         '''shut temp loaddump directory
         '''
@@ -385,7 +386,7 @@ class LW_model(BaseEstimator):
             msg = 'estimator should only output binary classes'
             logger.exception(msg)
             raise ValueError()
-        
+
         has_pre = -1
         for i in ['decision_function', 'predict_proba']:
             if hasattr(estimator, i):
@@ -482,9 +483,10 @@ class LW_model(BaseEstimator):
         d = {}
         for i in param_grid:
             d.update(i)
-            
+
         logger.info(
-            'param_grid has been combined into one dict space: \n {}'.format(d))
+            'param_grid has been combined into one dict space: \n {}'.format(
+                d))
         return [d]
 
     def _update_bestmodel(self, by_metrics='roc_auc_Trainset', **kwargs):
@@ -540,7 +542,7 @@ class LW_model(BaseEstimator):
                 save_fig = default_saved_name
         # save fig
         self.loaddump.write(fig, save_fig)
-        
+
         if closefig:
             plt.close(fig)
         return
@@ -692,7 +694,6 @@ class LW_model(BaseEstimator):
         else:
             raise NameError('no estimator input')
 
-
     def plot_auc(self,
                  X,
                  y,
@@ -748,7 +749,7 @@ class LW_model(BaseEstimator):
 
         estimator = self.estimator
         if fit_train:
-            self.fit(X, y) # fit estimator using entire dataset
+            self.fit(X, y)  # fit estimator using entire dataset
         # split test set by cv
         fprs, tprs, aucs, data_splits = self._cal_fprs_tprs(estimator,
                                                             X,
@@ -769,19 +770,19 @@ class LW_model(BaseEstimator):
         return rst
 
     def plot_lift(
-            self,
-            X,
-            y,
-            q=None,
-            bins=None,
-            max_leaf_nodes=None,
-            mono=None,
-            use_self_bins=False,
-            labels=False,
-            ax=None,
-            title=None,
-            save_fig=False,
-            tree_kws={},
+        self,
+        X,
+        y,
+        q=None,
+        bins=None,
+        max_leaf_nodes=None,
+        mono=None,
+        use_self_bins=False,
+        labels=False,
+        ax=None,
+        title=None,
+        save_fig=False,
+        tree_kws={},
     ):
         '''plot list curve of (X, y) data and update bins as estimators 
         attribute
@@ -858,7 +859,7 @@ class LW_model(BaseEstimator):
                 mono = None
             else:
                 logger.info("'self.estimator.bins' is None")
-                
+
         # title info
         title = '' if title is None else title
         header = self._get_basic_info(True, title, x_test=X)
@@ -1136,9 +1137,10 @@ class LW_model(BaseEstimator):
             y,
             scoring=scorer,
             cv=cv,
-            **dict_subset(kwargs, ['return_estimator', 'return_train_score',
-                                 'n_jobs', 'fit_params'])
-            )
+            **dict_subset(kwargs, [
+                'return_estimator', 'return_train_score', 'n_jobs',
+                'fit_params'
+            ]))
         return pd.DataFrame(cv_results)
 
     def test_score(self, X, y, cv, scoring):
@@ -1355,9 +1357,9 @@ class LW_model(BaseEstimator):
             predicted value array.
 
         """
-        
+
         estimator = self.estimator
-        
+
         has_pre = -1
         for i in pre_method:
             if hasattr(estimator, i):
@@ -1389,19 +1391,19 @@ class LW_model(BaseEstimator):
             return self.estimator.predict_proba(X)
 
     def run_cvscore(
-            self,
-            data_set,
-            is_train,
-            scoring=['roc_auc', 'KS'],
-            fit_params={},
-            cv=3,
-            q=None,
-            bins=None,
-            max_leaf_nodes=None,
-            mono=None,
-            save_fig=True,
-            labels=False,
-            tree_kws={},
+        self,
+        data_set,
+        is_train,
+        scoring=['roc_auc', 'KS'],
+        fit_params={},
+        cv=3,
+        q=None,
+        bins=None,
+        max_leaf_nodes=None,
+        mono=None,
+        save_fig=True,
+        labels=False,
+        tree_kws={},
     ):
         """run cross validation of estimator
         
@@ -1456,7 +1458,7 @@ class LW_model(BaseEstimator):
             pdf_file2 = 'plots/{}ScorePath.png'.format(data_title)
         else:
             pdf_file1 = pdf_file2 = False
-        
+
         # plot auclift curve
         auclift_param = get_kwargs(self.plot_AucLift, **L)
         auccv, lift_data = self.plot_AucLift(X,
@@ -1481,8 +1483,8 @@ class LW_model(BaseEstimator):
             # dump excel spreadsheets
             lift = lift_data[-1]
             file_path = 'spreadsheet/{}Perfomance.xlsx'.format(data_title)
-            logger.info(
-                'cross validation data saved to spreadsheet {}'.format(file_path))
+            logger.info('cross validation data saved to spreadsheet {}'.format(
+                file_path))
             loaddump.write([lift, cv_score],
                            file_path,
                            sheet_name=['liftcurve', 'score'])
@@ -1608,7 +1610,7 @@ class LW_model(BaseEstimator):
         if hasattr(self.estimator, 'memory') and memory_cache:
             self.estimator.memory = os.path.relpath(
                 os.path.join(self.loaddump.path_, 'temploaddump'))
-        
+
         # reinitialize self.gridcvtab
         # store cv results in each sequential step
         self.kws_attr.update(gridcvtab=[])
@@ -1772,16 +1774,20 @@ class LW_model(BaseEstimator):
         self.run_analysis((X, y), test_set, **kwargs)
         return autocv_score
 
+
 # %% main
 if __name__ == '__main__':
     from lwmlearn import LW_model
     from sklearn.datasets import make_classification
     from sklearn.model_selection import train_test_split
-    
+
     # make some fake classification data
-    X, y = make_classification(10000, n_redundant=20, n_features=50, flip_y=0.1)
+    X, y = make_classification(10000,
+                               n_redundant=20,
+                               n_features=50,
+                               flip_y=0.1)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
-    
+
     m = LW_model('clean_oht_frf_OneSidedSelection_XGBClassifier', verbose=1)
     # fit the model
     m.fit(X, y)
@@ -1804,5 +1810,5 @@ if __name__ == '__main__':
     m.plot_cvscore(X, y, False, cv=5)
     # plot lift and auc together
     m.plot_AucLift(X, y, fit_train=False)
-    
+
     m.run_analysis((X, y))

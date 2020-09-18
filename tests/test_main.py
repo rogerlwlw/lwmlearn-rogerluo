@@ -132,7 +132,7 @@ def test_LW_model_method(datar, testing_path):
     try:
         m = LW_model('clean_oht_frf_OneSidedSelection_XGBClassifier', 
                      path=path,
-                     verbose=1)
+                     verbose=2)
         # fit the model
         m.fit(X, y)
         # predict

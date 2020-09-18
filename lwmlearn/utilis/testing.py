@@ -57,14 +57,14 @@ def runlocaldataset(dataset, sample=None, test_size=0.3, dirs=None, **kwargs):
         DESCRIPTION.
 
     """
-    
+
     x_train, x_test, y_train, y_test = _get_data(dataset,
-                                                test_size=test_size,
-                                                sample=sample)
+                                                 test_size=test_size,
+                                                 sample=sample)
     path, file = os.path.splitext(dataset)
     if dirs is not None:
         path = os.path.join(dirs, path)
-        
+
     m = LW_model(path=path)
     m.run_autoML(x_train, y_train, (x_test, y_test), **kwargs)
 
