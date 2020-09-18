@@ -1527,7 +1527,6 @@ class LW_model(BaseEstimator):
             operator the best parameter dict combination is updated sequentially 
             also.
             
-        
         parameters
         -----------
         train_set : 2 elemet tuple

@@ -1,24 +1,33 @@
 # -*- coding: utf-8 -*-
 """
+use :func:`pipe_grid` to retrieve predefined grid space for parameter tuning
+
 Created on Sun Dec 15 17:04:05 2019
 
 @author: roger luo
 """
 
 import numpy as np
-
 from pandas.core.dtypes import api
+
+from lwmlearn.lwlogging import init_log
 
 
 def _grid_search_grid(estimator):
-    '''    
-    estimator (str):
-        sklearn estimator's name
+    """predefined grid search space
     
-    return
-    ----
+
+    Parameters
+    ----------
+    estimator : str
+        sklearn estimator's name.
+
+    Returns
+    -------
+    grid : TYPE
         param_grid dict of specified estimator
-    '''
+
+    """
 
     LogisticRegression = [{'C': np.logspace(-3, 0, 8)}]
 
@@ -151,14 +160,20 @@ def _grid_search_grid(estimator):
 
 
 def _bayes_search_grid(estimator):
-    '''    
-    estimator (str):
-        sklearn estimator's name
+    """bayesian grid space
     
-    return
-    ----
+
+    Parameters
+    ----------
+    estimator : str
+        sklearn estimator's name.
+
+    Returns
+    -------
+    grid : TYPE
         param_grid dict of specified estimator
-    '''
+
+    """
 
     logscale_C = (1e-5, 2.0, 'log-uniform')
     logscale_gamma = (1e-5, 100.0, 'log-uniform')
@@ -257,7 +272,7 @@ def _bayes_search_grid(estimator):
 
     RandomUnderSampler = [{'sampling_strategy': rebalance}]
 
-    BorderlineSMOTE: [{
+    BorderlineSMOTE =[{
         'sampling_strategy': rebalance,
     }]
 
@@ -277,23 +292,41 @@ def _bayes_search_grid(estimator):
 def _print_warning(grid, estimator):
     '''
     '''
+    logger = init_log()
+    
     if grid is None:
-        print("key '{}' not found, param_grid not returned".format(estimator))
+        logger.info("key '{}' not found, param_grid not returned".format(estimator))
     else:
-        print("param_grid for '{}' returned as : \n".format(estimator))
-        [print(i) for i in grid]
-        print('...\n')
+        logger.info("param_grid for '{}' returned as : {} ".format(
+            estimator, [i for i in grid]))
+        
 
 
 def pipe_grid(estimator, pipe=True, search_type='gridcv'):
-    '''return pre-defined param_grid of given estimator
+    """return pre-defined param_grid space of given operator
     
-    estimator
-        - str or sklearn estimator instance
-    pipe
-        - bool, if False return param_grid; True return param_grid as embedded
-        in pipeline    
-    '''
+    notes
+    -----
+    For a pipeline of operators the param_grid can be extended to form one 
+    sequentical grid space for pipeline 
+
+    Parameters
+    ----------
+    estimator : str
+        - str name of estimator or sklearn estimator instance
+    pipe : bool, optional
+        if False return param_grid, if True return param_grid as embedded
+        in pipeline. The default is True.
+    search_type : TYPE, optional
+        DESCRIPTION. The default is 'gridcv'.
+
+    Returns
+    -------
+    param_grid : list
+        list of dict.
+
+    """
+    
     if isinstance(estimator, str):
         keys = estimator
     else:

@@ -126,14 +126,13 @@ dmypy.json
 *.pdf
 *.xlsx
 *.docx
-.png
 
 # custom design
 examples/
 lwmlearn/dataset/data/realworld/large
 .lwpkl
 
-docs/**/autoapi/*
+docs/**/*.png
 
 /tests/**/*
 !/tests/**/*.py
