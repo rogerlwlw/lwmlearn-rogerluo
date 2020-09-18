@@ -21,14 +21,15 @@ from lwmlearn.dataset import get_local_data
 def data0():
     '''retrun fake classification data
     '''
-    X, y = make_classification(100, n_features=25, n_informative=15, shift=100)
+    X, y = make_classification(5000, n_features=30, n_informative=15, 
+                               shift=100, flip_y=0.1)
     return X, y
 
 @pytest.fixture
 def data1():
     '''return fake regression data
     '''
-    X, y = make_regression(100, n_features=25, n_informative=15)
+    X, y = make_regression(5000, n_features=25, n_informative=15)
     
     return X, y
 
@@ -36,7 +37,7 @@ def data1():
 def datar():
     '''return kaggle give me some credit data
     '''
-    data = get_local_data('givemesomecredit.csv').sample(10000)
+    data = get_local_data('givemesomecredit.csv').sample(5000)
     y = data.pop('y')
     X = data
     
@@ -105,7 +106,7 @@ def test_runautoML(testing_path):
     check = 0
     try:
         runlocaldataset(
-            'givemesomecredit.csv',
+            'make_classification',
             dirs=testing_path,
             sample=5000,
             out_searchstep=False,

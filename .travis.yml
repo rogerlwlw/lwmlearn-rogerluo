@@ -17,7 +17,7 @@ jobs:
         - python -m pip install --upgrade pip
       env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
 
-
+# install dependence 
 install: 
     - pip install -r requirements.txt 
     - pip install .
@@ -27,8 +27,16 @@ install:
 # or during the build itself, for instance because of a command that’s 
 # taking a longer amount of time to run while not producing any output. 
 
-       
+# When a long running command or compile step regularly takes longer 
+# than 10 minutes without producing any output, you can adjust your build 
+# configuration
+
+# use travis_wait, a function that’s exported by our build environmen
+# prefix the command with travis_wait n where n is the number of minutes 
+
+# run test scripts
 script: 
+    # extend timeout to 30 minutes
     travis_wait 30 pytest --disable-warnings -r A --maxfail=10
 
 
