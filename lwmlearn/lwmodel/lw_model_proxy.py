@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Class ``LW_model`` provides common methods for ML proccess such as model 
+Class :class:`~.LW_model` provides common methods for ML proccess such as model 
 evaluation and feature selecting
 
 use example
 ------------
 
 the following runs a ``clean_oht_frf_OneSidedSelection_XGBClassifier`` pipeline
-on fake classification data. The pipe line performs <data cleanning> --> 
-<one hot encoding> --> <randomforest feature selection> --> <OneSidedSelection> 
+on fake classification data. The pipe line performs ``data cleanning`` --> 
+``one hot encoding`` --> ``randomforest feature selection`` --> ``OneSidedSelection`` 
 on training dataset and finally use a XGBClassifier to train processed data. 
 Then the fitted pipeline could be used to make predictions on test data. 
 
@@ -1516,7 +1516,8 @@ class LW_model(BaseEstimator):
         run sequential model-based optimization of param_grid space
         
         using cross-validated performance metrics specified by refit,
-        if param_grid=-1, use pre-difined grid space. After search complete, 
+        if param_grid=-1, use pre-difined grid space (see :func:`.pipe_grid`). 
+        After search complete, 
         update ``self.estimator`` as the best estimator and update ``gridcvtab``
         and dump ``plots/spreadsheets`` optionally for analysis
         

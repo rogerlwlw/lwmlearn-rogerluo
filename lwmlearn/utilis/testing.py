@@ -17,7 +17,7 @@ def _get_data(dataset, test_size=0.3, sample=None):
     if dataset == 'make_classification':
         n_sample = 5000 if sample is None else sample
         x, y = make_classification(n_sample, n_redundant=5, n_features=30,
-                                   y_flip=0.1)
+                                   flip_y=0.1)
     else:
         if sample is None:
             data = get_local_data(dataset)
@@ -41,7 +41,7 @@ def runlocaldataset(dataset, sample=None, test_size=0.3, dirs=None, **kwargs):
         sample given number of records from data. The default is None.
     test_size : float, optional
         fraction to use as testset. The default is 0.3.
-    **kwargs : TYPE
+    kwargs : TYPE
         DESCRIPTION.
 
     Returns
