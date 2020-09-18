@@ -36,7 +36,7 @@ def data1():
 def datar():
     '''return kaggle give me some credit data
     '''
-    data = get_local_data('givemesomecredit.csv')
+    data = get_local_data('givemesomecredit.csv').sample(10000)
     y = data.pop('y')
     X = data
     
