@@ -21,9 +21,15 @@ jobs:
 install: 
     - pip install -r requirements.txt 
     - pip install .
-          
+
+
+# Builds can unfortunately time out, either during installation of dependencies 
+# or during the build itself, for instance because of a command that’s 
+# taking a longer amount of time to run while not producing any output. 
+
+       
 script: 
-    travis_wait 30 mvn pytest --disable-warnings -r A --maxfail=10
+    travis_wait 30 pytest --disable-warnings -r A --maxfail=10
 
 
 # require the branch name to be master (note for PRs this is the base branch name)
