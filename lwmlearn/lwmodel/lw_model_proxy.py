@@ -5,6 +5,13 @@ evaluation and feature selecting
 
 use example
 ------------
+
+the following runs a ``clean_oht_frf_OneSidedSelection_XGBClassifier`` pipeline
+on fake classification data. The pipe line performs <data cleanning> --> 
+<one hot encoding> --> <randomforest feature selection> --> <OneSidedSelection> 
+on training dataset and finally use a XGBClassifier to train processed data. 
+Then the fitted pipeline could be used to make predictions on test data. 
+
 .. ipython::
     :okwarning:
     

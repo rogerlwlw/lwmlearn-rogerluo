@@ -428,7 +428,7 @@ def pca_comp_plot(X,
 
     for dim, frame in [(2, 221), (3, 223)]:
 
-        if dim is 3:
+        if dim == 3:
             # Need to specify projection
             subplot_kwarg = {'projection': '3d'}
 
@@ -447,7 +447,7 @@ def pca_comp_plot(X,
             ax[-1].set_title('%s kernel, %i dims' % (kernel, dim))
 
             # Whiten background if dim is 3
-            if dim is 3:
+            if dim == 3:
                 ax[-1].set_facecolor((1, 1, 1))
 
     f.suptitle(title, fontsize=title_font_size)

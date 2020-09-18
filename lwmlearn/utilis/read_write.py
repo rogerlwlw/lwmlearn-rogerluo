@@ -57,7 +57,7 @@ class Path_File():
                 os.makedirs(path, exist_ok=True)
                 logger.info("info: path '{}' created ...".format(path))
 
-            self._p = os.path.relpath(path)
+            self._p = path
         except Exception:
 
             logger.exception("invalid path input '%s' " % path,
@@ -81,7 +81,7 @@ class Path_File():
     @file_.setter
     def file_(self, file):
         if os.path.isfile(file):
-            self._f = os.path.relpath(file)
+            self._f = file
         else:
             logger.exception("file not found '%s' " % file, stack_info=True)
             raise FileNotFoundError()
@@ -364,7 +364,6 @@ class Writer(Path_File):
                 sheet_names 
         '''
         file = os.path.join(self.path_, file)
-        file = os.path.relpath(file)
         self.newfile_ = file
         wr_api = _wr_apis(self.newfile_)
         try:
