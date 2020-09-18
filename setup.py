@@ -53,7 +53,7 @@ setup(
         },
 
     # exclude README.txt from all packages
-    exclude_package_data={"": ["README.md", 'data/realworld/large/']},
+    exclude_package_data={"": ["README.md", 'data/realworld/large/*']},
 
     # Dynamic Discovery of Services and Plugins
     # Automatic Script Creation: add script entry points that could be called

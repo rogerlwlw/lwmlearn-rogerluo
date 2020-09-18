@@ -163,4 +163,11 @@ def test_LW_model_method(datar, testing_path):
     assert check == 0
     
 
+# def test_clean(testing_path):
+#     '''
+#     '''
+#     import shutil
+    
+#     shutil.rmtree(testing_path)
+    
 
