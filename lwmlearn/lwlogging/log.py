@@ -202,7 +202,7 @@ def loguru_logger():
                 rotation="3 days",
                 retention='10 days',
                 backtrace=True,
-                diagnose=True,
+                # diagnose=True,
                 enqueue=True,  # Multiprocess-safe
             )
 

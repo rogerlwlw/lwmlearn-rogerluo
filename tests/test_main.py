@@ -117,6 +117,7 @@ def test_runautoML(testing_path):
             ],
         )
     except:
+        traceback.print_exc()
         check = -1
 
     assert check == 0
@@ -131,8 +132,8 @@ def test_LW_model_method(datar, testing_path):
     X, y = datar
     try:
         m = LW_model('clean_oht_frf_OneSidedSelection_XGBClassifier', 
-                     path=path,
-                     verbose=2)
+                      path=path,
+                      verbose=2)
         # fit the model
         m.fit(X, y)
         # predict

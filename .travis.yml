@@ -23,7 +23,7 @@ install:
 # 'python' points to Python 2.7 on macOS but points to Python 3.8 on Linux and Windows
 # 'python3' is a 'command not found' error on Windows but 'py' works on Windows only
 # script: python3 tests/test_projectlibxx.py || python tests/test_projectlibxx.py
-script: pytest
+script: pytest --disable-warnings -r A --maxfail=10
 
 
 # require the branch name to be master (note for PRs this is the base branch name)
