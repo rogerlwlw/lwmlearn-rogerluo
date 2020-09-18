@@ -68,6 +68,8 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+docs/**/*.png
+
 
 # PyBuilder
 target/
@@ -126,13 +128,15 @@ dmypy.json
 *.pdf
 *.xlsx
 *.docx
+*.png
 
 # custom design
 examples/
 lwmlearn/dataset/data/realworld/large
 .lwpkl
 
-docs/**/*.png
 
 /tests/**/*
 !/tests/**/*.py
+
+
