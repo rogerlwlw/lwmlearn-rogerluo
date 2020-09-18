@@ -98,29 +98,25 @@ def test_fit_transform(data0, data1):
     
     assert check == 0       
 
-# def test_runautoML(testing_path):
-#     '''
-#     test runautoML for local data set
-#     '''
-#     check = 0
-#     try:
-#         runlocaldataset(
-#             'givemesomecredit.csv',
-#             dirs=testing_path,
-#             sample=5000,
-#             out_searchstep=False,
-#             is_search=True,
-#             kind='bayesiancv',
-#             model_list=[
-#                 'cleanNA_woe8_fxgb_TomekLinks_XGBClassifier',
-#                 'cleanNA_woe8_fxgb_inlierLocal_NeighbourhoodCleaningRule_SGDClassifier',
-#             ],
-#         )
-#     except:
-#         traceback.print_exc()
-#         check = -1
+def test_runautoML(testing_path):
+    '''
+    test runautoML for local data set
+    '''
+    check = 0
+    try:
+        runlocaldataset(
+            'givemesomecredit.csv',
+            dirs=testing_path,
+            sample=5000,
+            out_searchstep=False,
+            is_search=True,
+            kind='bayesiancv',
+        )
+    except:
+        traceback.print_exc()
+        check = -1
 
-#     assert check == 0
+    assert check == 0
         
 def test_LW_model_method(datar, testing_path):
     '''test LW_model method using real data
