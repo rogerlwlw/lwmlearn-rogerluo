@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""dataset package to retrieve demo data
+"""
+offerrs :func:`get_local_data` function to retrieve local demo data
 
 Created on Thu Aug 13 14:27:10 2020
 

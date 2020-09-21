@@ -64,16 +64,6 @@ import sys
 from os import makedirs
 from os.path import dirname, exists
 
-USE_LOG = 'loguru'  # loguru for loguru logger; logging for python logger
-
-loggers = {}
-logger_guru = None
-
-LOG_ENABLED = True  #
-LOG_TO_CONSOLE = True  #
-LOG_TO_FILE = True  #
-
-
 class Filter_loglevel(logging.Filter):
     '''reconstruct filter method to filter logrecord by a loglevel
     
@@ -98,6 +88,16 @@ class Filter_loglevel(logging.Filter):
             return True
         else:
             return False
+
+          
+USE_LOG = 'loguru'  # loguru for loguru logger; logging for python logger
+loggers = {}
+logger_guru = None
+
+
+LOG_ENABLED = True
+LOG_TO_CONSOLE =  True
+LOG_TO_FILE = True
 
 
 def init_log():
@@ -134,14 +134,12 @@ def python_logger():
 
     global loggers
 
-    LOG_FMT = '%(asctime)s - %(levelname)s - process: %(process)d - %(filename)s - %(name)s - %(lineno)d - %(module)s - %(message)s'  # 每条日志输出格式
+    LOG_FMT = '%(asctime)s - %(levelname)s - process: %(process)d - %(filename)s - %(name)s - %(lineno)d - %(module)s : \n\t %(message)s'  # 每条日志输出格式
     DATE_FORMAT = "%m/%d/%Y %H:%M:%S %p"
     file_mode = 'a'
     name = 'lwmlearn'
     log_path = './runtime.log'
     log_level = 'DEBUG'
-
-    if not name: name = __name__
 
     if loggers.get(name):
         return loggers.get(name)
@@ -184,17 +182,19 @@ def loguru_logger():
         - runtime_{time}.log file handler, retention 10 days rotation 3 days
     '''
     global logger_guru
-
-    # date_fmt = "time:YYYYMMDD"
-    # stderr_time = "time:HH:mm:ss A"
+    
     if logger_guru is None:
+        # date_fmt = "time:YYYYMMDD"
+        # stderr_time = "time:HH:mm:ss A"
         from loguru import logger
         logger.remove()
         # out to console
-        logger.add(sys.stderr,
-                   format='{time} {level}: \n  {message}',
-                   level='INFO')
-        if LOG_TO_FILE:
+        if LOG_ENABLED and LOG_TO_CONSOLE:
+            logger.add(sys.stderr,
+                       format='{time} {level}: \n  {message}',
+                       level='INFO')
+        
+        if LOG_ENABLED and LOG_TO_FILE:
             # out to runtime.log file
             logger.add(
                 './logs/runtime_{time:YYYYMMDD}.log',
@@ -204,15 +204,17 @@ def loguru_logger():
                 backtrace=True,
                 # diagnose=True,
                 enqueue=True,  # Multiprocess-safe
+                format="{time:YYYY-MM-DD:HH:mm:ss} | {level} | {name}:{module}:{line}: \n\t{message}"
             )
-
-    return logger
+        
+        logger_guru = logger
+        
+    return logger_guru
 
 
 if __name__ == '__main__':
-    pass
     logger = init_log()
     logger.info('this is a info message')
     logger.error("this is an error")
     logger.exception('this is an exception')
-    logging.shutdown()
+    pass

@@ -276,10 +276,10 @@ class LW_model(BaseEstimator):
         gridcvtab (list of df) 
             cv_results after running searchcv
         testscore : Series
-            averaged score for many metricx for test set returned by 
+            averaged score for multiple metrics for test set returned by 
             run_anlysis
         trainscore : Series
-            averaged score fro many metricx for train set returned by 
+            averaged score fro multiple metrics for train set returned by 
             run_anlysis        
     '''
     @staticmethod
