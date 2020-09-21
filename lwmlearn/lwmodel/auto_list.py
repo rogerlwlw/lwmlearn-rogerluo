@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+save predefined estimator chain pattern to run autoML
+
 Created on Fri Dec 20 11:54:07 2019
 
 @author: roger luo
@@ -31,30 +33,33 @@ def get_default_classifier():
 
 
 def get_default_models():
-    '''
+    '''return default predefined estimators to run AutoML
     '''
     lis = [
         # default SVM, grid search log/hinge/huber/perceptron
         # linear models
-        'cleanNA_woe8_fxgb_SGDClassifier',
-        'cleanNA_woe8_fxgb_TomekLinks_SGDClassifier',
+        'cleanNA_woe5_fxgb_SGDClassifier',
+        # 'cleanNA_woe8_fxgb_TomekLinks_SGDClassifier',
         'cleanNA_woe8_fxgb_inlierLocal_NeighbourhoodCleaningRule_SGDClassifier',
 
         # tree based models
-        'clean_oht_fxgb_XGBClassifier',
-        'clean_oht_fxgb_inlierForest_XGBClassifier',
+        # 'clean_oht_fxgb_XGBClassifier',
+        # 'clean_oht_fxgb_inlierForest_XGBClassifier',
         'clean_oht_fxgb_NeighbourhoodCleaningRule_XGBClassifier',
-        'clean_oht_fxgb_RandomForestClassifier',
+        # 'clean_oht_fxgb_RandomForestClassifier',
         'clean_oht_fxgb_NeighbourhoodCleaningRule_RandomForestClassifier',
-        'clean_oht_fxgb_GradientBoostingClassifier',
-        'clean_oht_fxgb_HistGradientBoostingClassifier',
-        'clean_oht_frf_AdaBoostClassifier',
+        # 'clean_oht_fxgb_GradientBoostingClassifier',
+        'clean_oht_fxgb_NeighbourhoodCleaningRule_HistGradientBoostingClassifier',
+        # 'clean_oht_frf_AdaBoostClassifier',
+        
         # balance samples on each iteration
         'clean_oht_frf_RUSBoostClassifier',
         # The classifier is an ensemble of AdaBoost learners trained on
         # different balanced boostrap samples.
         # The balancing is achieved by random under-sampling.
         'clean_oht_fxgb_EasyEnsembleClassifier',
+        
+        # 
         'clean_oht_fxgb_DecisionTreeClassifier',
         'clean_oht_fxgb_inlierLocal_NeighbourhoodCleaningRule_DecisionTreeClassifier',
         'clean_oht_frf_KNeighborsClassifier',

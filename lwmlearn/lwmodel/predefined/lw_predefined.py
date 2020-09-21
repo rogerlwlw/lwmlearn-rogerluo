@@ -91,7 +91,8 @@ def predefined_ops():
     '''
     clean = {
         'clean':
-        Cleaner(dtype_filter='not_datetime', na1='null', na2='mean'),
+        Cleaner(dtype_filter='not_datetime', na1='null', na2='mean',
+                drop_uid=True),
         'cleanNA':
         Cleaner(dtype_filter='not_datetime', na1=None, na2=None),
         'cleanMean':
