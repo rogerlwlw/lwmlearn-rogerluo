@@ -89,7 +89,7 @@ name as caption, like the second example below. see
 
 #. this is a link to function :func:`~lwmlearn.dataset.load_data.get_local_data`
 
-#. this is a link to module :mod:`load_data`
+#. this is a link to module :mod:`.load_data`
 
 #. this is a link to python documentation :class:`zipfile.ZipFile`
 

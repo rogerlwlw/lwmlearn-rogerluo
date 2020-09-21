@@ -1,3 +1,10 @@
+
+# data file
+*.pdf
+*.xlsx
+*.docx
+*.png
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -67,7 +74,7 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/_build/
+
 
 # PyBuilder
 target/
@@ -122,16 +129,17 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# data file
-*.pdf
-*.xlsx
-*.docx
 
 # custom design
 examples/
 lwmlearn/dataset/data/realworld/large
+.lwpkl
 
-docs/**/autoapi/*
+TestResults/
 
-/tests/**/*
+
+/tests/
 !/tests/**/*.py
+
+
+

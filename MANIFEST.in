@@ -1,0 +1,2 @@
+include lwmlearn/dataset/data/kaggle *
+include lwmlearn/dataset/data/realworld/small *

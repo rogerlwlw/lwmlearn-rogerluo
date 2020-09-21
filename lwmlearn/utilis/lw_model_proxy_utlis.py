@@ -220,10 +220,10 @@ def safe_indexing(X, indices, axis=0):
 def split_cv(*arrays, y=None, groups=None, cv=3, random_state=None):
     '''supervise splitting
 
-    *arrays
-        - arrays to be splitted, usually X    
-    y
-        - class label, if None not to stratify
+    arrays : 2d arrays 
+        arrays to be splitted, usually X    
+    y : 1d array
+        class label, if None not to stratify
     groups
         - split by groups
     cv

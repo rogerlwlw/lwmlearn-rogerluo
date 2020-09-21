@@ -16,7 +16,7 @@ from collections import OrderedDict
 
 from functools import reduce
 from pandas.core.dtypes import api
-from scipy import interp
+from numpy import interp
 from sklearn.metrics import auc, roc_curve
 
 from lwmlearn.utilis.utilis import get_flat_list, get_kwargs, dict_diff
@@ -768,7 +768,7 @@ def plotter_cv_results_(results,
     grid search of model
     
     return
-    -----
+    -------
     ax, or tuple of ax
     '''
     scoring = results.filter(like='mean_train_').columns
@@ -792,7 +792,16 @@ def plotter_cv_results_(results,
             if not num_param:
                 df.index = np.arange(len(df.index)) + 1
         else:
-            xlabel = ' + '.join([i.split('__')[-1] for i in param_array])
+            label_list = []
+            nn = 0
+            for i in param_array:
+                nn += 1
+                if nn <= 4:
+                    label_list.append(i.split('__')[-1])
+            if len(label_list) < nn:
+                label_list.append('(..total {} variables)'.format(nn))
+
+            xlabel = ' + '.join(label_list)
 
         df.sort_index(inplace=True)
         # plot
@@ -1347,7 +1356,7 @@ def plotter_rateVol(df,
 
     # set axe attr
     fmt = _get_ticks_formatter(ymajor_formatter, decimals=1)
-    plt.setp(axe, ylim=(-0.001, rate.max() * 1.2))
+    plt.setp(axe, ylim=(-0.05, rate.max() * 1.2))
     if labels.astype(str).apply(len).max() > 8:
         _rotate_tick_labels(axe, xlabelrotation, ha='right')
     if ylabel:

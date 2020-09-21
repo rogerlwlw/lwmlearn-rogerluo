@@ -47,7 +47,7 @@ setup(
     # not be matched by MANIFEST.in or found in source control
     package_data={
         # include all files under data subdirectory for all pkgs
-        "": ['data/*'],
+        "": ['data/**/*'],
         # # And include any *.msg files found in the "pkg_A" package, too
         # "pkg_A": ["*.msg"]        
         },
@@ -69,8 +69,12 @@ setup(
         'matplotlib>=3.0.0',
         'xgboost>=0.81',
         'imbalanced-learn>=0.4.0',
-        'mlens>=0.2.3',
         'scikit-optimize',
+        'seaborn',
+        'yapf',
+        'sqlalchemy',
+        'python-docx',
+        'loguru',
     ],
     
     extras_require={

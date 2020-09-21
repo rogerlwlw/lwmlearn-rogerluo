@@ -13,8 +13,10 @@ from sklearn.preprocessing import OneHotEncoder
 from lwmlearn.preprocess.lw_base import LW_Base
 from lwmlearn.lwlogging import init_log
 
+logger = init_log()
 
-class Oht_encoder(BaseEstimator, TransformerMixin, LW_Base):
+
+class OhtEncoder(BaseEstimator, TransformerMixin, LW_Base):
     '''transform categorical features to  one-hot encoded
     
     transform only object dtype column, other dtype will remain unchanged
@@ -31,11 +33,11 @@ class Oht_encoder(BaseEstimator, TransformerMixin, LW_Base):
         
     '''
     def __init__(
-            self,
-            handle_unknown='ignore',
-            drop=None,
-            sparse=False,
-            dtype=np.float64,
+        self,
+        handle_unknown='ignore',
+        drop=None,
+        sparse=False,
+        dtype=np.float64,
     ):
         """
         
@@ -64,7 +66,7 @@ class Oht_encoder(BaseEstimator, TransformerMixin, LW_Base):
                            axis=0)
         out_c = np.ravel(~isin_cat).sum()
         if out_c > 0:
-            logger = init_log()
+
             logger.warning('''total of {} element out of categories and 
                         will be treated as np.nan '''.format(out_c))
         return X
@@ -108,7 +110,7 @@ class Oht_encoder(BaseEstimator, TransformerMixin, LW_Base):
         return rst
 
 
-class Ordi_encoder(BaseEstimator, TransformerMixin, LW_Base):
+class OrdiEncoder(BaseEstimator, TransformerMixin, LW_Base):
     '''transform categorical features to ordinal encoded
     
     out of training categories will be treated as np.nan and encoded as -1,
@@ -140,7 +142,7 @@ class Ordi_encoder(BaseEstimator, TransformerMixin, LW_Base):
                            axis=0)
         out_c = np.ravel(~isin_cat).sum()
         if out_c > 0:
-            logger = init_log()
+
             logger.warning('''total of {} element out of categories and 
                   will be treated as np.nan '''.format(out_c))
         X = X.where(isin_cat, np.nan)

@@ -1,0 +1,49 @@
+language: python            # this works for Linux but is an error on macOS or Windows
+
+python:
+    - 3.6
+    - 3.7
+
+jobs:
+  include:
+    - name: "Python 3.8.0 on Xenial Linux"
+      python: 3.8           # this works for Linux but is ignored on macOS or Windows
+    
+    - name: "Python 3.8.0 on Windows"
+      os: windows           # Windows 10.0.17134 N/A Build 17134
+      language: shell       # 'language: python' is an error on Travis CI Windows
+      before_install:
+        - choco install python --version 3.8.0
+        - python -m pip install --upgrade pip
+      env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
+
+# install dependence 
+install: 
+    - pip install -r requirements.txt 
+    - pip install .
+
+
+# Builds can unfortunately time out, either during installation of dependencies 
+# or during the build itself, for instance because of a command that’s 
+# taking a longer amount of time to run while not producing any output. 
+
+# When a long running command or compile step regularly takes longer 
+# than 10 minutes without producing any output, you can adjust your build 
+# configuration
+
+# use travis_wait, a function that’s exported by our build environmen
+# prefix the command with travis_wait n where n is the number of minutes 
+
+# run test scripts
+script: 
+    # extend timeout to 30 minutes
+    travis_wait 30 pytest --disable-warnings -r A --maxfail=10
+
+
+# require the branch name to be master (note for PRs this is the base branch name)
+notifications:
+  slack:
+    if: branch = master
+    slack:
+    on_success: change
+    on_failure: change

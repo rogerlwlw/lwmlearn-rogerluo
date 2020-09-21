@@ -16,6 +16,8 @@ import scipy.stats as stats
 
 from lwmlearn.lwlogging import init_log
 
+logger = init_log()
+
 
 def _tree_univar_bin(arr_x, arr_y, **kwargs):
     """univariate binning based on binary decision Tree
@@ -40,8 +42,8 @@ def _tree_univar_bin(arr_x, arr_y, **kwargs):
     """
 
     validation.check_consistent_length(arr_x, arr_y)
-    clf = DecisionTreeClassifier(
-        **get_kwargs(DecisionTreeClassifier, **kwargs))
+    tree_kws = get_kwargs(DecisionTreeClassifier, **kwargs)
+    clf = DecisionTreeClassifier(**tree_kws)
     X = np.array(arr_x).reshape(-1, 1)
     Y = np.array(arr_y).reshape(-1, 1)
 
@@ -159,7 +161,6 @@ def bin_tree(X,
             cols.append(name)
 
     # log process
-    logger = init_log()
 
     msg1 = '''total of {2} unchaged (unique counts less 
            than {1} or categorical dtype) =\n "{0}" 
@@ -181,7 +182,7 @@ def _check_binning_keywords(bins, q, max_leaf_nodes, mono):
     value, if not assign q=10 and bins=max_leaf_nodes=mono=None
     
     '''
-    logger = init_log()
+
     if sum([i is not None for i in (bins, q, max_leaf_nodes, mono)]) != 1:
         msg =\
             '''warning: (q={}, bins={}, max_leaf_nodes={}, mono={}) but only one of 

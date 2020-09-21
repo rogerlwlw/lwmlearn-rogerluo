@@ -115,11 +115,11 @@ def setup(app):
 # This extension can generate automatic links to the documentation of 
 # objects in other projects.
 
-intersphinx_mapping = {
-    'python': ('https://docs.python.org/3', 'python-inv.txt'),
-    'sklearn' : ('https://scikit-learn.org/stable', 'sklearn-inv.txt'),
-    
-    }
+# intersphinx_mapping = {
+#     'python': ('https://docs.python.org/3', None),
+#     'sklearn' : ('https://scikit-learn.org/stable/', None),
+#     'pandas' : ('https://pandas.pydata.org/docs/', None)
+#     }
 # %% -- autoapi configuration --
 # Autodoc-Style Directives
 # You can opt to write API documentation yourself using autodoc style directives. 

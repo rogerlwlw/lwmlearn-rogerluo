@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-package `lwmodel`
 
+offers :class:`~.LW_model` class
 
 Created on Tue Dec 18 14:36:20 2018
 

@@ -10,7 +10,7 @@ from xgboost.sklearn import XGBClassifier
 from lwmlearn.preprocess.lw_base import LW_Base
 
 
-class XGB_encoder(BaseEstimator, TransformerMixin, LW_Base):
+class XgbEncoder(BaseEstimator, TransformerMixin, LW_Base):
     '''
     
     attributes

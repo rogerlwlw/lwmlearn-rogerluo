@@ -433,7 +433,8 @@ def get_kwargs(func, **kwargs):
         keyword args of func
         
     '''
-    func_args = set(inspect.getfullargspec(func).args)
+    func_args = set(inspect.signature(func).parameters.keys())
+
     func_args.intersection_update(kwargs)
     return {i: kwargs[i] for i in func_args}
 
@@ -552,5 +553,5 @@ def to_num_datetime_df(X, thresh=0.8):
     except Exception:
         raise ValueError('X must be df or convertible to df')
     lamf = lambda x: to_num_datetime(x, name=x.name, thresh=thresh)
-    rst = X.apply(lamf, axis=0, result_type='reduce')
+    rst = X.apply(lamf, axis=0)
     return rst
