@@ -12,6 +12,9 @@ Created on Thu Dec 12 16:53:52 2019
 
 import inspect
 import pandas as pd
+
+from lightgbm import LGBMClassifier
+
 from operator import itemgetter
 
 from imblearn import FunctionSampler

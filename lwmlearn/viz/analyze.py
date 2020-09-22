@@ -10,7 +10,7 @@ import pandas as pd
 
 from sklearn.cluster import KMeans
 
-from lwmlearn import get_lw_estimators, pipe_main
+from lwmlearn import pipe_main
 from lwmlearn.lwmodel.operators_pool import get_featurenames
 from lwmlearn.viz.plotter import (plotter_binlift, _save_fig, plotter_scatter,
                                   plotter_ridge)
@@ -27,6 +27,11 @@ import seaborn as sns
 
 
 class DataAnalyzer():
+    """
+    modeling data analyzer
+    
+    """
+    
     def __init__(self, data, class_label, encode_featurename=False):
         '''
          
@@ -53,24 +58,6 @@ class DataAnalyzer():
         if encode_featurename:
             self.encode_featurename()
 
-    def _sample(self, n, frac=None):
-        """
-        sample from data    
-
-        Parameters
-        ----------
-        n : TYPE
-            DESCRIPTION.
-
-        Returns
-        -------
-        TYPE
-            DESCRIPTION.
-
-        """
-
-        data = self.data.copy()
-        return data.sample(n)
 
     def _sample_col(self, col_list):
         """
@@ -92,7 +79,7 @@ class DataAnalyzer():
 
     def resample_TimeSeries(self, data, date_col, freq, agg):
         """
-        
+        resample data by datetime column for specific frequency
 
         Parameters
         ----------
@@ -126,6 +113,7 @@ class DataAnalyzer():
         data_range : TYPE, optional
             list of tuple [(low, high, flag, column)].  
             where flag='numeric' or 'percentage'
+            
             - filter data within range
             - low, lower bound 
             - high, upper bound
@@ -144,13 +132,20 @@ class DataAnalyzer():
 
         """
         data = self.data.copy()
+        
+        try:
+            y_class = data.pop(self.class_label)
+        except:
+            y_class = None
+
+        
         # null outlier
         data = null_outlier(data, data_range)
-
         # scale data
         data = scale_data(data, scaler)
+        
+        data = pd.concat([data, y_class], axis=1)
         self.data = data
-
         return data
 
     def transform_data(self, trans_xx_xx):
@@ -177,27 +172,20 @@ class DataAnalyzer():
         pip.fit(data, y=y_class)
         data = pd.DataFrame(pip.transform(data), columns=get_featurenames(pip))
         return pd.concat([data, y_class], axis=1)
-
-    @Appender(Cleaner.__doc__, join='\n')
+    
     @dedent
+    @Appender(Cleaner.__init__.__doc__, join='\n')
     def clean_data(self, data, dtype_filter='all', **kwargs):
         '''
         call Cleaner to clean DataFrame
         
-        dtype_filter str:
-        - num - filter only numeric dtype
-        - obj - filter only obj dtype
-        - datetime - filter only datetime dtype
-        - not_datetime - exclude only datetime dtype
-        - default 'all', all dtypes
-        
-        Return
-        ------
-        df:
-            cleaned data
+        parameters
+        ----------
+        data : 2d array
+            dataframe or numpy array
         
         Appended
-        -------
+        --------
         
         '''
         clean = Cleaner(dtype_filter=dtype_filter, **kwargs)
@@ -332,8 +320,7 @@ class DataAnalyzer():
                  **kwargs)
 
         if savefig:
-            if savefig is True:
-                savefig = 'corr_{}.pdf'.format(kind)
+            if savefig is True: savefig = 'corr_{}.pdf'.format(kind)
             _save_fig(None, savefig)
 
     def plot_scatter(self,
@@ -349,15 +336,16 @@ class DataAnalyzer():
         Parameters
         ----------
         col1 : str
-            to plot as x axis.
+            column to plot as x axis.
         col2 : str
-            to plot as y axis.
+            column to plot as y axis.
         col3 : str
-            to plot as z axis.
+            column to plot as z axis.
         c : str, optional
-            to plot as color. The default is None.
+            column to plot as color. The default is None.
         trans_xx_xx : TYPE, optional
-            DESCRIPTION. The default is None.
+            if not none, peform transformation of data matrix. 
+            The default is None.
         savefig : TYPE, optional
             DESCRIPTION. The default is None.
 
@@ -514,7 +502,14 @@ class DataAnalyzer():
         call seaborn catplot to show the relationship between a numerical
         and one or more categorical variables using one of several visual
         representations.       
-
+        
+        note
+        -----
+        data matrix will be unpivoted by class labels plus groupings 
+        (``column labels``). numerical data will be labeld as 
+        ``value``, column labels will be named as ``colname``, the matrix 
+        columns look like [``y``, ``groupings``, ``colname``, ``value``]
+        
         Parameters
         ----------
         groupings : TYPE, optional
@@ -574,11 +569,12 @@ class DataAnalyzer():
                      labels=None,
                      col_grouping_mapper={},
                      col_wrap=3,
+                     dropna=False,
                      hue='col_dtype',
                      savefig=None,
                      sample_col=None):
         """
-        performing binning for each feature then plot bin dsitribution
+        perform binning for each feature then plot bin dsitribution
         (lift curve if is_supervised=True) 
 
         Parameters
@@ -597,12 +593,18 @@ class DataAnalyzer():
 
         col_wrap : TYPE, optional
             DESCRIPTION. The default is 3.
+        
+        dropna : bool
+            if True, drop na value when plotting a column
 
         hue str:
             to pass to hue key word
-        
-        key words to cut bins of column
-        -----
+
+        sample_col: list
+            list of sampled column names. default is None.
+            
+        other args 
+        -----------
         
         bins
             - number of equal width or array of edges
@@ -618,8 +620,6 @@ class DataAnalyzer():
             -  only 1 of (q, bins, max_leaf_nodes, mono) can be specified,
             if conflicted q=10 is used
 
-        sample_col: list
-            list of sampled column names. default is None.
 
         Returns
         -------
@@ -657,7 +657,7 @@ class DataAnalyzer():
                           col_wrap=3,
                           sharex=False,
                           sharey=False,
-                          dropna=False,
+                          dropna=dropna,
                           aspect=1.5,
                           col_order=col_order.index,
                           hue=hue)
@@ -694,11 +694,13 @@ if __name__ == '__main__':
     data['cat'].iloc[:5000] = 'B'
     data['cat'].iloc[8000:10000] = np.nan
 
-    an = DataAnalyzer(data, class_label='y', encode_featurename=False)
-    # # an.outlier_scale(None, scaler='minmax')
+    an = DataAnalyzer(data, class_label='y', encode_featurename=True)
+    # an.outlier_scale([(0.1, 0.9, 'percentage', None)], None)
+    
+    # an.outlier_scale(None, scaler='minmax')
     an.plot_corr('X_y')
     an.plot_corr('corrmat')
     an.plot_corr('clustered')
     an.plot_bindist(max_leaf_nodes=5, is_supervised=True)
-    an.plot_bindist(bins=10)
+    an.plot_bindist(bins=10, dropna=True)
     an.plot_catplot(x="y", y="value", col_wrap=3, col='colname', kind='boxen')

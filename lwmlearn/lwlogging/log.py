@@ -94,7 +94,6 @@ USE_LOG = 'loguru'  # loguru for loguru logger; logging for python logger
 loggers = {}
 logger_guru = None
 
-
 LOG_ENABLED = True
 LOG_TO_CONSOLE =  True
 LOG_TO_FILE = True

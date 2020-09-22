@@ -46,6 +46,7 @@ def get_default_models():
         # 'clean_oht_fxgb_XGBClassifier',
         # 'clean_oht_fxgb_inlierForest_XGBClassifier',
         'clean_oht_fxgb_NeighbourhoodCleaningRule_XGBClassifier',
+        'clean_ordi_fxgb_NeighbourhoodCleaningRule_LGBMClassifier',
         # 'clean_oht_fxgb_RandomForestClassifier',
         'clean_oht_fxgb_NeighbourhoodCleaningRule_RandomForestClassifier',
         # 'clean_oht_fxgb_GradientBoostingClassifier',
