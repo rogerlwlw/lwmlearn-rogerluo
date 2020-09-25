@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-`lw_fn` module
+``lw_fn`` module
 
 offers high level functions over `lw_model_proxy`
 
@@ -18,16 +18,32 @@ from lwmlearn.lwmodel.lw_model_proxy import LW_model
 def run_CVscores(X=None,
                  y=None,
                  cv=3,
-                 scoring=['roc_auc', 'KS'],
+                 scoring=['roc_auc', 'KS', 'neg_log_loss'],
                  estimator_lis=None):
-    ''' return CV scores of a series of pre-defined piplines as returned by
-    get_default_models()
+    """return CV scores of a series of pre-defined piplines as returned by
+    :func:`.get_default_models`
     
-    Return
+
+    Parameters
+    ----------
+    X : TYPE, optional
+        DESCRIPTION. The default is None.
+    y : TYPE, optional
+        DESCRIPTION. The default is None.
+    cv : TYPE, optional
+        DESCRIPTION. The default is 3.
+    scoring : TYPE, optional
+        DESCRIPTION. The default is ['roc_auc', 'KS'].
+    estimator_lis : TYPE, optional
+        DESCRIPTION. The default is None, use get_default_models().
+
+    Returns
     -------
-    dataframe 
-        - cv scores of each pipeline
-    '''
+    df : dataframe 
+        cv scores of each pipeline
+
+    """
+    
     if estimator_lis is None:
         l = get_default_models()
     else:

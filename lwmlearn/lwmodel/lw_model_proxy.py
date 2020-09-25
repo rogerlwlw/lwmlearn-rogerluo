@@ -306,7 +306,7 @@ class LW_model(BaseEstimator):
         return model
 
     def __init__(self,
-                 estimator='LogisticRegression',
+                 estimator='cleanNA_woe5_fxgb_LogisticRegression',
                  path='model',
                  seed=0,
                  verbose=1,
@@ -462,7 +462,7 @@ class LW_model(BaseEstimator):
             yy = y_set[1]
             if refit:
                 estimator.fit(xx0, yy0)
-            y_pre = self._pre_continueous(model, xx)
+            y_pre = self._pre_continueous(estimator, xx)
             fpr, tpr, threshhold = roc_curve(yy, y_pre, drop_intermediate=True)
             roc_auc = auc(fpr, tpr)
             fprs.append(fpr)
@@ -716,8 +716,8 @@ class LW_model(BaseEstimator):
         or predict_proba.
         single pair of X, y can be splited into folds using cv > 1 to assess 
         locality of data. 
-        Cross validated auc scores for train data could be plotted 
-        by fit_train=True
+        Cross validated auc scores for train data on validation set could be 
+        plotted by fit_train=True
         
         parameters
         -----------
@@ -734,7 +734,7 @@ class LW_model(BaseEstimator):
             title added to plot header. The default is ''
         fit_train: bool
             if True, refit estimator using other folds data than current k fold
-            each iteration. 
+            each iteration, calculate metrics on validation set. 
             if False, only test a fitted estimator, no refit of estimator
         save_fig : bool
             if True, save plotted fig to default file ``'plots/auc.png'``
@@ -1414,19 +1414,19 @@ class LW_model(BaseEstimator):
     ):
         """run cross validation of estimator
         
-        do:
+        do the following
             
-        1) evaluation AucLift plot of dataset on estimator
-        2) score path plot of scoring metricx
+        1) AucLift plot for dataset on estimator
+        2) Learning path of cross validated scoring metrics 
         
         parameters
         -----------
         dataset : tuple 
             2 element tuple, (X, y) of dataset
         is_train: bool
-            type of process. If True 'Train' dataset, estimator will be fitted 
-            for each fold iteration, if 'False' 'Test' dataset, do not fit the 
-            estimator.
+            type of process. If True ``Train`` dataset, estimator will be fitted 
+            for each fold iteration, and test on validation set. 
+            if False, treat as ``Test`` dataset, do not fit the estimator.
         cv : int
            number of cross validation folds, cv should be greater thant 1
         fit_params : keyword args
@@ -1448,7 +1448,6 @@ class LW_model(BaseEstimator):
         cvscore : Series
             averaged score for each scoring metrics
         
-
         """
         L = locals().copy()
         L.pop('self')
@@ -1486,7 +1485,7 @@ class LW_model(BaseEstimator):
             cv=cv,
         )
 
-        if self.verbose > 1:
+        if self.verbose > 0:
             # dump excel spreadsheets
             lift = lift_data[-1]
             file_path = 'spreadsheet/{}Perfomance.xlsx'.format(data_title)
@@ -1495,6 +1494,7 @@ class LW_model(BaseEstimator):
             loaddump.write([lift, cv_score],
                            file_path,
                            sheet_name=['liftcurve', 'score'])
+        if self.verbose > 1:
             file_path = 'spreadsheet/{}Splits.xlsx'.format(data_title)
             loaddump.write(auccv[3], file_path)
         return cv_score.mean()
@@ -1639,7 +1639,7 @@ class LW_model(BaseEstimator):
 
         self._shut_temp_loaddump()
 
-        if self.verbose > 1:
+        if self.verbose > 0:
             logger.info('sensitivity results are saved to spreadsheets')
             title = 0 if title is None else str(title)
             loaddump.write(self.kws_attr.get('gridcvtab'),
@@ -1818,4 +1818,4 @@ if __name__ == '__main__':
     # plot lift and auc together
     m.plot_AucLift(X, y, fit_train=False)
 
-    m.run_analysis((X, y))
+    # m.run_analysis((X, y))

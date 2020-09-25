@@ -26,8 +26,9 @@ from imblearn.pipeline import Pipeline
 from sklearn.base import (ClassifierMixin, TransformerMixin, RegressorMixin,
                           ClusterMixin, OutlierMixin, MetaEstimatorMixin)
 
-from sklearn.feature_selection.base import SelectorMixin
-from sklearn.linear_model.base import LinearClassifierMixin
+from sklearn.feature_selection import SelectorMixin
+from sklearn.linear_model._base import LinearClassifierMixin
+
 from sklearn.ensemble import BaseEnsemble
 
 from lwmlearn.utilis.utilis import get_flat_list, getmodules
