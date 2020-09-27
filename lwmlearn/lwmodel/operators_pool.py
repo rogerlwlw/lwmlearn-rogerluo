@@ -216,6 +216,15 @@ def lw_all_estimators(type_filter=None):
         if not len(c.__abstractmethods__):
             return False
         return True
+    
+    def is_metaestimator(c):
+        if hasattr(c, "_required_parameters"):
+            if len(c._required_parameters) > 0:
+                return True
+            else:
+                return False
+        else:
+            return False
 
     all_classes = []
     # get parent folder
@@ -237,9 +246,11 @@ def lw_all_estimators(type_filter=None):
 
     estimators = [
         c for c in all_classes
-        if (issubclass(c[1], BaseEstimator) and c[0] not in not_test_operators
+        if (issubclass(c[1], BaseEstimator) 
+            and c[0] not in not_test_operators
             and not c[0].startswith('_')
-            and not issubclass(c[1], MetaEstimatorMixin))
+            and not is_metaestimator(c[1])
+        )
     ]
     # get rid of abstract base classes
     estimators = [c for c in estimators if not is_abstract(c[1])]

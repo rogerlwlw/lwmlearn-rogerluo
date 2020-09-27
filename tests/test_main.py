@@ -37,7 +37,7 @@ def data1():
 def datar():
     '''return kaggle give me some credit data
     '''
-    data = get_local_data('givemesomecredit.csv').sample(5000)
+    data = get_local_data('givemesomecredit.csv').sample(2000)
     y = data.pop('y')
     X = data
     
@@ -128,7 +128,7 @@ def test_LW_model_method(datar, testing_path):
     check = 0
     X, y = datar
     try:
-        m = LW_model('clean_oht_frf_OneSidedSelection_XGBClassifier', 
+        m = LW_model('clean_oht_frf_OneSidedSelection_LGBMClassifier', 
                       path=path,
                       verbose=2)
         # fit the model
@@ -145,15 +145,18 @@ def test_LW_model_method(datar, testing_path):
         # predict by integer index
         m.predict(X, pre_level=True)
         # hyper-parameter tuning, search param_grid space
-        m.opt_sequential((X, y), kind='bayesiancv')
+        m.opt_sequential((X, y), kind='bayesiancv', n_iter=10)
+        m.opt_sequential((X, y), kind='gridcv')
+        m.opt_sequential((X, y), out_searchstep=True, n_iter=10)
         # plot search learning curve
         m.plot_gridcv(m.kws_attr['gridcvtab'][0])
         # plot cv score path
-        m.plot_cvscore(X, y, False, cv=5)
+        m.plot_cvscore(X, y, False, cv=3)
         # plot lift and auc together
         m.plot_AucLift(X, y, fit_train=False)
         
         m.run_analysis((X, y))
+        m.delete_model()
         
     except:
         traceback.print_exc()

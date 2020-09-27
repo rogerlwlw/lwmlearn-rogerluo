@@ -8,7 +8,7 @@ Created on Mon Apr 13 13:00:23 2020
 
 @author: Rogerluo
 """
-
+import os
 import pandas as pd
 
 from lwmlearn.lwmodel.auto_list import get_default_models
@@ -19,7 +19,8 @@ def run_CVscores(X=None,
                  y=None,
                  cv=3,
                  scoring=['roc_auc', 'KS', 'neg_log_loss'],
-                 estimator_lis=None):
+                 estimator_lis=None,
+                 ):
     """return CV scores of a series of pre-defined piplines as returned by
     :func:`.get_default_models`
     
@@ -58,4 +59,6 @@ def run_CVscores(X=None,
             scores = m.cv_validate(X, y, cv=cv, scoring=scoring).mean()
             scores['pipe'] = i
             lis.append(scores)
-        return pd.concat(lis, axis=1, ignore_index=True).T
+        m.delete_model()
+        df = pd.concat(lis, axis=1, ignore_index=True).T
+        return df

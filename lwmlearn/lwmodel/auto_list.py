@@ -9,14 +9,12 @@ Created on Fri Dec 20 11:54:07 2019
 
 
 def get_default_classifier():
-    '''return default list of estimators
+    '''return default list of classifiers
     '''
     lis = [
         # linear
         'LogisticRegression',
         'SGDClassifier',
-        'LinearSVC',
-        'LinearDiscriminantAnalysis',
         # tree based
         'LGBMClassifier',
         'XGBClassifier',
@@ -34,7 +32,31 @@ def get_default_classifier():
     return lis
 
 
-def get_default_models():
+def get_default_models(rtype=0):
+    """
+    
+
+    Parameters
+    ----------
+    rtype : int, [0, 1]
+        return type. The default is 0.
+
+    Returns
+    -------
+    l : list
+        list of estimators
+
+    """
+    if rtype == 0:
+        return get_default_pipeline()
+    elif rtype == 1 :
+        return get_default_classifier()
+    else:
+        raise ValueError('invalid rtype input')
+    
+    
+
+def get_default_pipeline():
     '''return default predefined estimators to run AutoML
     '''
     lis = [
@@ -48,8 +70,9 @@ def get_default_models():
         # tree based models
         # 'clean_oht_fxgb_XGBClassifier',
         # 'clean_oht_fxgb_inlierForest_XGBClassifier',
-        'clean_ordi_frf_NeighbourhoodCleaningRule_XGBClassifier',
+        'clean_oht_frf_NeighbourhoodCleaningRule_XGBClassifier',
         'clean_ordi_fxgb_NeighbourhoodCleaningRule_LGBMClassifier',
+        'clean_oht_fxgb_NeighbourhoodCleaningRule_LGBMClassifier',
         # 'clean_oht_fxgb_RandomForestClassifier',
         'clean_oht_fxgb_NeighbourhoodCleaningRule_RandomForestClassifier',
         # 'clean_oht_fxgb_GradientBoostingClassifier',

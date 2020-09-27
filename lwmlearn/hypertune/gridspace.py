@@ -50,12 +50,8 @@ def _grid_search_grid(estimator):
 
     XGBClassifier = [
         {
-            'learning_rate': np.logspace(-3, 0, 5),
-            'n_estimators': np.arange(50, 120, 10).astype(int),
-        },
-        {
-            'colsample_bytree': [0.95, 0.9, 0.8, 0.75],
-            'subsample': [0.95, 0.9, 0.8, 0.7, 0.6],
+            'colsample_bytree': [0.95, 0.8, 0.75, 0.5],
+            'subsample': [0.95, 0.8, 0.7, 0.6, 0.5],
         },
         {
             'scale_pos_weight': np.logspace(0, 1.5, 5)
@@ -69,6 +65,31 @@ def _grid_search_grid(estimator):
         {
             'reg_alpha': np.logspace(-2, 3, 3),
             'reg_lambda': np.logspace(-2, 3, 10)
+        },
+        {
+            'learning_rate': np.logspace(-3, 0, 5),
+            'n_estimators': np.arange(50, 120, 10).astype(int),
+        },
+    ]
+    LGBMClassifier = [
+        {
+            'scale_pos_weight': np.logspace(0, 1.5, 5),
+            'boosting_type' : ['gbdt', 'goss', 'rf'],
+        },
+
+        {"num_leaves" : [20, 31, 40, 45, 50],
+         'colsample_bytree': [0.95, 0.9, 0.8, 0.75],
+         'subsample': [0.95, 0.8, 0.7, 0.6],
+         "subsample_freq" : [5, 10],
+        },
+
+        {
+            'n_estimators': np.arange(50, 120, 10).astype(int),
+        },
+
+        {
+            'reg_alpha': np.logspace(-2, 3, 3),
+            'reg_lambda': np.logspace(-2, 3, 3)
         },
     ]
 
@@ -184,6 +205,8 @@ def _bayes_search_grid(estimator):
     tree_depth = (1, 5, 'uniform')
     nneighbors = (1, 3, 'uniform')
     rebalance = (0.1, 0.5, 'uniform')
+    num_leaves = (10, 50, 'uniform')
+    sample_freq = (1, 10, 'uniform')
 
     cart_tree_param = {
         'max_depth': (1, 5, 'uniform'),
@@ -207,6 +230,7 @@ def _bayes_search_grid(estimator):
     }]
 
     XGBClassifier = [
+        {'scale_pos_weight': pos_ratio},
         {
             'learning_rate': logscale_lr,
             'n_estimators': (30, 200, 'uniform'),
@@ -215,13 +239,33 @@ def _bayes_search_grid(estimator):
             'reg_alpha': logscale_C,
             'reg_lambda': logscale_C,
             'gamma': logscale_C,
-            'scale_pos_weight': pos_ratio,
         },
         {
             'colsample_bytree': col_ratio,
             'subsample': sample_ratio,
             'max_depth': tree_depth
         },
+    ]
+    LGBMClassifier = [
+        {'scale_pos_weight': pos_ratio,
+         'boosting_type' : ['gbdt', 'goss', 'rf'],
+        },
+        {
+            'colsample_bytree': col_ratio,
+            'subsample': sample_ratio,
+            "subsample_freq" : sample_freq,
+            "num_leaves" : num_leaves,
+        },
+        {
+            'reg_alpha': logscale_C,
+            'reg_lambda': logscale_C,
+        },
+
+        {
+            'learning_rate': logscale_lr,
+            'n_estimators': (30, 200, 'uniform'),
+        },
+
     ]
 
     AdaBoostClassifier = [
