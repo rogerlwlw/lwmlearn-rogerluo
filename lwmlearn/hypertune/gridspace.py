@@ -247,14 +247,13 @@ def _bayes_search_grid(estimator):
         },
     ]
     LGBMClassifier = [
-        {'scale_pos_weight': pos_ratio,
-         'boosting_type' : ['gbdt', 'goss', 'rf'],
-        },
+
         {
             'colsample_bytree': col_ratio,
             'subsample': sample_ratio,
             "subsample_freq" : sample_freq,
             "num_leaves" : num_leaves,
+            'scale_pos_weight': pos_ratio,
         },
         {
             'reg_alpha': logscale_C,
@@ -304,6 +303,7 @@ def _bayes_search_grid(estimator):
     threshold = []
     threshold.extend(
         ['*'.join([str(i), 'mean']) for i in (0.2, 0.4, 0.6, 1, 1.2, 1.68)])
+    
     frf = [{'threshold': threshold}]
 
     fxgb = [{'threshold': threshold}]

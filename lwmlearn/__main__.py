@@ -10,13 +10,14 @@ import argparse
 import sys
 import traceback
 
+import pprint
 import pandas as pd
 import os 
 
 import lwmlearn
 from lwmlearn import LW_model, run_CVscores
 from sklearn.model_selection import train_test_split
-from argparse import ArgumentDefaultsHelpFormatter
+from argparse import ArgumentDefaultsHelpFormatter, REMAINDER
 
 def _ParseArguments(argv):
     '''Parse the command line arguments.
@@ -40,7 +41,6 @@ def _ParseArguments(argv):
                         '--ylabel',
                         type=str,
                         default='y',
-                        required=True,
                         help='class label')
     
     parser.add_argument('-s',
@@ -51,10 +51,10 @@ def _ParseArguments(argv):
                         help='sample number of dataset, if not specified directly use 1000')
     
     
-    parser.add_argument('-nsr',
+    parser.add_argument('-is',
                         '--is_search',
-                        action="store_false",
-                        help='do not perform hyper-tuning')
+                        action="store_true",
+                        help='perform hyper-tuning')
     
     parser.add_argument('-k',
                         '--kind',
@@ -100,6 +100,9 @@ def _ParseArguments(argv):
                         '--test_path',
                         help='csv file test data')
     
+    # parser.add_argument('args', nargs=REMAINDER)
+    
+    
 
     
     return parser.parse_args(argv[1:])
@@ -134,7 +137,7 @@ def _get_model_data(data_path, testsize, test_path, ylabel,
     data = pd.read_csv(data_path)
     if kwargs.get('sample'):
         data = data.sample(kwargs['sample'])
-        
+       
     if testsize:
         X = data
         y = X.pop(ylabel)
@@ -158,6 +161,76 @@ def _get_model_data(data_path, testsize, test_path, ylabel,
     trainset = (x_train, y_train)
     return trainset, testset
 
+def _main(data_path, testsize, test_path, ylabel, sample, 
+          kind, version, pipeline, is_search, automl, cv_only, 
+          **kwargs):
+    """
+    
+
+    Parameters
+    ----------
+    data_path : TYPE
+        DESCRIPTION.
+    testsize : TYPE
+        DESCRIPTION.
+    test_path : TYPE
+        DESCRIPTION.
+    ylabel : TYPE
+        DESCRIPTION.
+    sample : TYPE
+        DESCRIPTION.
+    is_search : TYPE
+        DESCRIPTION.
+    kind : TYPE
+        DESCRIPTION.
+    version : TYPE
+        DESCRIPTION.
+    pipeline : TYPE
+        DESCRIPTION.
+    automl : TYPE
+        DESCRIPTION.
+    cv_only : TYPE
+        DESCRIPTION.
+    **kwargs : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
+    # -- run program
+    if version:
+        print("lwmlearn version : {}".format(lwmlearn.__version__))
+        return 0
+    
+    # 
+    trainset, testset = _get_model_data(data_path, testsize, test_path, ylabel)
+    
+    file_name = os.path.splitext(data_path)[0]
+    
+    if automl:
+        print("run autoML on {} .. \n".format(data_path))
+        m = LW_model(path=file_name)
+        X, y = trainset
+        m.run_autoML(X, y, testset, **kwargs)
+        if testset is not None:
+            x_test, y_test = testset
+            m.plot_all_auc(False, X=x_test, y=y_test, save_fig=True)
+        print("autoML run complete .. \n")
+    elif cv_only:
+        X, y = trainset
+        df = run_CVscores(X, y)
+        df.to_excel('cv_score.xlsx', index=False)
+    elif pipeline:
+        print("run tuning and fitting on {} .. \n".format(pipeline))
+        path = os.path.join(file_name, pipeline)
+        m = LW_model(estimator=pipeline, path=path)
+        m.run_analysis(trainset, testset, **kwargs)    
+        
+    return
+
+
 def main(argv):
     """Main program.
     Arguments:
@@ -170,31 +243,8 @@ def main(argv):
 
     args = _ParseArguments(argv)
     # -- run program
-    if args.version:
-        print("lwmlearn version : {}".format(lwmlearn.__version__))
-        return 0
-    
-    # 
-    trainset, testset = _get_model_data(**args.__dict__)
-    
-    file_name = os.path.splitext(args.data_path)[0]
-    
-    if args.automl:
-        print("run autoML on {} .. \n".format(args.data_path))
-        m = LW_model(path=file_name)
-        X, y = trainset
-        m.run_autoML(X, y, testset, **args.__dict__)
-        
-        print("autoML run complete .. \n")
-    elif args.cv_only:
-        X, y = trainset
-        df = run_CVscores(X, y)
-        df.to_excel('cv_score.xlsx', index=False)
-    elif args.pipeline:
-        print("run tuning and fitting on {} .. \n".format(args.pipeline))
-        path = os.path.join(file_name, args.pipeline)
-        m = LW_model(estimator=args.pipeline, path=path)
-        m.run_analysis(trainset, testset, **args.__dict__)
+    pprint.pp(vars(args), depth=2, width=60)
+    _main(**vars(args))
 
 
 def run_main():

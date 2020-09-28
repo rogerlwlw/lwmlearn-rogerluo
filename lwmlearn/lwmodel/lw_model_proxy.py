@@ -1170,9 +1170,9 @@ class LW_model(BaseEstimator):
                  param_grid,
                  kind='bayesiancv',
                  combine_param_space=None,
-                 scoring='roc_auc',
+                 scoring=['roc_auc'],
                  cv=3,
-                 refit=['roc_auc'],
+                 refit='roc_auc',
                  error_score=-999,
                  iid=False,
                  return_train_score=True,
@@ -1205,6 +1205,10 @@ class LW_model(BaseEstimator):
             method options 
             
             - if kind=='bayesiancv' use bayesian optimization
+            
+            .. note::
+            
+                bayesian search only support single metrics evaluation
             
             - if kind == 'gridcv' sequentially update the best parameter 
             settings in each dict of param_grid by grid search
@@ -1274,6 +1278,7 @@ class LW_model(BaseEstimator):
 
         if kind == 'bayesiancv':
             scorer = self._get_scorer(refit).get(refit)
+            L.update(refit = True)
         else:
             scorer = self._get_scorer(scoring)
 
@@ -1283,6 +1288,7 @@ class LW_model(BaseEstimator):
             'randomcv': RandomizedSearchCV
         }
         api = search_method[kind]
+        # collect param
         params = get_kwargs(api, **L)
         params.update(get_kwargs(api, **kwargs))
         if cv < 3:
