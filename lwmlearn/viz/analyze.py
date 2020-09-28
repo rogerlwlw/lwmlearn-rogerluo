@@ -10,7 +10,7 @@ import pandas as pd
 
 from sklearn.cluster import KMeans
 
-from lwmlearn import pipe_main
+from lwmlearn import pipe_gen
 from lwmlearn.lwmodel.operators_pool import get_featurenames
 from lwmlearn.viz.plotter import (plotter_binlift, _save_fig, plotter_scatter,
                                   plotter_ridge)
@@ -168,7 +168,7 @@ class DataAnalyzer():
         except:
             y_class = None
 
-        pip = pipe_main(trans_xx_xx)
+        pip = pipe_gen(trans_xx_xx)
         pip.fit(data, y=y_class)
         data = pd.DataFrame(pip.transform(data), columns=get_featurenames(pip))
         return pd.concat([data, y_class], axis=1)

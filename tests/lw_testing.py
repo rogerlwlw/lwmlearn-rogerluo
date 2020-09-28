@@ -8,7 +8,7 @@ from sklearn.feature_extraction import FeatureHasher
 from lwmlearn.utilis.testing import runlocaldataset
 
 from sklearn.datasets import make_classification
-from lwmlearn import LW_model, pipe_main
+from lwmlearn import LW_model, pipe_gen
 
 from lwmlearn.dataset import get_local_data
 

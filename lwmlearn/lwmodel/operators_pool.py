@@ -294,7 +294,7 @@ def lw_all_estimators(type_filter=None):
     return sorted(set(estimators), key=itemgetter(0))
 
 
-def pipe_main(pipe=None):
+def pipe_gen(pipe=None):
     '''pipeline construction using sklearn estimators, final step support only
     classifiers currently
     
@@ -351,7 +351,7 @@ def get_featurenames(pipe_line):
     Parameters
     ----------
     pipe_line : TYPE
-        instance returned by pipe_main().
+        instance returned by pipe_gen().
 
     Return
     -------
@@ -381,4 +381,4 @@ def get_featurenames(pipe_line):
 
 
 if __name__ == '__main__':
-    pipe_main()
+    pipe_gen()

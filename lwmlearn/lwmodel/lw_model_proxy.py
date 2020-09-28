@@ -105,7 +105,7 @@ from lwmlearn.utilis.utilis import to_num_datetime_df, dict_subset
 from lwmlearn.utilis.lw_model_proxy_utlis import (split_cv,
                                                   get_splits_combined)
 from lwmlearn.utilis.sklearn_score import get_custom_scorer
-from lwmlearn.lwmodel.operators_pool import pipe_main, get_featurenames
+from lwmlearn.lwmodel.operators_pool import pipe_gen, get_featurenames
 from lwmlearn.lwlogging import init_log
 
 logger = init_log()
@@ -357,7 +357,7 @@ class LW_model(BaseEstimator):
         
         '''
         if isinstance(estimator, str):
-            model = pipe_main(estimator)
+            model = pipe_gen(estimator)
         elif hasattr(estimator, '_estimator_type'):
             model = estimator
         else:

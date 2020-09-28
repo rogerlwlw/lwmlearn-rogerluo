@@ -29,7 +29,7 @@ of:
 
 Main hepler functions:
 =============
-1) pipe_main:
+1) pipe_gen:
     return pipeline instance, a chained sequence of transformers and estimators(
     including some pre-difined custom estimators)
 2) LW_model (Class):
