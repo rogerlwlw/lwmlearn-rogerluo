@@ -55,8 +55,8 @@ To initialize an instance like below ::
     
     LW_model("cleanNA_woe5_LogisticRegressionClassifier")
 
-Example
-++++++++
+.. rubric:: Example
+
 the following runs a ``clean_oht_frf_OneSidedSelection_XGBClassifier`` pipeline
 on fake classification data. The pipe line performs ``data cleanning`` --> 
 ``one hot encoding`` --> ``randomforest feature selection`` --> ``OneSidedSelection`` 
@@ -125,7 +125,7 @@ Then the fitted pipeline could be used to make predictions on test data.
 
 Use get_lw_estimators
 -----------------------
-it retrieves an isntance of ML model(``Classifier/Regressor``), it helps write
+it retrieves an isntance of ML model(``Classifier/Regressor``), help write
 code quickly and keep script simple.
     
 
