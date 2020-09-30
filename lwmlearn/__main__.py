@@ -19,6 +19,8 @@ from lwmlearn import LW_model, run_CVscores
 from sklearn.model_selection import train_test_split
 from argparse import ArgumentDefaultsHelpFormatter, REMAINDER
 
+from lwmlearn.preprocess.lw_base import _convert_numeric
+
 def _ParseArguments(argv):
     '''Parse the command line arguments.
     
@@ -26,6 +28,7 @@ def _ParseArguments(argv):
     ------
     commandline parsed input
     '''
+    
     description =\
     '''
     Main function entry_point for lwmlearn
@@ -94,18 +97,48 @@ def _ParseArguments(argv):
     mutually_exclusive_group.add_argument('-ts',
                         '--testsize',
                         type=float,
+                        const=0.3,
+                        nargs="?",
                         help='split data file as train and test set')
     
     mutually_exclusive_group.add_argument('-td',
                         '--test_path',
                         help='csv file test data')
     
-    # parser.add_argument('args', nargs=REMAINDER)
+    parser.add_argument("--set",
+                        metavar="KEY=VALUE",
+                        nargs='+',
+                        help="Set a number of key-value pairs "
+                             "(do not put spaces before or after the = sign). "
+                             "If a value contains spaces, you should define "
+                             "it with double quotes: "
+                             'foo="this is a sentence". Note that '
+                             "values are always treated as strings.")
+    # parse sys args as dict
+    args, unknown = parser.parse_known_args(argv[1:])
     
-    
+    kwargs = vars(args)
+    set_kwargs = dict(map(lambda s: _parse_var(s), kwargs.pop('set')))
+    kwargs.update(set_kwargs)
+    return kwargs
 
-    
-    return parser.parse_args(argv[1:])
+def _parse_var(s):
+    """
+    Parse a key, value pair, separated by '='
+    That's the reverse of ShellArgs.
+
+    On the command line (argparse) a declaration will typically look like:
+        foo=hello
+    or
+        foo="hello world"
+    """
+    items = s.split('=')
+    key = items[0].strip() # we remove blanks around keys, as is logical
+    if len(items) == 2:
+        val = _convert_numeric(items[1]) 
+        return (key, val)
+    else:
+        raise ValueError("{} wrong input syntax".format(s))
 
 def _get_model_data(data_path, testsize, test_path, ylabel, 
                     **kwargs):
@@ -162,7 +195,7 @@ def _get_model_data(data_path, testsize, test_path, ylabel,
     return trainset, testset
 
 def _main(data_path, testsize, test_path, ylabel, sample, 
-          kind, version, pipeline, is_search, automl, cv_only, 
+           version, pipeline, automl, cv_only, is_search, kind, 
           **kwargs):
     """
     
@@ -213,7 +246,10 @@ def _main(data_path, testsize, test_path, ylabel, sample,
         print("run autoML on {} .. \n".format(data_path))
         m = LW_model(path=file_name)
         X, y = trainset
-        m.run_autoML(X, y, testset, **kwargs)
+        m.run_autoML(X, y, testset, 
+                     is_search=is_search,
+                     kind=kind,
+                     **kwargs)
         if testset is not None:
             x_test, y_test = testset
             m.plot_all_auc(False, X=x_test, y=y_test, save_fig=True)
@@ -241,10 +277,10 @@ def main(argv):
       Zero on successful program termination, non-zero otherwise.
     """
 
-    args = _ParseArguments(argv)
+    kwargs = _ParseArguments(argv)
     # -- run program
-    pprint.pp(vars(args), depth=2, width=60)
-    _main(**vars(args))
+    pprint.pp(kwargs, depth=2, width=60)
+    _main(**kwargs)
 
 
 def run_main():
