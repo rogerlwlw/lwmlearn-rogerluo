@@ -1,3 +1,6 @@
+# build status
+[![Build Status](https://travis-ci.org/rogerlwlw/lwmlearn-rogerluo.svg?branch=master)](https://travis-ci.org/rogerlwlw/lwmlearn-rogerluo)
+
 # lw-mlearn
 
 A Python tool that wraps sklearn and many other estimators into pipelines and faciliates workflow 

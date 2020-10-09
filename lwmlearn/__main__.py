@@ -39,7 +39,7 @@ def _ParseArguments(argv):
     # # positional argument
     parser.add_argument('data_path',
                         help="csv file train data")
-
+    # optional argument
     parser.add_argument('-y',
                         '--ylabel',
                         type=str,
@@ -66,7 +66,6 @@ def _ParseArguments(argv):
                         help="hyper-tuning method ['bayesiancv', 'gridcv']")
     
     
-    # optional argument
     parser.add_argument('-v',
                         '--version',
                         action='store_true',
@@ -101,7 +100,7 @@ def _ParseArguments(argv):
                         nargs="?",
                         help='split data file as train and test set')
     
-    mutually_exclusive_group.add_argument('-td',
+    mutually_exclusive_group.add_argument('-tp',
                         '--test_path',
                         help='csv file test data')
     
