@@ -2,9 +2,9 @@ Welcome to lwmlearn's documentation!
 ========================================
 
 
-.. figure:: _static/_image/frontpage.jpg
+.. figure:: _static/_image/pipeline.png
    :align: center
-   :scale: 40%
+   :scale: 80%
    
 
 .. _masterdoc:

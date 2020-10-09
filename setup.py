@@ -75,6 +75,7 @@ setup(
         'sqlalchemy',
         'python-docx',
         'loguru',
+        'lightgbm',
     ],
     
     extras_require={

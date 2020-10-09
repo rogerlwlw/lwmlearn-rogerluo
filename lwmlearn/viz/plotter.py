@@ -353,10 +353,21 @@ def plotter_scatter(x, y, z, c=None, cmap='Spectral', alpha=0.85, **kwargs):
 
     Parameters
     ----------
-    *args : TYPE
+    x : TYPE
+        DESCRIPTION.
+    y : TYPE
+        DESCRIPTION.
+    z : TYPE
         DESCRIPTION.
     c : TYPE, optional
         DESCRIPTION. The default is None.
+    cmap : TYPE, optional
+        DESCRIPTION. The default is 'Spectral'. ['Set1', 'Set2',
+        'Set3', 'tab10', 'tab20', 'tab20b', 'tab20c']
+    alpha : TYPE, optional
+        DESCRIPTION. The default is 0.85.
+    **kwargs : TYPE
+        DESCRIPTION.
 
     Raises
     ------
@@ -369,6 +380,7 @@ def plotter_scatter(x, y, z, c=None, cmap='Spectral', alpha=0.85, **kwargs):
         DESCRIPTION.
 
     """
+    
 
     dim = len([i for i in (x, y, z) if i is not None])
     if dim > 3:
@@ -377,7 +389,8 @@ def plotter_scatter(x, y, z, c=None, cmap='Spectral', alpha=0.85, **kwargs):
         fig, ax = plt.subplots(1, 1, subplot_kw={'projection': '3d'})
         scatter = ax.scatter(x, y, z, c=c, cmap=cmap, alpha=alpha, **kwargs)
         ax.set(xlabel=x.name, ylabel=y.name, zlabel=z.name)
-    else:
+    elif dim == 2: 
+        x, y = [i for i in (x, y, z) if i is not None]
         fig, ax = plt.subplots(1, 1)
         scatter = ax.scatter(x, y, c=c, cmap=cmap, alpha=alpha, **kwargs)
         ax.set(xlabel=x.name, ylabel=y.name)
@@ -399,8 +412,8 @@ def plotter_facet(data,
                   **kwargs):
     '''plot grids of plots using seaborn Facetgrid
     
-    parameter
-    -----
+    parameters
+    ----------
     data : DataFrame
     
         Tidy (“long-form”) dataframe where each column is a variable and each 
@@ -574,15 +587,42 @@ def plotter_auc(fpr,
                 title=None,
                 cm=None,
                 plot_mean=True):
-    '''plot roc_auc curve given fpr, tpr, or list of fpr, tpr
+    """plot roc_auc curve given fpr, tpr, or list of fpr, tpr
     
-    cm:
-        color map default 'tab20'
+
+    Parameters
+    ----------
+    fpr : TYPE
+        DESCRIPTION.
+    tpr : TYPE
+        DESCRIPTION.
+    ax : TYPE, optional
+        DESCRIPTION. The default is None.
+    alpha : TYPE, optional
+        DESCRIPTION. The default is 0.95.
+    lw : TYPE, optional
+        DESCRIPTION. The default is 1.2.
+    curve_label : TYPE, optional
+        label of auc curve if multiple lines are input. The default is None.
+    title : str, optional
+        DESCRIPTION. The default is None.
+    cm : TYPE, optional
+        color map object. The default is None.
+    plot_mean : bool, optional
+        if True plot mean auc curve by interpolation. The default is True.
+
+    Raises
+    ------
+    ValueError
+        if length of ``fpr`` and ``tpr`` are not the same .
+
+    Returns
+    -------
+    ax : TYPE
+        DESCRIPTION.
+
+    """
     
-    return
-    ----
-    ax
-    '''
     fpr, tpr = get_flat_list(fpr), get_flat_list(tpr)
     if len(fpr) != len(tpr):
         raise ValueError("length of fpr and tpr doesn't match")
@@ -655,8 +695,25 @@ def plotter_auc(fpr,
 
 
 def plotter_auc_y(y_pre, y_true, **kwargs):
-    '''plot roc_auc curve given y_pre, y_true
-    '''
+    """plot roc_auc curve given y_pre, y_true
+    
+
+    Parameters
+    ----------
+    y_pre : TYPE
+        DESCRIPTION.
+    y_true : TYPE
+        DESCRIPTION.
+    **kwargs : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    ax : TYPE
+        DESCRIPTION.
+
+    """
+    
     fpr, tpr, threshhold = roc_curve(y_true, y_pre,
                                      **get_kwargs(roc_curve, **kwargs))
     ax = plotter_auc(fpr, tpr, **get_kwargs(plotter_auc, **kwargs))
@@ -664,10 +721,29 @@ def plotter_auc_y(y_pre, y_true, **kwargs):
 
 
 def plotter_KS(y_pred, y_true, n, asc):
-    '''
+    """plot KS plot curve
+    
     # preds is score: asc=1
     # preds is prob: asc=0
-    '''
+
+    Parameters
+    ----------
+    y_pred : TYPE
+        DESCRIPTION.
+    y_true : TYPE
+        DESCRIPTION.
+    n : TYPE
+        DESCRIPTION.
+    asc : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    ksds : TYPE
+        DESCRIPTION.
+
+    """
+
     pred = y_pred  # 预测值
     bad = y_true  # 取1为bad, 0为good
     ksds = pd.DataFrame({'bad': bad, 'pred': pred})
@@ -764,13 +840,27 @@ def plotter_cv_results_(results,
                         train_style='mo-',
                         test_style='go-.',
                         title=None):
-    '''plot univariate parameter cross validated results after 
-    grid search of model
-    
-    return
+    """
+    plot learning curve of metrics after param grid search
+
+    Parameters
+    ----------
+    results : dataframe
+        DESCRIPTION.
+    train_style : str, optional
+        matplotlib line style. The default is 'mo-'.
+    test_style : str, optional
+        matplotlib line style. The default is 'go-.'.
+    title : TYPE, optional
+        DESCRIPTION. The default is None.
+
+    Returns
     -------
-    ax, or tuple of ax
-    '''
+    ax : TYPE
+        DESCRIPTION.
+
+    """
+    
     scoring = results.filter(like='mean_train_').columns
     scoring = [i.replace('mean_train_', '') for i in scoring]
     df_param = results.filter(like='param_')
@@ -848,18 +938,31 @@ def plotter_dist_thresh(s,
                         subplot_kw=None,
                         savefig=None,
                         **fig_kws):
-    '''plot distribution of series and percentage above thresh
+    """
     
-    s - ndarray or series:
-        vector to calculate percentile distribution
-    step - integer or float:
-        step of percentages to plot cummulative distribution
-    thresh - integer:
-        threshhold/cutoff of decision
-    return
-    -----
-        quantiles of data
-    '''
+
+    Parameters
+    ----------
+    s : series 1d array
+        DESCRIPTION.
+    thresh : TYPE
+        point above which to calculate percentage of counts.
+    step : TYPE, optional
+        DESCRIPTION. The default is 1.
+    subplot_kw : TYPE, optional
+        DESCRIPTION. The default is None.
+    savefig : TYPE, optional
+        DESCRIPTION. The default is None.
+    **fig_kws : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    TYPE 
+        DESCRIPTION.
+
+    """
+    
     s = pd.Series(s)
     q = np.arange(100, step=step) / 100
     q = np.append(q, 1)
@@ -921,11 +1024,10 @@ def plotter_dist_thresh(s,
 def plotter_k_timeseries(time_rate, subplot_kw=None, **fig_kws):
     '''plot time series of rate and volume
     
-    time_rate - df:
-        pass rate at different nodes
-    time_vol - series:
-        vol at different nodes  
-        
+    time_rate : df
+        pass rate at different nodes (column labels), columns with value greater
+        than 1 will be treated as volume of rate (``time_vol``)
+    
     .. note ::         
         index of df/series is used as xaxis 
     
@@ -974,10 +1076,27 @@ def plotter_k_timeseries(time_rate, subplot_kw=None, **fig_kws):
 
 
 def plotter_score_path(df_score, title=None, cm=None, style='-.o'):
-    '''
-    df_score:
-        data frame of scores of metrics
-    '''
+    """
+    plot line of each column of dataframe in one figure
+
+    Parameters
+    ----------
+    df_score : TYPE
+        DESCRIPTION.
+    title : TYPE, optional
+        DESCRIPTION. The default is None.
+    cm : TYPE, optional
+        DESCRIPTION. The default is None.
+    style : TYPE, optional
+        DESCRIPTION. The default is '-.o'.
+
+    Returns
+    -------
+    fig : TYPE
+        DESCRIPTION.
+
+    """
+    
     # plot
     data = df_score.select_dtypes(include='number')
     n = len(data.columns)
@@ -1130,10 +1249,9 @@ def color_reference(keys=None):
             plt.show()
 
 
-# BBD plotter
+# credit loan plotter
 def plotter_k_status(data, savefig=None):
-    ''' calculate pass rate at different application-appraisal nodes, and 
-    plot data
+    ''' plot pass rate at different application-appraisal nodes
     
     data - DataFrame (is_passed series, keys as name):
         columns:
@@ -1286,8 +1404,8 @@ def _cal_rate_vol(x_bin, y, kind='vol'):
 
     Returns
     -------
-    df1 : TYPE
-        DESCRIPTION.
+    df1 : dataframe
+        three columns [``xbins``, ``rate``, ``vol``].
 
     """
 
@@ -1321,28 +1439,45 @@ def plotter_rateVol(df,
                     xlabel=True,
                     legend=True,
                     **subplot_kw):
-    ''' plot rate along with volume
+    """plot rate along with volume
     
-    df - 3 cols [D1, rate, denominator]
-        --> D1-dimensional label, rate= numerator / denominator
-    lstyle
-        -->2Dline stype egg '-.ko'
-    bar_c
-        -->  color of bar chart              
-    ylim
-        --> left y axis limit
-    ymajor_formatter
-        -->
-    xlabel_position
-        --> str, 'top'/'down'/'both'   
-    return
-    ----
-    list of artists drawed in ax
-    '''
-    L = locals().copy()
-    L.pop('df')
-    L.pop('ax')
 
+    Parameters
+    ----------
+    df : dataframe
+        columns are [D1, rate, denominator].
+    ax : TYPE, optional
+        DESCRIPTION. The default is None.
+    lstyle : TYPE, optional
+        2Dline style egg '-.ko'. The default is 'k-.o'.
+    bar_c : TYPE, optional
+        2Dline style egg '-.ko'. The default is 'g'.
+    ymajor_formatter : TYPE, optional
+        DESCRIPTION. The default is 'percent'.
+    xlabel_position : TYPE, optional
+        DESCRIPTION. The default is 'bottom'.
+    xlabelrotation : TYPE, optional
+        DESCRIPTION. The default is 30.
+    anno : TYPE, optional
+        DESCRIPTION. The default is False.
+    show_mean : TYPE, optional
+        DESCRIPTION. The default is True.
+    ylabel : TYPE, optional
+        DESCRIPTION. The default is True.
+    xlabel : str, optional
+        'top'/'down'/'both'   . The default is True.
+    legend : TYPE, optional
+        DESCRIPTION. The default is True.
+    **subplot_kw : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    axe : TYPE
+        DESCRIPTION.
+
+    """
+    
     axe = ax if ax is not None else plt.gca()
 
     labels = df.iloc[:, 0]
@@ -1350,7 +1485,6 @@ def plotter_rateVol(df,
     vol = df.iloc[:, 2]
     rate_weighted = np.average(rate, weights=vol)
     # plot artists
-    out = []
     axe_right = axe.twinx()
     axe.plot(labels, rate, lstyle, label=rate.name, alpha=1)
 
@@ -1415,29 +1549,41 @@ def plotter_lift_curve(y_pre,
                        **kwargs):
     '''return lift curve of y_pre score on y_true binary  
    
-    y_pre
-        - array_like, value of y to be cut
-    y_true
-        - true value of y for supervised cutting based on decision tree 
-    bins
-        - number of equal width or array of edges
-    q
-        - number of equal frequency              
-    max_leaf_nodes
-        - number of tree nodes using tree cut
-        - if not None use supervised cutting based on decision tree
-    **kwargs - Decision tree keyswords, egg:
-        - min_impurity_decrease=0.001
-        - random_state=0 
+    parameters
+    ------------
+    
+    y_pre : 1d array_like
+        value of y to be cut
+    y_true : 1d array
+        true value of y for supervised cutting based on decision tree 
+    bins : int
+        number of equal width or array of edges
+    q : int
+        number of equal frequency              
+    max_leaf_nodes : int
+        number of tree nodes using tree cut, 
+        if not None use supervised cutting based on decision tree
+    
+    keyword wargs
+    -------------
+    min_impurity_decrease=0.001
+    
+    random_state=0 
+    
     .. note::
-        -  only 1 of (q, bins, max_leaf_nodes) can be specified       
-    labels
-        - see pd.cut, if False return integer indicator of bins, 
-        - if True return arrays of labels (or can be passed )
-    header
-        - title of plot
-    xlabel
-        - xlabel for xaxis
+    
+        only 1 of (q, bins, max_leaf_nodes) can be specified       
+    
+    
+    labels : 
+        see pd.cut, if False return integer indicator of bins, 
+        if True return arrays of labels (or can be passed )
+    
+    header : str
+        title of plot
+    
+    xlabel : str
+        xlabel for xaxis
     '''
 
     y_cut, bins = binning(y_pre,

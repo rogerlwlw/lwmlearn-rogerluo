@@ -98,18 +98,6 @@ extensions = [
 # file extensions to file types. For example:
 source_suffix = ['.rst', '.md']
 
-
-# %% -- Configuring AutoStructify
-from recommonmark.transform import AutoStructify
-github_doc_root =\
-'''https://github.com/rogerlwlw/lw_project_template/tree/master/doc/source/
-'''
-def setup(app):
-    app.add_config_value('recommonmark_config', {
-            'url_resolver': lambda url: github_doc_root + url,
-            'auto_toc_tree_section': 'Contents',
-            }, True)
-    app.add_transform(AutoStructify)
     
 #%% -- intersphinx_mapping
 # This extension can generate automatic links to the documentation of 
@@ -155,14 +143,13 @@ autoapi_member_order = 'groupwise'
 
 # %%  --autodoc & autosummary
 
-autosummary_generate = False
-autosummary_generate_overwrite = False
+autosummary_generate = True
+autosummary_generate_overwrite = True
 
 autodoc_default_options = {
     'members': True,
     'show-inheritance' : True,
     'member-order': 'groupwise',
-    'nosignatures': True,
 }
 autoclass_content = 'both'
 
@@ -267,3 +254,15 @@ napoleon_use_ivar = True
 napoleon_use_param = True
 napoleon_use_rtype = True
 napoleon_type_aliases = None
+# %% -- Configuring AutoStructify
+from recommonmark.transform import AutoStructify
+github_doc_root =\
+'''https://github.com/rogerlwlw/lw_project_template/tree/master/doc/source/
+'''
+def setup(app):
+    app.add_config_value('recommonmark_config', {
+            'url_resolver': lambda url: github_doc_root + url,
+            'auto_toc_tree_section': 'Contents',
+            }, True)
+    app.add_transform(AutoStructify)
+    

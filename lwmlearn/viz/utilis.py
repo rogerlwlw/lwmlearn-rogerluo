@@ -123,11 +123,12 @@ def null_outlier(data, data_range):
     Parameters
     ---------
     
-    data df:
+    data : df
         dataframe data
         
         
-    data_range list of tuple [(low, high, flag, column)]:
+    data_range : list of tuple [(low, high, flag, column)]:
+        
         - low, lower bound 
         - high, upper bound
         - flag, 'numeric' or 'percentage'
@@ -159,7 +160,15 @@ def null_outlier(data, data_range):
         return ser
 
     if data_range is not None:
-        to_drop_kws = {column: i[:3] for i in data_range for column in i[3]}
-        data = data.apply(f, args=(to_drop_kws, ), axis=0)
+        cols = data.columns
+        to_change_cols = {}
+        for i in data_range:
+            j = i[3]
+            if j is None:
+                to_change_cols.update({k : i[:3] for k in cols})
+            else:
+                to_change_cols.update({k : i[:3] for k in j})
+        
+        data = data.apply(f, args=(to_change_cols, ), axis=0)
 
     return data

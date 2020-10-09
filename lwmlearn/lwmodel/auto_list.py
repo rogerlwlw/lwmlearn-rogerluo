@@ -9,15 +9,14 @@ Created on Fri Dec 20 11:54:07 2019
 
 
 def get_default_classifier():
-    '''return default list of estimators
+    '''return default list of classifiers
     '''
     lis = [
         # linear
         'LogisticRegression',
         'SGDClassifier',
-        'LinearSVC',
-        'LinearDiscriminantAnalysis',
         # tree based
+        'LGBMClassifier',
         'XGBClassifier',
         'HistGradientBoostingClassifier',
         'AdaBoostClassifier',
@@ -25,6 +24,7 @@ def get_default_classifier():
         'EasyEnsembleClassifier',
         'RUSBoostClassifier',
         'GradientBoostingClassifier',
+        
         # weak learners
         'DecisionTreeClassifier',
         'KNeighborsClassifier',
@@ -32,37 +32,64 @@ def get_default_classifier():
     return lis
 
 
-def get_default_models():
+def get_default_models(rtype=0):
+    """
+    
+
+    Parameters
+    ----------
+    rtype : int, [0, 1]
+        return type. The default is 0.
+
+    Returns
+    -------
+    l : list
+        list of estimators
+
+    """
+    if rtype == 0:
+        return get_default_pipeline()
+    elif rtype == 1 :
+        return get_default_classifier()
+    else:
+        raise ValueError('invalid rtype input')
+    
+    
+
+def get_default_pipeline():
     '''return default predefined estimators to run AutoML
     '''
     lis = [
         # default SVM, grid search log/hinge/huber/perceptron
+        
         # linear models
-        'cleanNA_woe5_fxgb_SGDClassifier',
+        'cleanNA_woe5_fxgb_NeighbourhoodCleaningRule_SGDClassifier',
         # 'cleanNA_woe8_fxgb_TomekLinks_SGDClassifier',
-        'cleanNA_woe8_fxgb_inlierLocal_NeighbourhoodCleaningRule_SGDClassifier',
+        # 'cleanNA_woe8_fxgb_inlierLocal_NeighbourhoodCleaningRule_SGDClassifier',
 
         # tree based models
         # 'clean_oht_fxgb_XGBClassifier',
         # 'clean_oht_fxgb_inlierForest_XGBClassifier',
-        'clean_oht_fxgb_NeighbourhoodCleaningRule_XGBClassifier',
+        'clean_oht_frf_NeighbourhoodCleaningRule_XGBClassifier',
+        'clean_ordi_fxgb_NeighbourhoodCleaningRule_LGBMClassifier',
+        'clean_oht_fxgb_NeighbourhoodCleaningRule_LGBMClassifier',
         # 'clean_oht_fxgb_RandomForestClassifier',
         'clean_oht_fxgb_NeighbourhoodCleaningRule_RandomForestClassifier',
         # 'clean_oht_fxgb_GradientBoostingClassifier',
-        'clean_oht_fxgb_NeighbourhoodCleaningRule_HistGradientBoostingClassifier',
+        # 'clean_oht_fxgb_NeighbourhoodCleaningRule_HistGradientBoostingClassifier',
         # 'clean_oht_frf_AdaBoostClassifier',
         
         # balance samples on each iteration
         'clean_oht_frf_RUSBoostClassifier',
+        
         # The classifier is an ensemble of AdaBoost learners trained on
         # different balanced boostrap samples.
         # The balancing is achieved by random under-sampling.
         'clean_oht_fxgb_EasyEnsembleClassifier',
-        
         # 
         'clean_oht_fxgb_DecisionTreeClassifier',
-        'clean_oht_fxgb_inlierLocal_NeighbourhoodCleaningRule_DecisionTreeClassifier',
-        'clean_oht_frf_KNeighborsClassifier',
+        # 'clean_oht_fxgb_inlierLocal_NeighbourhoodCleaningRule_DecisionTreeClassifier',
+        # 'clean_oht_frf_KNeighborsClassifier',
     ]
 
     return lis

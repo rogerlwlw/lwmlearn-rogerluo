@@ -12,6 +12,9 @@ Created on Thu Dec 12 16:53:52 2019
 
 import inspect
 import pandas as pd
+
+from lightgbm import LGBMClassifier
+
 from operator import itemgetter
 
 from imblearn import FunctionSampler
@@ -23,8 +26,9 @@ from imblearn.pipeline import Pipeline
 from sklearn.base import (ClassifierMixin, TransformerMixin, RegressorMixin,
                           ClusterMixin, OutlierMixin, MetaEstimatorMixin)
 
-from sklearn.feature_selection.base import SelectorMixin
-from sklearn.linear_model.base import LinearClassifierMixin
+from sklearn.feature_selection import SelectorMixin
+from sklearn.linear_model._base import LinearClassifierMixin
+
 from sklearn.ensemble import BaseEnsemble
 
 from lwmlearn.utilis.utilis import get_flat_list, getmodules
@@ -212,6 +216,15 @@ def lw_all_estimators(type_filter=None):
         if not len(c.__abstractmethods__):
             return False
         return True
+    
+    def is_metaestimator(c):
+        if hasattr(c, "_required_parameters"):
+            if len(c._required_parameters) > 0:
+                return True
+            else:
+                return False
+        else:
+            return False
 
     all_classes = []
     # get parent folder
@@ -233,9 +246,11 @@ def lw_all_estimators(type_filter=None):
 
     estimators = [
         c for c in all_classes
-        if (issubclass(c[1], BaseEstimator) and c[0] not in not_test_operators
+        if (issubclass(c[1], BaseEstimator) 
+            and c[0] not in not_test_operators
             and not c[0].startswith('_')
-            and not issubclass(c[1], MetaEstimatorMixin))
+            and not is_metaestimator(c[1])
+        )
     ]
     # get rid of abstract base classes
     estimators = [c for c in estimators if not is_abstract(c[1])]
@@ -279,7 +294,7 @@ def lw_all_estimators(type_filter=None):
     return sorted(set(estimators), key=itemgetter(0))
 
 
-def pipe_main(pipe=None):
+def pipe_gen(pipe=None):
     '''pipeline construction using sklearn estimators, final step support only
     classifiers currently
     
@@ -336,7 +351,7 @@ def get_featurenames(pipe_line):
     Parameters
     ----------
     pipe_line : TYPE
-        instance returned by pipe_main().
+        instance returned by pipe_gen().
 
     Return
     -------
@@ -366,4 +381,4 @@ def get_featurenames(pipe_line):
 
 
 if __name__ == '__main__':
-    pipe_main()
+    pipe_gen()
