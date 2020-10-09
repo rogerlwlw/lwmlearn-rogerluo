@@ -1,10 +1,20 @@
+<<<<<<< Updated upstream
 # build status
+=======
+<<<<<<< Updated upstream
+=======
+# Build status
+>>>>>>> Stashed changes
 [![Build Status](https://travis-ci.org/rogerlwlw/lwmlearn-rogerluo.svg?branch=master)](https://travis-ci.org/rogerlwlw/lwmlearn-rogerluo)
 
 
 # Documentation
 [![Documentation](https://img.shields.io/badge/api-reference-blue.svg)](https://lwmlearn-rogerluo.readthedocs.io/en/latest/)
 
+<<<<<<< Updated upstream
+=======
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 # lw-mlearn
 
 A Python package that wraps sklearn and many other estimators into pipelines and faciliates workflow 
@@ -40,5 +50,5 @@ Contact
 If you have any questions or comments about lwmlearn, please feel free to 
 contact me via:
 E-mail: coolww@outlook.com
-This project is hosted at https://github.com/rogerlwlw/lw-mlearn-rogerluo
+
 
