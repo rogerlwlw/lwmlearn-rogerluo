@@ -1,6 +1,10 @@
 # build status
 [![Build Status](https://travis-ci.org/rogerlwlw/lwmlearn-rogerluo.svg?branch=master)](https://travis-ci.org/rogerlwlw/lwmlearn-rogerluo)
 
+
+# Documentation
+[![Documentation](https://img.shields.io/badge/api-reference-blue.svg)](https://lwmlearn-rogerluo.readthedocs.io/en/latest/)
+
 # lw-mlearn
 
 A Python package that wraps sklearn and many other estimators into pipelines and faciliates workflow 
