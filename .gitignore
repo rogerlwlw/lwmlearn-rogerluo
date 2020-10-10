@@ -3,7 +3,7 @@
 *.pdf
 *.xlsx
 *.docx
-*.png
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -140,6 +140,9 @@ TestResults/
 
 /tests/
 !/tests/**/*.py
+
+*.png
+!/docs/source/_static/**/*
 
 
 
