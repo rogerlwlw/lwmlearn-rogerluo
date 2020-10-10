@@ -139,7 +139,7 @@ def _parse_var(s):
     else:
         raise ValueError("{} wrong input syntax".format(s))
 
-def _get_model_data(data_path, testsize, test_path, ylabel, 
+def _get_model_data(data_path, testsize, test_path, ylabel, sample,
                     **kwargs):
     """
     
@@ -167,8 +167,8 @@ def _get_model_data(data_path, testsize, test_path, ylabel,
     """
     print("read in data file ..")
     data = pd.read_csv(data_path)
-    if kwargs.get('sample'):
-        data = data.sample(kwargs['sample'])
+    if sample:
+        data = data.sample(sample)
        
     if testsize:
         X = data
@@ -237,7 +237,8 @@ def _main(data_path, testsize, test_path, ylabel, sample,
         return 0
     
     # 
-    trainset, testset = _get_model_data(data_path, testsize, test_path, ylabel)
+    trainset, testset = _get_model_data(data_path, testsize, test_path, ylabel,
+                                        sample)
     
     file_name = os.path.splitext(data_path)[0]
     
