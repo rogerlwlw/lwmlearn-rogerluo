@@ -1718,7 +1718,7 @@ class LW_model(BaseEstimator):
         self.automodels = models
         # update best model
         self._update_bestmodel(by_metrics=by_metrics)
-        self.run_analysis((X, y), test_set, **kwargs)
+        # self.run_analysis((X, y), test_set, **kwargs)
         return autocv_score
 
 

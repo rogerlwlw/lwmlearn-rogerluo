@@ -5,29 +5,32 @@
 # Documentation
 [![Documentation](https://img.shields.io/badge/api-reference-blue.svg)](https://lwmlearn-rogerluo.readthedocs.io/en/latest/)
 
-# lw-mlearn
+# lwmlearn
 
 A Python package that wraps sklearn and many other estimators into pipelines and faciliates workflow 
 such as 
 
 1) data cleaning:
-    - try converting data to numeric dtype; 
-        - dropna columns; 
-        - drop uid columns;
-        - drop constant columns;
-        - filter specific dtypes;
-        - convert solely '\t\n' to np.na 
+
+    - try converting data to numeric dtype 
+    - dropna columns; 
+    - drop uid columns;
+    - drop constant columns;
+    - filter specific dtypes;
+    - convert solely ``\t\n`` to np.na 
         
 2) data encoding: 
-        - oridinal/one-hot encoding; 
-        - woe encoding; 
-        - binning by cart tree/equal frequency/equal width;
+
+    - oridinal/one-hot encoding
+    - woe encoding
+    - binning by cart tree/equal frequency/equal width
         
 3) feature selection:
-        - select from model(svc, xgb, cart, random forest); 
-        - select from test statisics (chi2, mutual-info, woe);
-        - pca/LDA/QDA decomposition
-        - RFE
+
+    - select from model(svc, xgb, cart, random forest)
+    - select from test statisics (chi2, mutual-info, woe)
+    - pca/LDA/QDA decomposition
+    - RFE
         
 4) data resampling (over/under sampling for imbalanced dataset)
 5) model training / evaluation / cross validation
@@ -35,10 +38,9 @@ such as
 7) production integration
 
 
-Contact
-=============
+# Contact
+
 If you have any questions or comments about lwmlearn, please feel free to 
-contact me via:
-E-mail: coolww@outlook.com
+contact me via E-mail: coolww@outlook.com
 
 
