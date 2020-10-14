@@ -64,6 +64,7 @@ import sys
 from os import makedirs
 from os.path import dirname, exists
 
+
 class Filter_loglevel(logging.Filter):
     '''reconstruct filter method to filter logrecord by a loglevel
     
@@ -89,13 +90,13 @@ class Filter_loglevel(logging.Filter):
         else:
             return False
 
-          
+
 USE_LOG = 'loguru'  # loguru for loguru logger; logging for python logger
 loggers = {}
 logger_guru = None
 
 LOG_ENABLED = True
-LOG_TO_CONSOLE =  True
+LOG_TO_CONSOLE = True
 LOG_TO_FILE = True
 
 
@@ -181,7 +182,7 @@ def loguru_logger():
         - runtime_{time}.log file handler, retention 10 days rotation 3 days
     '''
     global logger_guru
-    
+
     if logger_guru is None:
         # date_fmt = "time:YYYYMMDD"
         # stderr_time = "time:HH:mm:ss A"
@@ -192,7 +193,7 @@ def loguru_logger():
             logger.add(sys.stderr,
                        format='{time} {level}: \n  {message}',
                        level='INFO')
-        
+
         if LOG_ENABLED and LOG_TO_FILE:
             # out to runtime.log file
             logger.add(
@@ -203,11 +204,12 @@ def loguru_logger():
                 backtrace=True,
                 # diagnose=True,
                 enqueue=True,  # Multiprocess-safe
-                format="{time:YYYY-MM-DD:HH:mm:ss} | {level} | {name}:{module}:{line}: \n\t{message}"
+                format=
+                "{time:YYYY-MM-DD:HH:mm:ss} | {level} | {name}:{module}:{line}: \n\t{message}"
             )
-        
+
         logger_guru = logger
-        
+
     return logger_guru
 
 

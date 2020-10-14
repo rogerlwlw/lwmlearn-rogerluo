@@ -16,7 +16,9 @@ def _get_data(dataset, test_size=0.3, sample=None):
     '''
     if dataset == 'make_classification':
         n_sample = 5000 if sample is None else sample
-        x, y = make_classification(n_sample, n_redundant=5, n_features=30,
+        x, y = make_classification(n_sample,
+                                   n_redundant=5,
+                                   n_features=30,
                                    flip_y=0.1)
     else:
         if sample is None:

@@ -15,12 +15,13 @@ from lwmlearn.lwmodel.auto_list import get_default_models
 from lwmlearn.lwmodel.lw_model_proxy import LW_model
 
 
-def run_CVscores(X=None,
-                 y=None,
-                 cv=3,
-                 scoring=['roc_auc', 'KS', 'neg_log_loss'],
-                 estimator_lis=None,
-                 ):
+def run_CVscores(
+    X=None,
+    y=None,
+    cv=3,
+    scoring=['roc_auc', 'KS', 'neg_log_loss'],
+    estimator_lis=None,
+):
     """return CV scores of a series of pre-defined piplines as returned by
     :func:`.get_default_models`
     
@@ -44,7 +45,7 @@ def run_CVscores(X=None,
         cv scores of each pipeline
 
     """
-    
+
     if estimator_lis is None:
         l = get_default_models()
     else:

@@ -31,7 +31,6 @@ class DataAnalyzer():
     modeling data analyzer
     
     """
-    
     def __init__(self, data, class_label, encode_featurename=False):
         '''
          
@@ -57,7 +56,6 @@ class DataAnalyzer():
         # encode feature name as 'Fx'
         if encode_featurename:
             self.encode_featurename()
-
 
     def _sample_col(self, col_list):
         """
@@ -132,18 +130,17 @@ class DataAnalyzer():
 
         """
         data = self.data.copy()
-        
+
         try:
             y_class = data.pop(self.class_label)
         except:
             y_class = None
 
-        
         # null outlier
         data = null_outlier(data, data_range)
         # scale data
         data = scale_data(data, scaler)
-        
+
         data = pd.concat([data, y_class], axis=1)
         self.data = data
         return data
@@ -172,7 +169,7 @@ class DataAnalyzer():
         pip.fit(data, y=y_class)
         data = pd.DataFrame(pip.transform(data), columns=get_featurenames(pip))
         return pd.concat([data, y_class], axis=1)
-    
+
     @dedent
     @Appender(Cleaner.__init__.__doc__, join='\n')
     def clean_data(self, data, dtype_filter='all', **kwargs):
@@ -696,7 +693,7 @@ if __name__ == '__main__':
 
     an = DataAnalyzer(data, class_label='y', encode_featurename=True)
     # an.outlier_scale([(0.1, 0.9, 'percentage', None)], None)
-    
+
     # an.outlier_scale(None, scaler='minmax')
     an.plot_corr('X_y')
     an.plot_corr('corrmat')

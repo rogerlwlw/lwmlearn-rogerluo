@@ -1212,7 +1212,7 @@ class LW_model(BaseEstimator):
 
         if kind == 'bayesiancv':
             scorer = self._get_scorer(refit).get(refit)
-            L.update(refit = True)
+            L.update(refit=True)
         else:
             scorer = self._get_scorer(scoring)
 

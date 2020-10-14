@@ -74,19 +74,17 @@ def _grid_search_grid(estimator):
     LGBMClassifier = [
         {
             'scale_pos_weight': np.logspace(0, 1.5, 5),
-            'boosting_type' : ['gbdt', 'goss', 'rf'],
+            'boosting_type': ['gbdt', 'goss', 'rf'],
         },
-
-        {"num_leaves" : [20, 31, 40, 45, 50],
-         'colsample_bytree': [0.95, 0.9, 0.8, 0.75],
-         'subsample': [0.95, 0.8, 0.7, 0.6],
-         "subsample_freq" : [5, 10],
+        {
+            "num_leaves": [20, 31, 40, 45, 50],
+            'colsample_bytree': [0.95, 0.9, 0.8, 0.75],
+            'subsample': [0.95, 0.8, 0.7, 0.6],
+            "subsample_freq": [5, 10],
         },
-
         {
             'n_estimators': np.arange(50, 120, 10).astype(int),
         },
-
         {
             'reg_alpha': np.logspace(-2, 3, 3),
             'reg_lambda': np.logspace(-2, 3, 3)
@@ -230,7 +228,9 @@ def _bayes_search_grid(estimator):
     }]
 
     XGBClassifier = [
-        {'scale_pos_weight': pos_ratio},
+        {
+            'scale_pos_weight': pos_ratio
+        },
         {
             'learning_rate': logscale_lr,
             'n_estimators': (30, 200, 'uniform'),
@@ -247,24 +247,21 @@ def _bayes_search_grid(estimator):
         },
     ]
     LGBMClassifier = [
-
         {
             'colsample_bytree': col_ratio,
             'subsample': sample_ratio,
-            "subsample_freq" : sample_freq,
-            "num_leaves" : num_leaves,
+            "subsample_freq": sample_freq,
+            "num_leaves": num_leaves,
             'scale_pos_weight': pos_ratio,
         },
         {
             'reg_alpha': logscale_C,
             'reg_lambda': logscale_C,
         },
-
         {
             'learning_rate': logscale_lr,
             'n_estimators': (30, 200, 'uniform'),
         },
-
     ]
 
     AdaBoostClassifier = [
@@ -303,7 +300,7 @@ def _bayes_search_grid(estimator):
     threshold = []
     threshold.extend(
         ['*'.join([str(i), 'mean']) for i in (0.2, 0.4, 0.6, 1, 1.2, 1.68)])
-    
+
     frf = [{'threshold': threshold}]
 
     fxgb = [{'threshold': threshold}]
@@ -316,7 +313,7 @@ def _bayes_search_grid(estimator):
 
     RandomUnderSampler = [{'sampling_strategy': rebalance}]
 
-    BorderlineSMOTE =[{
+    BorderlineSMOTE = [{
         'sampling_strategy': rebalance,
     }]
 
@@ -337,13 +334,13 @@ def _print_warning(grid, estimator):
     '''
     '''
     logger = init_log()
-    
+
     if grid is None:
-        logger.info("key '{}' not found, param_grid not returned".format(estimator))
+        logger.info(
+            "key '{}' not found, param_grid not returned".format(estimator))
     else:
         logger.info("param_grid for '{}' returned as : {} ".format(
             estimator, [i for i in grid]))
-        
 
 
 def pipe_grid(estimator, pipe=True, search_type='gridcv'):
@@ -370,7 +367,7 @@ def pipe_grid(estimator, pipe=True, search_type='gridcv'):
         list of dict.
 
     """
-    
+
     if isinstance(estimator, str):
         keys = estimator
     else:

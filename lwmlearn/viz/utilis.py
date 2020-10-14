@@ -165,10 +165,10 @@ def null_outlier(data, data_range):
         for i in data_range:
             j = i[3]
             if j is None:
-                to_change_cols.update({k : i[:3] for k in cols})
+                to_change_cols.update({k: i[:3] for k in cols})
             else:
-                to_change_cols.update({k : i[:3] for k in j})
-        
+                to_change_cols.update({k: i[:3] for k in j})
+
         data = data.apply(f, args=(to_change_cols, ), axis=0)
 
     return data

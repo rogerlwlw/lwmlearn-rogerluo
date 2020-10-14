@@ -24,7 +24,7 @@ def get_default_classifier():
         'EasyEnsembleClassifier',
         'RUSBoostClassifier',
         'GradientBoostingClassifier',
-        
+
         # weak learners
         'DecisionTreeClassifier',
         'KNeighborsClassifier',
@@ -49,19 +49,18 @@ def get_default_models(rtype=0):
     """
     if rtype == 0:
         return get_default_pipeline()
-    elif rtype == 1 :
+    elif rtype == 1:
         return get_default_classifier()
     else:
         raise ValueError('invalid rtype input')
-    
-    
+
 
 def get_default_pipeline():
     '''return default predefined estimators to run AutoML
     '''
     lis = [
         # default SVM, grid search log/hinge/huber/perceptron
-        
+
         # linear models
         'cleanNA_woe5_fxgb_NeighbourhoodCleaningRule_SGDClassifier',
         # 'cleanNA_woe8_fxgb_TomekLinks_SGDClassifier',
@@ -78,15 +77,15 @@ def get_default_pipeline():
         # 'clean_oht_fxgb_GradientBoostingClassifier',
         # 'clean_oht_fxgb_NeighbourhoodCleaningRule_HistGradientBoostingClassifier',
         # 'clean_oht_frf_AdaBoostClassifier',
-        
+
         # balance samples on each iteration
         'clean_oht_frf_RUSBoostClassifier',
-        
+
         # The classifier is an ensemble of AdaBoost learners trained on
         # different balanced boostrap samples.
         # The balancing is achieved by random under-sampling.
         'clean_oht_fxgb_EasyEnsembleClassifier',
-        # 
+        #
         'clean_oht_fxgb_DecisionTreeClassifier',
         # 'clean_oht_fxgb_inlierLocal_NeighbourhoodCleaningRule_DecisionTreeClassifier',
         # 'clean_oht_frf_KNeighborsClassifier',

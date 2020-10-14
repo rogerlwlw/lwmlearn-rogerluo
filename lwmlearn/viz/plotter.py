@@ -380,7 +380,6 @@ def plotter_scatter(x, y, z, c=None, cmap='Spectral', alpha=0.85, **kwargs):
         DESCRIPTION.
 
     """
-    
 
     dim = len([i for i in (x, y, z) if i is not None])
     if dim > 3:
@@ -389,7 +388,7 @@ def plotter_scatter(x, y, z, c=None, cmap='Spectral', alpha=0.85, **kwargs):
         fig, ax = plt.subplots(1, 1, subplot_kw={'projection': '3d'})
         scatter = ax.scatter(x, y, z, c=c, cmap=cmap, alpha=alpha, **kwargs)
         ax.set(xlabel=x.name, ylabel=y.name, zlabel=z.name)
-    elif dim == 2: 
+    elif dim == 2:
         x, y = [i for i in (x, y, z) if i is not None]
         fig, ax = plt.subplots(1, 1)
         scatter = ax.scatter(x, y, c=c, cmap=cmap, alpha=alpha, **kwargs)
@@ -622,7 +621,7 @@ def plotter_auc(fpr,
         DESCRIPTION.
 
     """
-    
+
     fpr, tpr = get_flat_list(fpr), get_flat_list(tpr)
     if len(fpr) != len(tpr):
         raise ValueError("length of fpr and tpr doesn't match")
@@ -713,7 +712,7 @@ def plotter_auc_y(y_pre, y_true, **kwargs):
         DESCRIPTION.
 
     """
-    
+
     fpr, tpr, threshhold = roc_curve(y_true, y_pre,
                                      **get_kwargs(roc_curve, **kwargs))
     ax = plotter_auc(fpr, tpr, **get_kwargs(plotter_auc, **kwargs))
@@ -860,7 +859,7 @@ def plotter_cv_results_(results,
         DESCRIPTION.
 
     """
-    
+
     scoring = results.filter(like='mean_train_').columns
     scoring = [i.replace('mean_train_', '') for i in scoring]
     df_param = results.filter(like='param_')
@@ -962,7 +961,7 @@ def plotter_dist_thresh(s,
         DESCRIPTION.
 
     """
-    
+
     s = pd.Series(s)
     q = np.arange(100, step=step) / 100
     q = np.append(q, 1)
@@ -1096,7 +1095,7 @@ def plotter_score_path(df_score, title=None, cm=None, style='-.o'):
         DESCRIPTION.
 
     """
-    
+
     # plot
     data = df_score.select_dtypes(include='number')
     n = len(data.columns)
@@ -1477,7 +1476,7 @@ def plotter_rateVol(df,
         DESCRIPTION.
 
     """
-    
+
     axe = ax if ax is not None else plt.gca()
 
     labels = df.iloc[:, 0]
