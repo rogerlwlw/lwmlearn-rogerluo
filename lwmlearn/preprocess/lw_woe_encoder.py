@@ -43,7 +43,6 @@ from lwmlearn.lwlogging import init_log
 
 logger = init_log()
 
-
 class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
     '''woe encode feature matrix using auto-binning strategy
     
@@ -583,3 +582,4 @@ if __name__ == '__main__':
     y = data.pop('y')
     x = data
     data_f = woe.fit_transform(x, y)
+    print(woe.woe_iv)

@@ -24,9 +24,9 @@ from imblearn.under_sampling.base import BaseCleaningSampler, BaseUnderSampler
 from imblearn.pipeline import Pipeline
 
 from sklearn.base import (ClassifierMixin, TransformerMixin, RegressorMixin,
-                          ClusterMixin, OutlierMixin, MetaEstimatorMixin)
+                          ClusterMixin, OutlierMixin)
 
-from sklearn.feature_selection import SelectorMixin
+from sklearn.feature_selection._base import SelectorMixin
 from sklearn.linear_model._base import LinearClassifierMixin
 
 from sklearn.ensemble import BaseEnsemble
