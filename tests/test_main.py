@@ -63,7 +63,7 @@ def test_import():
     '''
     check = 0
     try:
-        pass
+        pipe_gen()
     except:
         traceback.print_exc()
         check -= 1       
