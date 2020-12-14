@@ -164,6 +164,8 @@ def null_outlier(data, data_range):
         to_change_cols = {}
         for i in data_range:
             j = i[3]
+            if isinstance(j, str):
+                j = [j]
             if j is None:
                 to_change_cols.update({k: i[:3] for k in cols})
             else:

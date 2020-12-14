@@ -227,7 +227,7 @@ class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
             
             - default None, don't fill
             - na1='most_frequent', fill in most frequent category 'xxx' 
-            - ma1='xxx', fill in 'xxx' string
+            - na1='xxx', fill in 'xxx' string
         
         na2 : int or str
             fill in stategy for numeric data column

@@ -124,12 +124,10 @@ class OrdiEncoder(BaseEstimator, TransformerMixin, LW_Base):
     out_labels : list
         column labels of output matrix
     '''
-    def __init__(self, categories='auto', dtype=np.float64):
+    def __init__(self, categories='auto', fillna=-1):
         '''
         '''
-        L = locals().copy()
-        L.pop('self')
-        self.set_params(**L)
+        self.fillna = fillna
 
     def _check_categories(self, X):
         '''check if feature category are out of categories scope, treat them as 
@@ -156,10 +154,9 @@ class OrdiEncoder(BaseEstimator, TransformerMixin, LW_Base):
         self.not_obj = X.columns.difference(self.obj_cols)
 
         self.encode_mapper = {}
-        for name, col in X.iteritems():
-            categories_ = col.unique()
+        for name, col in X[self.obj_cols].iteritems():
+            categories_ = col.dropna().unique()
             mapper = dict(zip(categories_, range(len(categories_))))
-            mapper.update({np.nan: -1})
             self.encode_mapper[name] = mapper
 
         self.out_labels = self.obj_cols.tolist() + self.not_obj.tolist()
@@ -169,15 +166,16 @@ class OrdiEncoder(BaseEstimator, TransformerMixin, LW_Base):
     def transform(self, X):
         '''transform  X  to oridinal encoded
         
-        transform only object dtype column others will remain unchanged.
+        transform only object dtype column, others will remain unchanged.
         '''
         X = self._filter_labels(X)
         # --obj cols
         X0 = X.reindex(columns=self.obj_cols)
         X0 = self._check_categories(X0)
-
+        
         X0 = X0.apply(lambda col: col.map(self.encode_mapper[col.name]),
-                      axis=0)
+                      axis=0).fillna(self.fillna)
+        
         # --not obj do nothing
         X1 = X.reindex(columns=self.not_obj)
         rst = pd.concat((i for i in [X0, X1] if not i.empty), axis=1)

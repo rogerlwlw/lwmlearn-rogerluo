@@ -7,7 +7,8 @@ inherited from matplotlib.doctring
 
 @author: rogerluo
 """
-from inspect import cleandoc
+from inspect import cleandoc, getdoc
+
 import re
 
 _whitespace_only_re = re.compile('^[ \t]+$', re.MULTILINE)
@@ -122,7 +123,7 @@ class Appender(object):
 
 def dedent(func):
     "Dedent a docstring (if present)"
-    func.__doc__ = func.__doc__ and cleandoc(func.__doc__)
+    func.__doc__ = func.__doc__ and getdoc(func)
     return func
 
 
@@ -208,7 +209,7 @@ if __name__ == '__main__':
     keya = \
     '''
     appending
-    ----
+    -----------
     appended_key
         append some explainations here
     '''

@@ -14,7 +14,7 @@
 
 * Key conceipts:
     
-    one root logger --> many loggers --> each has many handlers and filters 
+    one root logger --> many LOGGER_PYTHON --> each has many handlers and filters 
     --> each has :ref:`Log Level <log level>` and formatters
 
 * Logger objects:
@@ -92,8 +92,8 @@ class Filter_loglevel(logging.Filter):
 
 
 USE_LOG = 'loguru'  # loguru for loguru logger; logging for python logger
-loggers = {}
-logger_guru = None
+LOGGER_PYTHON = {}
+LOGGER_GURU = None
 
 LOG_ENABLED = True
 LOG_TO_CONSOLE = True
@@ -132,7 +132,7 @@ def python_logger():
 
     """
 
-    global loggers
+    global LOGGER_PYTHON
 
     LOG_FMT = '%(asctime)s - %(levelname)s - process: %(process)d - %(filename)s - %(name)s - %(lineno)d - %(module)s : \n\t %(message)s'  # 每条日志输出格式
     DATE_FORMAT = "%m/%d/%Y %H:%M:%S %p"
@@ -141,8 +141,8 @@ def python_logger():
     log_path = './runtime.log'
     log_level = 'DEBUG'
 
-    if loggers.get(name):
-        return loggers.get(name)
+    if LOGGER_PYTHON.get(name):
+        return LOGGER_PYTHON.get(name)
 
     logger = logging.getLogger(name)
     logger.setLevel(log_level)
@@ -168,7 +168,7 @@ def python_logger():
         file_handler.setFormatter(fmt)
         logger.addHandler(file_handler)
 
-    loggers[name] = logger
+    LOGGER_PYTHON[name] = logger
     return logger
 
 
@@ -181,9 +181,9 @@ def loguru_logger():
         - sys.stderr handler
         - runtime_{time}.log file handler, retention 10 days rotation 3 days
     '''
-    global logger_guru
+    global LOGGER_GURU
 
-    if logger_guru is None:
+    if LOGGER_GURU is None:
         # date_fmt = "time:YYYYMMDD"
         # stderr_time = "time:HH:mm:ss A"
         from loguru import logger
@@ -208,9 +208,9 @@ def loguru_logger():
                 "{time:YYYY-MM-DD:HH:mm:ss} | {level} | {name}:{module}:{line}: \n\t{message}"
             )
 
-        logger_guru = logger
+        LOGGER_GURU = logger
 
-    return logger_guru
+    return LOGGER_GURU
 
 
 if __name__ == '__main__':

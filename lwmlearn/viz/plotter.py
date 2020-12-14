@@ -298,8 +298,11 @@ def plotter_ridge(x,
 
     if not np.ndim(grouping) > 0:
         grouping = _sequence_grouping(x, grouping)
-
-    df = pd.DataFrame({'x': x, 'g': grouping})
+    
+    if x.name is not None:
+        name = x.name
+    
+    df = pd.DataFrame({name: x, 'g': grouping})
     if palette is None:
         n_g = len(pd.unique(grouping))
         palette = sns.cubehelix_palette(n_colors=n_g, start=start, rot=0.165)
@@ -312,14 +315,14 @@ def plotter_ridge(x,
 
     # Draw the densities in a few steps
     g.map(sns.kdeplot,
-          "x",
+          name,
           clip_on=False,
           shade=True,
           alpha=1,
           lw=1.5,
           bw=bw,
           cut=cut)
-    g.map(sns.kdeplot, "x", clip_on=False, color="w", lw=2, bw=bw, cut=cut)
+    g.map(sns.kdeplot, name, clip_on=False, color="w", lw=2, bw=bw, cut=cut)
     g.map(plt.axhline, y=0, lw=2, clip_on=False)
 
     # Define and use a simple function to label the plot in axes coordinates
@@ -334,7 +337,7 @@ def plotter_ridge(x,
                 va="center",
                 transform=ax.transAxes)
 
-    g.map(label, "x")
+    g.map(label, name)
 
     # Set the subplots to overlap
     g.fig.subplots_adjust(hspace=-.25)
@@ -1379,7 +1382,7 @@ def plotter_binlift(x,
         # plot bar chart
         x_bin = x_bin.value_counts(dropna=False).sort_index()
         labels = x_bin.index.astype(str)
-        ax.bar(labels, x_bin, color=color, alpha=0.85)
+        ax.bar(labels, x_bin, color=color, alpha=0.75)
         if max([len(i) for i in labels]) > 8:
             _rotate_tick_labels(ax, 30, ha='right')
 
@@ -1499,7 +1502,7 @@ def plotter_rateVol(df,
     axe.yaxis.set_major_formatter(fmt)
     axe.xaxis.set_label_position(xlabel_position)
     # plot axe_right
-    axe_right.bar(labels, vol, label=vol.name, color=bar_c, alpha=0.4)
+    axe_right.bar(labels, vol, label=vol.name, color=bar_c, alpha=0.75)
     # set axe_right attr
     if ylabel:
         axe_right.set_ylabel(vol.name)

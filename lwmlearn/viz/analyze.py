@@ -28,7 +28,7 @@ import seaborn as sns
 
 class DataAnalyzer():
     """
-    modeling data analyzer
+    data analyzer
     
     """
     def __init__(self, data, class_label, encode_featurename=False):
@@ -36,10 +36,10 @@ class DataAnalyzer():
          
         Parameters
         ----------
-        data : 2D array or df
-            DESCRIPTION.
+        data : 2D array or dataframe
+            data matrix to be analyzed.
             
-        class_label str:
+        class_label : str
             name of class label, if no class label, assign class_label=None
 
         encode_featurename bool:
@@ -50,9 +50,12 @@ class DataAnalyzer():
         None.
          
         '''
+        # assign class label
         self.class_label = class_label
+        
         # clean data
         self.data = self.clean_data(data)
+        
         # encode feature name as 'Fx'
         if encode_featurename:
             self.encode_featurename()
@@ -102,31 +105,34 @@ class DataAnalyzer():
 
         return num
 
-    def outlier_scale(self, data_range, scaler):
+    def outlier_scale(self, data_range, scaler, keep_scaled=False):
         """
         preprocess numerical data columns only and update self.data
 
         Parameters
         ----------
-        data_range : TYPE, optional
-            list of tuple [(low, high, flag, column)].  
-            where flag='numeric' or 'percentage'
-            
+        data_range : list of tuple, [(low, high, flag, column)] 
+            to null outlier values    
+        
             - filter data within range
             - low, lower bound 
             - high, upper bound
             - flag, 'numeric' or 'percentage'
-            - column, columns to apply to, default None, apply to all columns 
-            - The default is None, will do nothing.
+            - list of columns to apply to, default None, apply to all columns 
+            - The default is None, will do nothing. the best practice is to scale
+            each column one by one.
 
-        scaler : STRING, optional
-            name of scaler class to perform scaling . 
-            ['absmax', 'minmax', 'stdscale']
+        scaler : STRING, ['absmax', 'minmax', 'stdscale'], optional
+            name of scaler class to perform scaling. 
+            
             if None do nothing
+        
+        keep_scaled : bool
+            if True, update self.data as scaled data
 
         Returns
         -------
-        data
+        data : data frame
 
         """
         data = self.data.copy()
@@ -142,10 +148,13 @@ class DataAnalyzer():
         data = scale_data(data, scaler)
 
         data = pd.concat([data, y_class], axis=1)
-        self.data = data
+        
+        if keep_scaled:
+            self.data = data
+        
         return data
 
-    def transform_data(self, trans_xx_xx):
+    def transform_data(self, trans_xx_xx="ordi_stdscale"):
         """
         Transform data maxtrix (X) to other dataframe matrix
 
@@ -156,18 +165,21 @@ class DataAnalyzer():
             
         Returns
         -------
-        DataFrame
+        DataFrame :
+            dataframe with transformed features
 
         """
         data = self.data.copy()
-        try:
+        
+        if self.class_label:
             y_class = data.pop(self.class_label)
-        except:
+        else:
             y_class = None
 
         pip = pipe_gen(trans_xx_xx)
         pip.fit(data, y=y_class)
-        data = pd.DataFrame(pip.transform(data), columns=get_featurenames(pip))
+        data = pd.DataFrame(pip.transform(data), 
+                            columns=get_featurenames(pip))
         return pd.concat([data, y_class], axis=1)
 
     @dedent
@@ -190,7 +202,8 @@ class DataAnalyzer():
 
     def encode_featurename(self):
         '''
-        encode feature names of self.data as F{integer}, class label will not change 
+        encode feature names of self.data as F{integer}, 
+        class label will not change 
 
         Returns
         -------
@@ -240,9 +253,12 @@ class DataAnalyzer():
 
         Parameters
         ----------
-        kind : TYPE, optional, ['X_y', 'corrmat', 'clustered']
+        kind : str, ['X_y', 'corrmat', 'clustered'] optional
+        
             if 'X_y', plot correlation coefficient between y and other features
+            
             if 'corrmat', plot lower triangle correlation matrix
+            
             if 'clustered', plot clustered correlation matrix
             
             The default is 'X_y'.
@@ -283,8 +299,6 @@ class DataAnalyzer():
         data = self.data.copy()
         if trans_xx_xx:
             data = self.transform_data(trans_xx_xx)
-        else:
-            trans_xx_xx = ''
 
         plot = plot_fn.get(kind)
         if plot is None:
@@ -371,22 +385,18 @@ class DataAnalyzer():
     def plot_JointScatter(self,
                           col1,
                           col2,
-                          trans_xx_xx=None,
                           savefig=None,
                           kind='hex',
                           **kwargs):
         """
         
-
         Parameters
         ----------
         col1 : TYPE
             DESCRIPTION.
         col2 : TYPE
             DESCRIPTION.
-        trans_xx_xx : TYPE, optional
-            DESCRIPTION. The default is None.For example use 'clean_ordi' to 
-            covert categorical data column to oridinal encoded integers
+
         savefig : TYPE, optional
             DESCRIPTION. The default is None.
         kind:
@@ -401,8 +411,6 @@ class DataAnalyzer():
         """
 
         data = self.data.copy()
-        if trans_xx_xx:
-            data = self.transform_data(trans_xx_xx)
         # --
         g = sns.jointplot(x=data[col1],
                           y=data[col2],
@@ -419,7 +427,6 @@ class DataAnalyzer():
     def plot_ridge(self,
                    col,
                    groupings,
-                   trans_xx_xx=None,
                    bw='silverman',
                    cut=0,
                    palette=None,
@@ -434,10 +441,6 @@ class DataAnalyzer():
         col : str
             name of data column to plot.
 
-        trans_xx_xx : TYPE, optional
-            DESCRIPTION. The default is None.For example use 'clean_ordi' to 
-            covert categorical data column to oridinal encoded integers
-            
         grouping : series or int
             name of column as groupings to compare distribution.
             if int, group column into 'int' folds by sequence and label group
@@ -467,11 +470,11 @@ class DataAnalyzer():
         """
 
         data = self.data.copy()
-        if trans_xx_xx:
-            data = self.transform_data(trans_xx_xx)
+                    
         # --
         if groupings in data.columns:
             groupings = data[groupings]
+        
         g = plotter_ridge(data[col],
                           groupings,
                           bw=bw,
@@ -692,12 +695,21 @@ if __name__ == '__main__':
     data['cat'].iloc[8000:10000] = np.nan
 
     an = DataAnalyzer(data, class_label='y', encode_featurename=True)
-    # an.outlier_scale([(0.1, 0.9, 'percentage', None)], None)
-
-    # an.outlier_scale(None, scaler='minmax')
+    
     an.plot_corr('X_y')
     an.plot_corr('corrmat')
     an.plot_corr('clustered')
     an.plot_bindist(max_leaf_nodes=5, is_supervised=True)
     an.plot_bindist(bins=10, dropna=True)
-    an.plot_catplot(x="y", y="value", col_wrap=3, col='colname', kind='boxen')
+    an.plot_catplot(x="y", y="value", col_wrap=3, col='colname',
+                    kind='boxen')
+    
+    # plot joint scatter
+    an.outlier_scale([(0.0, 0.95, 'percentage', ["F3", "F5"])], 
+                      None, 
+                      keep_scaled=True)
+    
+    an.plot_JointScatter("F1", "F3")
+    
+    # plot ridge plot
+    an.plot_ridge("F3", "F5")
