@@ -249,7 +249,7 @@ class DataAnalyzer():
                   trans_xx_xx=None,
                   **kwargs):
         """
-        plot correlation coefficients for numeric features in data
+        plot correlation coefficients for numeric features in data 
 
         Parameters
         ----------
@@ -263,8 +263,6 @@ class DataAnalyzer():
             
             The default is 'X_y'.
             
-        savefig : TYPE, optional
-            DESCRIPTION. The default is None. 
             
         inflate : bool (default = True)
             Whether to inflate correlation coefficients to a 0-100 scale.
@@ -273,8 +271,11 @@ class DataAnalyzer():
 
         trans_xx_xx : TYPE
             string in the form of 'xx_xx_xx', representing transformer to call
-            self.transform_data.For example use 'clean_ordi' to covert 
+            self.transform_data. For example use 'clean_ordi' to covert 
             categorical data column to oridinal encoded integers
+            
+        savefig : TYPE, optional
+            DESCRIPTION. The default is None. 
                 
         **kwargs : TYPE
             Other optional arguments to sns heatmap.
@@ -392,10 +393,10 @@ class DataAnalyzer():
         
         Parameters
         ----------
-        col1 : TYPE
-            DESCRIPTION.
-        col2 : TYPE
-            DESCRIPTION.
+        col1 : str
+            column name to plot as x axis.
+        col2 : str
+            column name to plot as y axis.
 
         savefig : TYPE, optional
             DESCRIPTION. The default is None.
@@ -512,8 +513,8 @@ class DataAnalyzer():
         
         Parameters
         ----------
-        groupings : TYPE, optional
-            DESCRIPTION. The default is None.
+        groupings : str, optional
+            column name to use as grouping variable. The default is None.
         
         trans_xx_xx : TYPE, optional
             DESCRIPTION. The default is 'clean_ordi'.
@@ -601,7 +602,7 @@ class DataAnalyzer():
             to pass to hue key word
 
         sample_col: list
-            list of sampled column names. default is None.
+            list of sampled column names. default is None to plot all columns.
             
         other args 
         -----------
@@ -699,16 +700,25 @@ if __name__ == '__main__':
     an.plot_corr('X_y')
     an.plot_corr('corrmat')
     an.plot_corr('clustered')
-    an.plot_bindist(max_leaf_nodes=5, is_supervised=True)
-    an.plot_bindist(bins=10, dropna=True)
+    
+    # plot distribution with na
+    an.plot_bindist(max_leaf_nodes=5, 
+                    is_supervised=True,
+                    dropna=False)
+    
+    # plot distribution without na
+    an.plot_bindist(bins=10, 
+                    is_supervised=True,
+                    dropna=True)
+    # cat plot
     an.plot_catplot(x="y", y="value", col_wrap=3, col='colname',
-                    kind='boxen')
+                    kind='box')
     
     # plot joint scatter
-    an.outlier_scale([(0.0, 0.95, 'percentage', ["F3", "F5"])], 
-                      None, 
-                      keep_scaled=True)
-    
+    an.outlier_scale(data_range=[(0.0, 0.95, 'percentage', ["F3", "F5"])], 
+                     scale_data=None, 
+                     keep_scaled=True)
+    # joint plot
     an.plot_JointScatter("F1", "F3")
     
     # plot ridge plot
