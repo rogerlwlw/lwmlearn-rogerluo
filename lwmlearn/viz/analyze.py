@@ -227,8 +227,9 @@ class DataAnalyzer():
         Returns
         -------
         TYPE
-            DataFrame.
-
+            DataFrame. 
+            ["perc_nan", "corr_xy", "clf_imp", "imp_rank", "iv", "iv_rank", 
+            "cov_clusters", "dtype"]
         """
 
         return self.data.agg(agg_fun).T
