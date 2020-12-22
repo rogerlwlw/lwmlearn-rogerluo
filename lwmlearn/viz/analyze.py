@@ -60,24 +60,6 @@ class DataAnalyzer():
         if encode_featurename:
             self.encode_featurename()
 
-    def _sample_col(self, col_list):
-        """
-        to samle a list of columns for self.data
-
-        Parameters
-        ----------
-        col_list : TYPE
-            list of sampled column names.
-
-        Returns
-        -------
-        TYPE
-            data.
-
-        """
-
-        return self.data.reindex(columns=col_list)
-
     def resample_TimeSeries(self, data, date_col, freq, agg):
         """
         resample data by datetime column for specific frequency
@@ -154,14 +136,17 @@ class DataAnalyzer():
         
         return data
 
-    def transform_data(self, trans_xx_xx="ordi_stdscale"):
+    def transform_data(self, trans_xx_xx="ordi_stdscale", sample_col=None):
         """
         Transform data maxtrix (X) to other dataframe matrix
 
         Parameters
         ----------
-        trans_xx_xx : TYPE
+        trans_xx_xx : str
             string in the form of 'xx_xx_xx' representing transformer.
+            
+        sample_col : list of columns
+            to filter given list of columns. if None, do not filter 
             
         Returns
         -------
@@ -175,12 +160,18 @@ class DataAnalyzer():
             y_class = data.pop(self.class_label)
         else:
             y_class = None
-
-        pip = pipe_gen(trans_xx_xx)
-        pip.fit(data, y=y_class)
-        data = pd.DataFrame(pip.transform(data), 
-                            columns=get_featurenames(pip))
+            
+        if sample_col is not None:
+            data = self.data.reindex(columns=sample_col)
+            
+        if trans_xx_xx is not None:
+            pip = pipe_gen(trans_xx_xx)
+            pip.fit(data, y=y_class)
+            data = pd.DataFrame(pip.transform(data), 
+                                columns=get_featurenames(pip))
+        
         return pd.concat([data, y_class], axis=1)
+
 
     @dedent
     @Appender(Cleaner.__init__.__doc__, join='\n')
@@ -304,13 +295,8 @@ class DataAnalyzer():
         }
 
         data = self.data.copy()
-        
-        if trans_xx_xx:
-            data = self.transform_data(trans_xx_xx)
+        data = self.transform_data(trans_xx_xx, sample_col)
 
-        if sample_col is not None:
-            data = self._sample_col(sample_col)
-            
         plot = plot_fn.get(kind)
         if plot is None:
             raise KeyError("no plot_fn for '{}'".format(kind))
@@ -379,8 +365,7 @@ class DataAnalyzer():
         """
 
         data = self.data.copy()
-        if trans_xx_xx:
-            data = self.transform_data(trans_xx_xx)
+        data = self.transform_data(trans_xx_xx)
         # --
         x, y, z = data[col1], data[col2], data[col3]
         if c is not None:
@@ -546,10 +531,7 @@ class DataAnalyzer():
         """
 
         data = self.data.copy()
-        if sample_col is not None:
-            data = self._sample_col(sample_col)
-        if trans_xx_xx:
-            data = self.transform_data(trans_xx_xx)
+        data = self.transform_data(trans_xx_xx, sample_col)
 
         id_vars = [self.class_label]
         if groupings is not None:
@@ -640,14 +622,12 @@ class DataAnalyzer():
         """
         # split X, y;
         data = self.data.copy()
+        data = self.transform_data(trans_xx_xx=None, sample_col=sample_col)
 
         if self.class_label is not None:
             y = data.pop(self.class_label)
         else:
             y = None
-
-        if sample_col is not None:
-            data = self._sample_col(sample_col)
             
         # dtype ranking of X features
         col_order = data.dtypes.sort_values()
@@ -726,11 +706,12 @@ if __name__ == '__main__':
     an.plot_catplot(x="y", y="value", col_wrap=3, col='colname',
                     kind='box')
     
-    # plot joint scatter
+    
     an.outlier_scale(data_range=[(0.0, 0.95, 'percentage', ["F3", "F5"])], 
-                     scale_data=None, 
+                     scaler=None, 
                      keep_scaled=True)
-    # joint plot
+    
+    # plot joint scatter
     an.plot_JointScatter("F1", "F3")
     
     # plot ridge plot
