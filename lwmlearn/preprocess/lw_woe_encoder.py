@@ -137,6 +137,7 @@ class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
         L = locals().copy()
         L.pop('self')
         self.set_params(**L)
+        self.params = L
 
     def _get_binned(self, X, labels=None):
         '''get binned matrix using self edges, cols without cutting edges
@@ -208,13 +209,13 @@ class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
         '''
         X = self._fit(X)
         # --
-        params = get_kwargs(_get_binning, **self.get_params())
-        params.update(get_kwargs(DecisionTreeClassifier, **self.get_params()))
+        params = get_kwargs(_get_binning, **self.params)
+        params.update(get_kwargs(DecisionTreeClassifier, **self.params))
         # -- check minimum leaf node samples
         min_samples_leaf = self._min_samples_leaf_check(X)
         params.update(min_samples_leaf=min_samples_leaf)
         self.edges = _get_binning(X, y, **params)
-        self.edges.update(self.get_params()['input_edges'])
+        self.edges.update(self.input_edges)
         # --
         df_binned = self._get_binned(X)
         self.woe_iv, self.woe_map, self.feature_iv = calc_woe(df_binned, y)

@@ -32,13 +32,7 @@ class OhtEncoder(BaseEstimator, TransformerMixin, LW_Base):
         dict egg. {cloname : array(category names)}
         
     '''
-    def __init__(
-        self,
-        handle_unknown='ignore',
-        drop=None,
-        sparse=False,
-        dtype=np.float64,
-    ):
+    def __init__(self):
         """
         
         parameters
@@ -78,7 +72,10 @@ class OhtEncoder(BaseEstimator, TransformerMixin, LW_Base):
         self.obj_cols = X.select_dtypes('object').columns
         self.not_obj = X.columns.difference(self.obj_cols)
 
-        self.encoder = OneHotEncoder(**self.get_params())
+        self.encoder = OneHotEncoder(handle_unknown='ignore',
+                                     drop=None,
+                                     sparse=False,
+                                     dtype=np.float64)
         self.encoder.fit(X.reindex(columns=self.obj_cols))
 
         self.encoder_fnames = self.encoder.get_feature_names(self.obj_cols)

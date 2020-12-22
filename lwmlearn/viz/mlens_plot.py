@@ -150,7 +150,7 @@ def corrmat(corr,
 
 
 def clustered_corrmap(corr,
-                      cls,
+                      cluster,
                       label_attr_name='labels_',
                       figsize=(10, 8),
                       annotate=True,
@@ -169,7 +169,7 @@ def clustered_corrmap(corr,
     corr : array-like of shape = [n_features, n_features]
         Input correlation matrix. Pass a pandas ``DataFrame`` for axis labels.
 
-    cls : instance
+    cluster : instance
         cluster estimator with a ``fit`` method and cluster labels stored as an
         attribute as specified by the ``label_attr_name`` parameter.
 
@@ -213,7 +213,8 @@ def clustered_corrmap(corr,
     :class:`mlens.visualization.corrmat`
     """
     # find closely associated features
-    cls.fit(corr)
+    
+    cluster.fit(corr.fillna(0))
 
     # Sort features on cluster membership
     if corr.__class__.__name__ == 'DataFrame':
@@ -223,7 +224,7 @@ def clustered_corrmap(corr,
 
     corr_list = [
         tup[0]
-        for tup in sorted(zip(columns_names, getattr(cls, label_attr_name)),
+        for tup in sorted(zip(columns_names, getattr(cluster, label_attr_name)),
                           key=lambda x: x[1])
     ]
 
@@ -278,7 +279,7 @@ def corr_X_y(X,
              figsize=(10, 8),
              fontsize=12,
              hspace=None,
-             no_ticks=True,
+             ticks_lim=25,
              label_rotation=0,
              show=True):
     """Function for plotting input feature correlations with output.
@@ -303,7 +304,7 @@ def corr_X_y(X,
     fontsize : int
         font size of subplot titles.
 
-    no_ticks : bool (default = False)
+    ticks_lim : int (default = 25)
         whether to remove ticklabels from full correlation plot.
 
     label_rotation: float (default = 0)
@@ -365,8 +366,8 @@ def corr_X_y(X,
     ax2.axhline(0, color='black', linewidth=0.5)
     ax2.set_title('All pairwise correlation coefficients', fontsize=fontsize)
 
-    if no_ticks:
-        ax2.set_xticks([], [])
+    if ticks_lim <= len(names):
+        ax2.set_xticklabels([])
     else:
         plt.xticks(range(len(names)),
                    names,

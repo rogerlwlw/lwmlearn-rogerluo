@@ -247,6 +247,8 @@ class DataAnalyzer():
                   savefig=None,
                   inflate=True,
                   trans_xx_xx=None,
+                  ticks_lim=25,
+                  sample_col=None,
                   **kwargs):
         """
         plot correlation coefficients for numeric features in data 
@@ -257,7 +259,8 @@ class DataAnalyzer():
         
             if 'X_y', plot correlation coefficient between y and other features
             
-            if 'corrmat', plot lower triangle correlation matrix
+            if 'corrmat', plot lower triangle correlation matrix, annotate=True
+            to show annotations
             
             if 'clustered', plot clustered correlation matrix
             
@@ -277,6 +280,9 @@ class DataAnalyzer():
         savefig : TYPE, optional
             DESCRIPTION. The default is None. 
                 
+        ticks_lim : int
+            if number of features above ticks_lim, show no tikcs
+        
         **kwargs : TYPE
             Other optional arguments to sns heatmap.
 
@@ -298,15 +304,19 @@ class DataAnalyzer():
         }
 
         data = self.data.copy()
+        
         if trans_xx_xx:
             data = self.transform_data(trans_xx_xx)
 
+        if sample_col is not None:
+            data = self._sample_col(sample_col)
+            
         plot = plot_fn.get(kind)
         if plot is None:
             raise KeyError("no plot_fn for '{}'".format(kind))
 
         if kind == 'X_y':
-            plot(data, y=self.class_label, top=3, no_ticks=False)
+            plot(data, y=self.class_label, top=3, ticks_lim=ticks_lim)
 
         if kind == 'corrmat':
             if trans_xx_xx is not None:
@@ -630,13 +640,15 @@ class DataAnalyzer():
         """
         # split X, y;
         data = self.data.copy()
-        if sample_col is not None:
-            data = self._sample_col(sample_col)
+
         if self.class_label is not None:
             y = data.pop(self.class_label)
         else:
             y = None
 
+        if sample_col is not None:
+            data = self._sample_col(sample_col)
+            
         # dtype ranking of X features
         col_order = data.dtypes.sort_values()
 

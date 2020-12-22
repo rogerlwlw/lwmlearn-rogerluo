@@ -278,7 +278,7 @@ class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
         length = len(X)
 
         # drop null column
-        thresh = self.get_params()['na_thresh']
+        thresh = self.na_thresh
         if api.is_integer(thresh):
             pass
         elif api.is_float(thresh):
@@ -338,8 +338,7 @@ class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
         if self.num_na is not None and not self.numcols.empty:
             self.num_na.fit(X.reindex(columns=self.numcols))
 
-        self.out_labels = options.get(
-            self.get_params()['dtype_filter']).tolist()
+        self.out_labels = options.get(self.dtype_filter).tolist()
         # --
         if len(na_col) > 0:
             msg =\
