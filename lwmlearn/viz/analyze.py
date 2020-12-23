@@ -44,7 +44,7 @@ def perc_nan(x):
 
 def corr_xy(x, y):
     """
-    
+    calculate correlation between x and y
 
     Parameters
     ----------
@@ -58,11 +58,12 @@ def corr_xy(x, y):
     None.
 
     """
-    return
-
-def clf_imp(X, y):
-    """
     
+    return pd.Series(x).corr(pd.Series(y))
+
+def clf_imp(X, y, estimator):
+    """
+    output feature importance ranking out of an classifier
 
     Parameters
     ----------
