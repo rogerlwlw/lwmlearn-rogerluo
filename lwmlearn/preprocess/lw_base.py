@@ -356,7 +356,6 @@ class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
                   '''.format(const_col, len(const_col))
             logger.info(msg)
 
-        # if self.get_params()['verbose'] > 0:
         logger.info(
             'matrix has valid {} columns; {} numeric columns; {} categorical columns; {} datetime columns'
             .format(X.shape[-1], len(self.numcols), len(self.objcols),

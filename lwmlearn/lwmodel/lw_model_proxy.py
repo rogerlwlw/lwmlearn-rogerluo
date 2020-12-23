@@ -1759,4 +1759,3 @@ if __name__ == '__main__':
     m.plot_AucLift(X, y, fit_train=False)
 
     # m.run_analysis((X, y))
-    from sklearn.ensemble import VotingClassifier
