@@ -202,7 +202,8 @@ class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
                  na2=None,
                  na_thresh=1,
                  na_values=[
-                     'nan', 'NaN', 'null', 'NULL', 'None', '缺失值', -999, -99999
+                     'nan', 'NaN', 'null', 'NULL', 'None', '缺失值', -999, 
+                     -99999
                  ],
                  uniq_frac=0.95,
                  count_frac=0.01,
@@ -267,7 +268,8 @@ class Cleaner(BaseEstimator, TransformerMixin, LW_Base):
 
         L = locals().copy()
         L.pop('self')
-        self.set_params(**L)
+        for k,v in L.items():
+            setattr(self, k, v)
 
     def fit(self, X, y=None):
         '''fit input_labels & out_labels 

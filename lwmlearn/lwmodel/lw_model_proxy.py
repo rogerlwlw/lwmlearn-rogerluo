@@ -315,8 +315,8 @@ class LW_model(BaseEstimator):
         '''check if estimator has been fitted
         '''
         validation.check_is_fitted(
-            estimator,
-            ['classes_', 'coef_', 'feature_importances_', 'booster', 'tree_'],
+            estimator=estimator,
+            attributes=['classes_', 'coef_', 'feature_importances_', 'booster', 'tree_'],
             all_or_any=any)
 
     def _pre_continueous(self, estimator, X, **kwargs):
@@ -365,8 +365,8 @@ class LW_model(BaseEstimator):
             else:
                 sk_scoring.append(i)
         if len(sk_scoring) > 0:
-            s, _ = _validation._check_multimetric_scoring(self.estimator,
-                                                          scoring=sk_scoring)
+            s, _ = _validation._check_multimetric_scoring(estimator=self.estimator,
+                                                       scoring=sk_scoring)
             scorer.update(s)
         return scorer
 
@@ -1094,7 +1094,9 @@ class LW_model(BaseEstimator):
         for item in data_splits:
             x0 = item[0][1]
             y0 = item[1][1]
-            scores.append(_validation._score(self.estimator, x0, y0, scorer))
+            scores.append(_validation._score(estimator=self.estimator, 
+                                             X_test=x0, y_test=y0, 
+                                             scorer=scorer))
         scores = pd.DataFrame(scores).reset_index(drop=True)
         return scores
 
@@ -1751,6 +1753,7 @@ if __name__ == '__main__':
     m.predict(X, pre_level=True)
     # hyper-parameter tuning, search param_grid space
     m.opt_sequential((X, y), kind='bayesiancv')
+    # m.opt_sequential((X, y), kind='gridcv')
     # plot search learning curve
     m.plot_gridcv(m.kws_attr['gridcvtab'][0])
     # plot cv score path
@@ -1759,3 +1762,8 @@ if __name__ == '__main__':
     m.plot_AucLift(X, y, fit_train=False)
 
     # m.run_analysis((X, y))
+    
+    # clf = pipe_gen("XGBClassifier")
+    # space = pipe_grid("XGBClassifier")
+    
+    # search = BayesSearchCV(clf, space)

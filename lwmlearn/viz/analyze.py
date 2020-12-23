@@ -26,6 +26,98 @@ from lwmlearn.viz.mlens_plot import (corr_X_y, corrmat, pca_plot,
 import seaborn as sns
 
 
+def perc_nan(x):
+    """
+    calculate nan / total number ratio
+
+    Parameters
+    ----------
+    x : array
+
+    Returns
+    -------
+    ratio : float
+
+    """
+    
+    return 1 - pd.Series(x).count() / len(x)
+
+def corr_xy(x, y):
+    """
+    
+
+    Parameters
+    ----------
+    x : TYPE
+        DESCRIPTION.
+    y : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
+    return
+
+def clf_imp(X, y):
+    """
+    
+
+    Parameters
+    ----------
+    X : TYPE
+        DESCRIPTION.
+    y : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
+    
+
+    
+    return
+
+def iv(x, y):
+    """
+    
+
+    Parameters
+    ----------
+    x : TYPE
+        DESCRIPTION.
+    y : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
+    
+    return
+
+def cov_clusters(df):
+    """
+    
+
+    Parameters
+    ----------
+    df : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
+    
+    return
+
+
 class DataAnalyzer():
     """
     data analyzer

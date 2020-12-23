@@ -80,10 +80,15 @@ def getmodules(pkg, subpkgs=True):
         for finder, name, ispkg in gen:
             if ".tests." in name or "externals" in name:
                 continue
-            if "._" in name or ".__" in name:
+            if "._" in name or ".__" in name or "~" in name:
                 continue
-            # module[name] = __import__(name, fromlist='dummy')
-            module[name] = import_module(name)
+            try:
+                module[name] = import_module(name)
+            except ImportError:
+                continue
+            except Exception as e:
+                raise e
+                
 
     return module
 

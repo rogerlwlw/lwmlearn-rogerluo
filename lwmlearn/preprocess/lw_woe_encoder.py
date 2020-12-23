@@ -136,7 +136,10 @@ class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
         '''
         L = locals().copy()
         L.pop('self')
-        self.set_params(**L)
+        
+        for k,v in L.items():
+            setattr(self, k, v)
+            
         self.params = L
 
     def _get_binned(self, X, labels=None):

@@ -173,7 +173,7 @@ def predefined_ops():
     # feature construction
     feature_c = {
         'pca': PCA(whiten=True),
-        'spca': SparsePCA(normalize_components=True, n_jobs=-1),
+        'spca': SparsePCA(n_jobs=-1),
         'ipca': IncrementalPCA(whiten=True),
         'kpca': KernelPCA(kernel='rbf', n_jobs=-1),
         'poly': PolynomialFeatures(degree=2),

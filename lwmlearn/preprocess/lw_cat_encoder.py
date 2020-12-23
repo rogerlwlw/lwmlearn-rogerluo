@@ -47,7 +47,8 @@ class OhtEncoder(BaseEstimator, TransformerMixin, LW_Base):
         """
         L = locals().copy()
         L.pop('self')
-        self.set_params(**L)
+        for k,v in L.items():
+            setattr(self, k, v)
 
     def _check_categories(self, X):
         '''check if feature category are out of categories strained, 

@@ -358,7 +358,7 @@ def pipe_grid(estimator, pipe=True, search_type='gridcv'):
     pipe : bool, optional
         if False return param_grid, if True return param_grid as embedded
         in pipeline. The default is True.
-    search_type : TYPE, optional
+    search_type : str, optional["bayesiancv", "gridcv"]
         DESCRIPTION. The default is 'gridcv'.
 
     Returns
