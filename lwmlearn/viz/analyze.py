@@ -26,7 +26,7 @@ from lwmlearn.viz.mlens_plot import (corr_X_y, corrmat, pca_plot,
 import seaborn as sns
 
 
-def perc_nan(x):
+def pct_nan(x):
     """
     calculate nan / total number ratio
 
@@ -61,9 +61,9 @@ def corr_xy(x, y):
     
     return pd.Series(x).corr(pd.Series(y))
 
-def clf_imp(X, y, estimator):
+def clf_imp(X, y, estimator="clean_ordi_XGBClassifier"):
     """
-    output feature importance ranking out of an classifier
+    output feature importance ranking of an classifier
 
     Parameters
     ----------
@@ -77,10 +77,15 @@ def clf_imp(X, y, estimator):
     None.
 
     """
+    # estimator pipeline
+    pip = pipe_gen(estimator)
+    pip.fit(X, y)
     
-
-    
-    return
+    # extract feature importance
+    imp = pd.Series(
+        data=pip.steps[-1][1].feature_importances_, index=get_featurenames(pip)
+    )
+    return imp
 
 def iv(x, y):
     """
@@ -153,6 +158,25 @@ class DataAnalyzer():
         if encode_featurename:
             self.encode_featurename()
 
+    def _add_random(self, df_data):
+        """
+        add a random column to df_data
+
+        Parameters
+        ----------
+        df_data : DataFrame
+            input data matirx.
+
+        Returns
+        -------
+        None.
+
+        """
+        
+        df_data = pd.DataFrame(df_data)
+        df_data['random'] = np.random.randn(len(df_data))
+        return df_data
+    
     def resample_TimeSeries(self, data, date_col, freq, agg):
         """
         resample data by datetime column for specific frequency
@@ -778,35 +802,36 @@ class DataAnalyzer():
 if __name__ == '__main__':
     data = get_local_data('givemesomecredit.csv')
     data['cat'] = 'A'
-    data['cat'].iloc[:5000] = 'B'
-    data['cat'].iloc[8000:10000] = np.nan
+    data['cat'].iloc[:15000] = 'B'
+    data['cat'].iloc[18000:100000] = np.nan
 
     an = DataAnalyzer(data, class_label='y', encode_featurename=True)
     
-    an.plot_corr('X_y')
-    an.plot_corr('corrmat')
-    an.plot_corr('clustered')
+
+    # an.plot_corr('X_y')
+    # an.plot_corr('corrmat')
+    # an.plot_corr('clustered')
     
-    # plot distribution with na
-    an.plot_bindist(max_leaf_nodes=5, 
-                    is_supervised=True,
-                    dropna=False)
+    # # plot distribution with na
+    # an.plot_bindist(max_leaf_nodes=5, 
+    #                 is_supervised=True,
+    #                 dropna=False)
     
-    # plot distribution without na
-    an.plot_bindist(bins=10, 
-                    is_supervised=True,
-                    dropna=True)
-    # cat plot
-    an.plot_catplot(x="y", y="value", col_wrap=3, col='colname',
-                    kind='box')
+    # # plot distribution without na
+    # an.plot_bindist(bins=10, 
+    #                 is_supervised=True,
+    #                 dropna=True)
+    # # cat plot
+    # an.plot_catplot(x="y", y="value", col_wrap=3, col='colname',
+    #                 kind='box')
     
     
-    an.outlier_scale(data_range=[(0.0, 0.95, 'percentage', ["F3", "F5"])], 
-                     scaler=None, 
-                     keep_scaled=True)
+    # an.outlier_scale(data_range=[(0.0, 0.95, 'percentage', ["F3", "F5"])], 
+    #                  scaler=None, 
+    #                  keep_scaled=True)
     
-    # plot joint scatter
-    an.plot_JointScatter("F1", "F3")
+    # # plot joint scatter
+    # an.plot_JointScatter("F1", "F3")
     
-    # plot ridge plot
-    an.plot_ridge("F3", "F5")
+    # # plot ridge plot
+    # an.plot_ridge("F3", "F5")
