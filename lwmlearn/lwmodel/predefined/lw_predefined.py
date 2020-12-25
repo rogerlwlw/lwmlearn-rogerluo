@@ -194,9 +194,11 @@ def predefined_ops():
         'fsgd':
         SelectFromModel(SGDClassifier(penalty="l1")),
         'fxgb':
-        SelectFromModel(XGBClassifier(n_jobs=-1, booster='gbtree')),
+        SelectFromModel(XGBClassifier(n_jobs=-1, booster='gbtree'), 
+                        max_depth=2,
+                        n_estimators=50),
         'frf':
-        SelectFromModel(ExtraTreesClassifier(n_estimators=100, max_depth=2)),
+        SelectFromModel(ExtraTreesClassifier(n_estimators=50, max_depth=2)),
 
         # fixed number of features
         'fxgb20':
@@ -222,8 +224,14 @@ def predefined_ops():
         'fFclf':
         GenericUnivariateSelect(f_classif, 'percentile', 25),
     }
+        
+    imp = {
+        "impXGB" : XGBClassifier(n_jobs=-1, booster='gbtree', max_depth=2,
+                                 n_estimators=50),
+        "impRF" : ExtraTreesClassifier(n_estimators=100, max_depth=2)
+        }
 
     instances = {}
     instances.update(**clean, **encode, **scale, **feature_c, **feature_m,
-                     **feature_u, **resample)
+                     **feature_u, **resample, **imp)
     return instances

@@ -42,28 +42,42 @@ def pct_nan(x):
     
     return 1 - pd.Series(x).count() / len(x)
 
-def corr_xy(x, y):
+def imp(X, y, estimator="clean_ordi_impXGB"):
     """
-    calculate correlation between x and y
+    output feature importance ranking of an classifier
 
     Parameters
     ----------
-    x : TYPE
+    X : TYPE
         DESCRIPTION.
     y : TYPE
         DESCRIPTION.
+    estimator : TYPE, optional [clean_ordi_impXGB, clean_ordi_impRF]
+        DESCRIPTION. The default is "clean_ordi_impXGB".
 
     Returns
     -------
-    None.
+    imp : TYPE
+        DESCRIPTION.
 
+    """
+
+    # estimator pipeline
+    pip = pipe_gen(estimator)
+    pip.fit(X, y)
+    
+    imp_label = estimator.split('_')[-1]
+    # extract feature importance
+    imp = pd.DataFrame(
+        {imp_label : pip.steps[-1][1].feature_importances_}, 
+        index=get_featurenames(pip)
+    )
+    imp['imp_rank'] = imp[imp_label].rank(ascending=False)
+    return imp
+
+def iv(X, y, estimator="cleanNA_woe5"):
     """
     
-    return pd.Series(x).corr(pd.Series(y))
-
-def clf_imp(X, y, estimator="clean_ordi_XGBClassifier"):
-    """
-    output feature importance ranking of an classifier
 
     Parameters
     ----------
@@ -77,34 +91,14 @@ def clf_imp(X, y, estimator="clean_ordi_XGBClassifier"):
     None.
 
     """
-    # estimator pipeline
     pip = pipe_gen(estimator)
     pip.fit(X, y)
     
-    # extract feature importance
-    imp = pd.Series(
-        data=pip.steps[-1][1].feature_importances_, index=get_featurenames(pip)
-    )
-    return imp
-
-def iv(x, y):
-    """
-    
-
-    Parameters
-    ----------
-    x : TYPE
-        DESCRIPTION.
-    y : TYPE
-        DESCRIPTION.
-
-    Returns
-    -------
-    None.
-
-    """
-    
-    return
+    feature_iv = pd.DataFrame({"iv": pip.steps[-1][-1].feature_iv},
+                              index=get_featurenames(pip)
+                              )
+    feature_iv['iv_rank'] = feature_iv.rank(ascending=False)
+    return feature_iv
 
 def cov_clusters(df):
     """
@@ -330,8 +324,9 @@ class DataAnalyzer():
     def show_statiscs(self,
                       agg_fun=[
                           np.dtype, 'min', 'mean', 'max', 'std', 'sum',
-                          'count', 'size'
-                      ]):
+                          'count', 'size'],
+                      add_random=True,
+                      ):
         """
         return dataframe describing statistics for each column
 
@@ -340,6 +335,9 @@ class DataAnalyzer():
         agg_fun : TYPE, optional
             aggregation func. The default is [np.dtype, 'min', 'mean', 'max', 
             'std','sum', 'count', 'size'].
+        
+        add_random : bool
+            add one random column to serve as benchmark
 
         Returns
         -------
@@ -349,7 +347,31 @@ class DataAnalyzer():
             "cov_clusters", "dtype"]
         """
 
-        return self.data.agg(agg_fun).T
+        data = self.data.copy()
+        if add_random:
+            data = self._add_random(data)        
+        
+        # calculate statistics 
+        df = data.agg(agg_fun).T
+        
+        df_pct_nan = data.apply(pct_nan, axis=0)
+        df_pct_nan.name = "pct_nan"
+        
+        df = pd.concat([df, df_pct_nan], axis=1)
+        
+        if self.class_label is not None:
+            corr_xy = data.corr()[self.class_label]
+            df_corr = pd.DataFrame({"corr_xy" : corr_xy})
+            y = data[self.class_label]
+            X = data.drop(columns=self.class_label)
+            
+            df_imp = imp(X, y)
+            df_iv = iv(X, y)
+            
+            df = pd.concat([df, df_corr, df_imp, df_iv], axis=1)            
+            
+        
+        return df
 
     def plot_corr(self,
                   kind='X_y',
@@ -806,8 +828,7 @@ if __name__ == '__main__':
     data['cat'].iloc[18000:100000] = np.nan
 
     an = DataAnalyzer(data, class_label='y', encode_featurename=True)
-    
-
+    df = an.show_statiscs()
     # an.plot_corr('X_y')
     # an.plot_corr('corrmat')
     # an.plot_corr('clustered')
