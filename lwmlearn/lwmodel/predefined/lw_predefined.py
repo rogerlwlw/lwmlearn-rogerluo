@@ -194,9 +194,9 @@ def predefined_ops():
         'fsgd':
         SelectFromModel(SGDClassifier(penalty="l1")),
         'fxgb':
-        SelectFromModel(XGBClassifier(n_jobs=-1, booster='gbtree'), 
-                        max_depth=2,
-                        n_estimators=50),
+        SelectFromModel(XGBClassifier(n_jobs=-1, booster='gbtree', max_depth=2,
+                                      n_estimators=50), 
+                        ),
         'frf':
         SelectFromModel(ExtraTreesClassifier(n_estimators=50, max_depth=2)),
 

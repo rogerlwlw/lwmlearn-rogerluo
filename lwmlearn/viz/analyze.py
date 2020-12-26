@@ -100,9 +100,9 @@ def iv(X, y, estimator="cleanNA_woe5"):
     feature_iv['iv_rank'] = feature_iv.rank(ascending=False)
     return feature_iv
 
-def cov_clusters(df):
+def corr_clusters(df, n_clusters):
     """
-    
+    correlation clusters
 
     Parameters
     ----------
@@ -114,8 +114,15 @@ def cov_clusters(df):
     None.
 
     """
+    from sklearn.cluster import KMeans
     
-    return
+    km = KMeans(n_clusters, random_state=0)
+    corr = df.corr()
+    km.fit(corr)
+    
+    df = pd.DataFrame({"corr_clusters" : km.labels_}, index=corr.columns)
+    
+    return df
 
 
 class DataAnalyzer():
@@ -326,6 +333,7 @@ class DataAnalyzer():
                           np.dtype, 'min', 'mean', 'max', 'std', 'sum',
                           'count', 'size'],
                       add_random=True,
+                      n_clusters=5
                       ):
         """
         return dataframe describing statistics for each column
@@ -357,20 +365,22 @@ class DataAnalyzer():
         df_pct_nan = data.apply(pct_nan, axis=0)
         df_pct_nan.name = "pct_nan"
         
-        df = pd.concat([df, df_pct_nan], axis=1)
+        # calculate correlation clusters
+        df_corr_cluster = corr_clusters(data.corr(), n_clusters)
         
+        df = pd.concat([df, df_pct_nan, df_corr_cluster], axis=1)
+        
+        # y related statistics
         if self.class_label is not None:
             corr_xy = data.corr()[self.class_label]
             df_corr = pd.DataFrame({"corr_xy" : corr_xy})
+            
             y = data[self.class_label]
             X = data.drop(columns=self.class_label)
-            
             df_imp = imp(X, y)
             df_iv = iv(X, y)
             
             df = pd.concat([df, df_corr, df_imp, df_iv], axis=1)            
-            
-        
         return df
 
     def plot_corr(self,
