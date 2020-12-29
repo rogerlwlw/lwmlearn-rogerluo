@@ -839,30 +839,31 @@ if __name__ == '__main__':
 
     an = DataAnalyzer(data, class_label='y', encode_featurename=True)
     df = an.show_statiscs()
-    # an.plot_corr('X_y')
-    # an.plot_corr('corrmat')
-    # an.plot_corr('clustered')
     
-    # # plot distribution with na
-    # an.plot_bindist(max_leaf_nodes=5, 
-    #                 is_supervised=True,
-    #                 dropna=False)
+    an.plot_corr('X_y')
+    an.plot_corr('corrmat')
+    an.plot_corr('clustered')
     
-    # # plot distribution without na
-    # an.plot_bindist(bins=10, 
-    #                 is_supervised=True,
-    #                 dropna=True)
-    # # cat plot
-    # an.plot_catplot(x="y", y="value", col_wrap=3, col='colname',
-    #                 kind='box')
+    # plot distribution with na
+    an.plot_bindist(max_leaf_nodes=5, 
+                    is_supervised=True,
+                    dropna=False)
+    
+    # plot distribution without na
+    an.plot_bindist(bins=10, 
+                    is_supervised=True,
+                    dropna=True)
+    # cat plot
+    an.plot_catplot(x="y", y="value", col_wrap=3, col='colname',
+                    kind='box')
     
     
-    # an.outlier_scale(data_range=[(0.0, 0.95, 'percentage', ["F3", "F5"])], 
-    #                  scaler=None, 
-    #                  keep_scaled=True)
+    an.outlier_scale(data_range=[(0.0, 0.95, 'percentage', ["F3", "F5"])], 
+                      scaler=None, 
+                      keep_scaled=True)
     
-    # # plot joint scatter
-    # an.plot_JointScatter("F1", "F3")
+    # plot joint scatter
+    an.plot_JointScatter("F1", "F3")
     
-    # # plot ridge plot
-    # an.plot_ridge("F3", "F5")
+    # plot ridge plot
+    an.plot_ridge("F3", "F5")

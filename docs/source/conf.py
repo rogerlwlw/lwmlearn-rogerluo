@@ -90,13 +90,14 @@ extensions = [
     'matplotlib.sphinxext.plot_directive',
     'IPython.sphinxext.ipython_directive',
     'IPython.sphinxext.ipython_console_highlighting',
+    "nbsphinx",
 ]
 
 #%% -- source_suffix --
 # The file extensions of source files. Sphinx considers the files 
 # with this suffix as sources. The value can be a dictionary mapping 
 # file extensions to file types. For example:
-source_suffix = ['.rst', '.md']
+source_suffix = ['.rst', '.md', '.ipynb']
 
     
 #%% -- intersphinx_mapping
