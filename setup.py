@@ -62,7 +62,7 @@ setup(
         'console_scripts': ['lwmlearn = lwmlearn.__main__:run_main'],
     },
     install_requires=[
-        'numpy>=1.15.0',
+        'numpy>=1.18.5',
         'pandas>=0.24.0',
         'scipy>=1.1.0',
         'matplotlib>=3.0.0',
@@ -70,7 +70,7 @@ setup(
         'imbalanced-learn>=0.4.0',
         'scikit-optimize==0.8.0',
         'scikit-learn==0.23.1',
-        'seaborn',
+        'seaborn==0.10.1',
         'yapf',
         'sqlalchemy',
         'python-docx',
