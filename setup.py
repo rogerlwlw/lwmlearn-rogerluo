@@ -64,7 +64,7 @@ setup(
     install_requires=[
         'numpy>=1.18.5',
         'pandas>=0.24.0',
-        'scipy>=1.1.0',
+        'scipy>=1.5.0',
         'matplotlib>=3.0.0',
         'xgboost>=0.81',
         'imbalanced-learn>=0.4.0',

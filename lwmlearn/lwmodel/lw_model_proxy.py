@@ -1737,29 +1737,29 @@ if __name__ == '__main__':
                                flip_y=0.1)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 
-    m = LW_model('clean_oht_frf_OneSidedSelection_XGBClassifier', verbose=1)
-    # fit the model
-    m.fit(X, y)
-    # predict
-    m.predict(X)
-    # calculate evaluation metrics
-    m.test_score(X, y, cv=1, scoring=['KS', 'roc_auc'])
-    m.cv_validate(X, y, scoring=['roc_auc', 'KS'])
-    # plot auc curve
-    m.plot_auc(X, y, cv=4)
-    # plot lift curve
-    m.plot_lift(X, y, max_leaf_nodes=10)
-    # predict by integer index
-    m.predict(X, pre_level=True)
-    # hyper-parameter tuning, search param_grid space
-    m.opt_sequential((X, y), kind='bayesiancv')
-    # m.opt_sequential((X, y), kind='gridcv')
-    # plot search learning curve
-    m.plot_gridcv(m.kws_attr['gridcvtab'][0])
-    # plot cv score path
-    m.plot_cvscore(X, y, False, cv=5)
-    # plot lift and auc together
-    m.plot_AucLift(X, y, fit_train=False)
+    # m = LW_model('clean_oht_frf_OneSidedSelection_XGBClassifier', verbose=1)
+    # # fit the model
+    # m.fit(X, y)
+    # # predict
+    # m.predict(X)
+    # # calculate evaluation metrics
+    # m.test_score(X, y, cv=1, scoring=['KS', 'roc_auc'])
+    # m.cv_validate(X, y, scoring=['roc_auc', 'KS'])
+    # # plot auc curve
+    # m.plot_auc(X, y, cv=4)
+    # # plot lift curve
+    # m.plot_lift(X, y, max_leaf_nodes=10)
+    # # predict by integer index
+    # m.predict(X, pre_level=True)
+    # # hyper-parameter tuning, search param_grid space
+    # m.opt_sequential((X, y), kind='bayesiancv')
+    # # m.opt_sequential((X, y), kind='gridcv')
+    # # plot search learning curve
+    # m.plot_gridcv(m.kws_attr['gridcvtab'][0])
+    # # plot cv score path
+    # m.plot_cvscore(X, y, False, cv=5)
+    # # plot lift and auc together
+    # m.plot_AucLift(X, y, fit_train=False)
 
     # m.run_analysis((X, y))
     
