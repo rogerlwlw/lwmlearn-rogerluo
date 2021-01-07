@@ -69,7 +69,11 @@ def test_fit_transform(data0, data1):
     for i in all_d['predefined'].values():
         operator_set.extend(i)
     operator_set = set(operator_set)
+    operator_set
     
+    for i in ['LogisticRegression', 'LogisticRegressionCV']:
+        operator_set.remove(i)
+        
     # test
     check = 0
     n = []

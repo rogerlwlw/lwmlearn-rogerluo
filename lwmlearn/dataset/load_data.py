@@ -19,6 +19,7 @@ import inspect
 import os
 
 from ..utilis.read_write import Objs_management
+from sklearn.datasets import make_classification
 
 file_path = os.path.split(inspect.currentframe().f_code.co_filename)[0]
 data_path = os.path.join(file_path, 'data')
@@ -50,6 +51,14 @@ def get_local_data(data_name=None, all_datafile=False, rel_path=None):
         if data_name is not None, load that data with `data_name`
         
     '''
+    
+    if data_name == 'make_classification':
+        x, y = make_classification(5000,
+                                   n_redundant=10,
+                                   n_features=30,
+                                   flip_y=0.1)    
+        return x, y
+        
     reader = Objs_management(data_path)
     if all_datafile is True:
         d_df = reader.read_all(path=rel_path,
