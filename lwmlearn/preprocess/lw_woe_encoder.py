@@ -241,17 +241,25 @@ class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
         '''
         X = self._filter_labels(X)
         # --
-        woe_map = self.woe_map
+        woe_map = self.woe_map.copy()
         cols = []
         cols_notcoded = []
         for name, col in X.iteritems():
             if name in woe_map:
                 mapper = woe_map.get(name)
-                if mapper.get(np.nan) is not None:
-                    na = mapper.pop(np.nan)
-                    cols.append(col.map(mapper).fillna(na))
-                else:
-                    cols.append(col.map(mapper).fillna(0))
+                
+                #-- use mapper directly
+                cols.append(col.map(mapper))
+                
+                # # -- np.nan cannot be indexed as dict's keys
+                # if mapper.get(np.nan) is not None:
+                #     na = mapper.get(np.nan)
+                #     mapper = {k : v for k, v in mapper.items() 
+                #               if k not in {np.nan}}
+                #     cols.append(col.map(mapper).fillna(na))
+                # else:
+                #     cols.append(col.map(mapper).fillna(0))
+                    
             else:
                 cols_notcoded.append(col.name)
 
