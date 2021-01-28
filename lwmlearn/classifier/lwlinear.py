@@ -6,6 +6,7 @@ Created on Thu Jan 28 14:18:11 2021
 """
 
 import numpy as np
+import pandas as pd
 from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin
 from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
 
@@ -17,16 +18,19 @@ class __LWLinear(BaseEstimator, ClassifierMixin):
     
     """
     
-    def __init__(self, mapping, weights):
+    def __init__(self, encoder_map, weights):
         """
         
 
         Parameters
         ----------
-        mapping : dict
-            {"x1" : {Interval1 : val2, Interval2 : val2 }}.
+        encoder_map : dict
+            {"x1" : {Interval1 : val2, Interval2 : val2 }, 
+             "x2" : {Interval1 : val2, Interval2 : val2 }, 
+            }
+            
         weights : dict
-            DESCRIPTION.
+            {"x1" : w1, "x2" : w2}.
 
         Returns
         -------
@@ -43,7 +47,7 @@ class __LWLinear(BaseEstimator, ClassifierMixin):
 
         """
         
-        self.mapping = mapping
+        self.encoder_map = encoder_map
         self.weights = weights
         
     
@@ -88,8 +92,13 @@ class __LWLinear(BaseEstimator, ClassifierMixin):
     def decision_function(self, X):
         """
         """
+        # encode data
+        data = X.apply(lambda x : x.map(self.encoder_map[x.name]), axis=0)
         
-        return
+        # calculate decision boundary
+        weights = pd.Series(self.weights)
+        data = data.reindex(columns=weights)
+        return np.matmul(data, weights)
     
 
 if __name__ == "__main__":
@@ -105,11 +114,9 @@ if __name__ == "__main__":
     m.fit(X, y)
     coef = m.estimator.named_steps.LogisticRegression.coef_
     
-    mapping = m.estimator.named_steps.woe5.woe_map
+    encoder_map = m.estimator.named_steps.woe5.woe_map
     
-    data0 = X[["2"]]
-    from lwmlearn.preprocess.lw_woe_encoder import WoeEncoder
-    woe = WoeEncoder(max_leaf_nodes=5)    
-    woe.fit(data0, y)    
 
-    p = pipe_gen("cleanNA_woe5_XGBClassifier")    
+    
+    
+    
