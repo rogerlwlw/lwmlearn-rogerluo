@@ -1680,7 +1680,41 @@ class LW_model(BaseEstimator):
             return self.kws_attr['input_featurenames']
         else:
             return fn
+    
+    @property
+    def linear_config(self):
+        """
+        get weights, and encode map of linear model if it has coef_, and
+        encode_map attributes        
 
+        Returns
+        -------
+        weights : dict
+            DESCRIPTION.
+        encode_map : dict
+            DESCRIPTION.
+
+        """
+        
+        encode_map = None
+        weights = None
+        # self.estimator is an pipeline instance
+        for k, est in self.estimator.steps:
+            if hasattr(est, "encode_map"):
+                encode_map = est.encode_map
+                
+            if hasattr(est, "coef_"):
+                coef_ = est.coef_.flatten()
+                featurenams = self.featurenames
+                if len(coef_) != len(featurenams):
+                    raise Exception(
+                        "lenght of featurenames and coefficients not match")
+                else:
+                    weights = dict(zip(self.featurenames, coef_))      
+        
+        
+        return weights, encode_map
+    
     @Appender(run_modellist.__doc__, join='\n')
     @dedent
     def run_autoML(self,

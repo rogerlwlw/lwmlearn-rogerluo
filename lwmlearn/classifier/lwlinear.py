@@ -114,8 +114,9 @@ if __name__ == "__main__":
     m.fit(X, y)
     coef = m.estimator.named_steps.LogisticRegression.coef_
     
-    encoder_map = m.estimator.named_steps.woe5.woe_map
+    encoder_map = m.estimator.named_steps.woe5.encode_map
     
+
 
     
     

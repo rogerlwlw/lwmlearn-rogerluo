@@ -105,7 +105,7 @@ class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
         like {colname : [-inf, point1, point2..., inf]}; 
         fit method will try to get edges by decision Tree algorithm or
         pandas cut method, if not specified
-    woe_map : dict
+    encode_map : dict
         woe mapping, like {colname : {category : woe, ...}}
     woe_iv : dataframe
         woe & iv table of all features, concatenated in one df
@@ -200,7 +200,7 @@ class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
         cutting edges could be updated by manual input edges 
         categorical features will use category as group
         
-        self.edges and self.woe_map will be updated
+        self.edges and self.encode_map will be updated
         
         Parameters
         -----------
@@ -221,11 +221,11 @@ class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
         self.edges.update(self.input_edges)
         # --
         df_binned = self._get_binned(X)
-        self.woe_iv, self.woe_map, self.feature_iv = calc_woe(df_binned, y)
+        self.woe_iv, self.encode_map, self.feature_iv = calc_woe(df_binned, y)
         return self
 
     def transform(self, X):
-        '''get woe encoded X using self woe_map
+        '''get woe encoded X using self encode_map
         
         Parameters
         ----------
@@ -241,12 +241,12 @@ class WoeEncoder(BaseEstimator, TransformerMixin, LW_Base):
         '''
         X = self._filter_labels(X)
         # --
-        woe_map = self.woe_map.copy()
+        encode_map = self.encode_map.copy()
         cols = []
         cols_notcoded = []
         for name, col in X.iteritems():
-            if name in woe_map:
-                mapper = woe_map.get(name)
+            if name in encode_map:
+                mapper = encode_map.get(name)
                 
                 #-- use mapper directly
                 cols.append(col.map(mapper))
@@ -453,7 +453,7 @@ def calc_woe(df_binned, y):
         'NONEVENT', 'NON_EVENT_RATE', 'DIST_EVENT','DIST_NON_EVENT',
         'WOE', 'IV' ]
         
-    woe_map : dict
+    encode_map : dict
         {'colname' : {category : woe}}
     iv : series
         colname index iv value 
@@ -461,13 +461,13 @@ def calc_woe(df_binned, y):
     '''
 
     l = []
-    woe_map = {}
+    encode_map = {}
     iv = []
     var_names = []
     for name, col in df_binned.iteritems():
         col_iv = _single_mapping(col, y, name)
         l.append(col_iv)
-        woe_map[name] = dict(col_iv[['CATEGORY', 'WOE']].values)
+        encode_map[name] = dict(col_iv[['CATEGORY', 'WOE']].values)
         iv.append(col_iv.IV.sum())
         var_names.append(name)
     # print logging info
@@ -475,7 +475,7 @@ def calc_woe(df_binned, y):
     # concatenate col_iv
     woe_iv = pd.concat(l, axis=0, ignore_index=True)
 
-    return woe_iv, woe_map, pd.Series(iv, var_names)
+    return woe_iv, encode_map, pd.Series(iv, var_names)
 
 
 if __name__ == '__main__':
