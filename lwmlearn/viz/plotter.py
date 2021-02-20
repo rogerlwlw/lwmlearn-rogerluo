@@ -301,6 +301,13 @@ def plotter_ridge(x,
     
     if x.name is not None:
         name = x.name
+    else:
+        name = "feature"
+    
+    if isinstance(grouping, int):
+        name = name + " (By Sequence)"
+    else:
+        name = name + " (grouping By {})".format(grouping.name)
     
     df = pd.DataFrame({name: x, 'g': grouping})
     if palette is None:

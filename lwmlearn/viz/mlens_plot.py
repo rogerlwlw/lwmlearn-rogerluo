@@ -344,7 +344,7 @@ def corr_X_y(X,
     ax0 = plt.subplot(gs[0, 0])
     ax0.bar(range(top), corr.iloc[:top], align='center')
     ax0.axhline(0, color='black', linewidth=0.5)
-    ax0.set_title('Top %i positive pairwise correlation coefficients' % top,
+    ax0.set_title('Top %i positive  correlation coeff' % top,
                   fontsize=fontsize)
     plt.xticks(range(top),
                names[:top],
@@ -354,7 +354,7 @@ def corr_X_y(X,
     ax1 = plt.subplot(gs[0, 1])
     ax1.bar(range(top), corr.iloc[-top:], align='center')
     ax1.axhline(0, color='black', linewidth=0.5)
-    ax1.set_title('Top %i negative pairwise correlation coefficients' % top,
+    ax1.set_title('Top %i negative correlation coeff' % top,
                   fontsize=fontsize)
     plt.xticks(range(top),
                names[-top:],
@@ -376,6 +376,96 @@ def corr_X_y(X,
 
     return gs
 
+def ranking_plot(s, top=3, label_rotation=0, fontsize=12, figsize=(10, 8),
+                 ticks_lim=25, sort_values=True):
+    """
+    plot bars of a series of values
+    
+
+    Parameters
+    ----------
+    s : Series
+        series to plot.
+    top : int
+        number of features to show in top pos and neg graphs.
+
+    figsize : tuple (default = (10, 8))
+        Size of figure.
+
+
+    fontsize : int
+        font size of subplot titles.
+
+    ticks_lim : int (default = 25)
+        whether to remove ticklabels from full correlation plot.
+
+    label_rotation: float (default = 0)
+        rotation of labels
+        
+    sort_values : bool, optional
+        weather to sort values of series. The default is True.
+
+    Returns
+    -------
+    None.
+
+    """
+    
+    # sort values
+    if sort_values:
+        s = s.sort_values(ascending=False)
+    
+    # Check that top selections will not be greater than all features
+    n = len(s)
+    if top > n:
+        top = n
+
+    # Render figure
+    names = s.index.tolist()
+    hspace = 2 * fontsize / 100
+    if label_rotation > abs(45):
+        hspace += max([len(i) for i in names]) / 35 * (fontsize / 10)
+
+    plt.figure(figsize=figsize)
+    gs = GridSpec(2, 2, hspace=hspace)
+
+    # Axes
+    ax0 = plt.subplot(gs[0, 0])
+    ax0.bar(range(top), s.iloc[:top], align='center')
+    ax0.axhline(0, color='black', linewidth=0.5)
+    ax0.set_title('Top %i positive  correlation coeff' % top,
+                  fontsize=fontsize)
+    plt.xticks(range(top),
+               names[:top],
+               rotation=label_rotation,
+               fontsize=fontsize - 1)
+
+    ax1 = plt.subplot(gs[0, 1])
+    ax1.bar(range(top), s.iloc[-top:], align='center')
+    ax1.axhline(0, color='black', linewidth=0.5)
+    ax1.set_title('Top %i negative correlation coeff' % top,
+                  fontsize=fontsize)
+    plt.xticks(range(top),
+               names[-top:],
+               rotation=label_rotation,
+               fontsize=fontsize - 1)
+
+    ax2 = plt.subplot(gs[1, :])
+    ax2.bar(range(len(s)), s, align='center')
+    ax2.axhline(0, color='black', linewidth=0.5)
+    ax2.set_title('All pairwise correlation coefficients', fontsize=fontsize)
+
+    if ticks_lim <= len(names):
+        ax2.set_xticklabels([])
+    else:
+        plt.xticks(range(len(names)),
+                   names,
+                   rotation=label_rotation,
+                   fontsize=fontsize - 1)    
+    
+    return
+
+    
 
 def pca_comp_plot(X,
                   y=None,

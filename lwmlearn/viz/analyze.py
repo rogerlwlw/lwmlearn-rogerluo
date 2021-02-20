@@ -189,7 +189,7 @@ class DataAnalyzer():
         freq : str
             ['d', 'm', 'w', 'q'].
         agg : TYPE
-            ['sum', 'count', 'mean', 'max', 'min'] DESCRIPTION.
+            ['sum', 'count', 'mean', 'max', 'min'].
 
         Returns
         -------
@@ -219,8 +219,8 @@ class DataAnalyzer():
             - high, upper bound
             - flag, 'numeric' or 'percentage'
             - list of columns to apply to, default None, apply to all columns 
-            - The default is None, will do nothing. the best practice is to scale
-            each column one by one.
+              The default is None. the best practice is to scale
+              each column one by one.
 
         scaler : STRING, ['absmax', 'minmax', 'stdscale'], optional
             name of scaler class to perform scaling. 
@@ -324,8 +324,8 @@ class DataAnalyzer():
         else:
             cols = self.data.columns
 
-        self.col_map = {k: 'F%d' % i for i, k in enumerate(cols)}
-        self.data = self.data.rename(columns=self.col_map)
+        self.feature_map = {k: 'F%d' % i for i, k in enumerate(cols)}
+        self.data = self.data.rename(columns=self.feature_map)
         return self
 
     def show_statiscs(self,
@@ -349,16 +349,32 @@ class DataAnalyzer():
 
         Returns
         -------
-        TYPE
-            DataFrame. 
-            ["perc_nan", "corr_xy", "clf_imp", "imp_rank", "iv", "iv_rank", 
-            "cov_clusters", "dtype"]
+        df : DataFrame
+            columns are ["perc_nan", "corr_xy", "clf_imp", "imp_rank", "iv", 
+                         "iv_rank", "cov_clusters", "dtype"]
+            - perc_nan
+                percentage of nan values
+            - corr_xy
+                if has y label, correlations with y
+            - clf_imp
+                if has y label, importance values for classifying y class
+            - imp_rank
+                if has y label, importance rank of feature importance
+            - iv
+                if has y label, information value
+            - iv_rank
+                if has y label, information value rank
+            - cov_clusters
+                cluster group of feature
+            - dtype
+                data type of feature
+            
         """
 
         data = self.data.copy()
         if add_random:
             data = self._add_random(data)        
-        
+         
         # calculate statistics 
         df = data.agg(agg_fun).T
         
@@ -377,9 +393,11 @@ class DataAnalyzer():
             
             y = data[self.class_label]
             X = data.drop(columns=self.class_label)
+            # importance ranking
             df_imp = imp(X, y)
+            # information value
             df_iv = iv(X, y)
-            
+            # concatenate statistics 
             df = pd.concat([df, df_corr, df_imp, df_iv], axis=1)            
         return df
 
@@ -589,8 +607,9 @@ class DataAnalyzer():
 
         grouping : series or int
             name of column as groupings to compare distribution.
+            
             if int, group column into 'int' folds by sequence and label group
-            as integer starting from 0,1,2,3...
+            as integer starting from 0,1,2,3..., usually used by time series
             
         bw : TYPE, optional
             width to estimate density. The default is 'silverman'.
@@ -717,7 +736,7 @@ class DataAnalyzer():
                      savefig=None,
                      sample_col=None):
         """
-        perform binning for each feature then plot bin dsitribution
+        perform binning for each feature then plot bin dsitribution in grid
         (lift curve if is_supervised=True) 
 
         Parameters
@@ -735,7 +754,7 @@ class DataAnalyzer():
             save fig to file_path. The default is None.
 
         col_wrap : TYPE, optional
-            DESCRIPTION. The default is 3.
+            number of column in grid. The default is 3.
         
         dropna : bool
             if True, drop na value when plotting a column
@@ -838,6 +857,7 @@ if __name__ == '__main__':
     data['cat'].iloc[18000:100000] = np.nan
 
     an = DataAnalyzer(data, class_label='y', encode_featurename=True)
+    # show commonly used statistics
     df = an.show_statiscs()
     
     an.plot_corr('X_y')
@@ -850,6 +870,7 @@ if __name__ == '__main__':
                     dropna=False)
     
     # plot distribution without na
+    # not use supervised binning 
     an.plot_bindist(bins=10, 
                     is_supervised=True,
                     dropna=True)
