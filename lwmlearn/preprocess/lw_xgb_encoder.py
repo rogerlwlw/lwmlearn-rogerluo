@@ -14,27 +14,50 @@ class XgbEncoder(BaseEstimator, TransformerMixin, LW_Base):
     '''
     
     attributes
-    ----
+    ----------
     
     xgbmodels:
         xgb model to encode each column, {col : xgb_model}
         
     '''
     def __init__(self, pos_label=1):
-        '''
-        '''
+        """
+        
+
+        Parameters
+        ----------
+        pos_label : TYPE, optional
+            DESCRIPTION. The default is 1.
+
+        Returns
+        -------
+        None.
+
+        """
+
 
         self.pos_label = pos_label
 
         return
 
     def fit(self, X, y):
-        '''
-        X:
-            feature matrix
-        y:
-            target label, binary
-        '''
+        """
+        
+
+        Parameters
+        ----------
+        X : TYPE
+            DESCRIPTION.
+        y : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        """
+
         X = self._fit(X)
         # --
         self.xgbmodel = {}
@@ -47,6 +70,20 @@ class XgbEncoder(BaseEstimator, TransformerMixin, LW_Base):
         return self
 
     def transform(self, X):
+        """
+        
+
+        Parameters
+        ----------
+        X : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        X : TYPE
+            DESCRIPTION.
+
+        """
         '''
         X:
             feature matrix
