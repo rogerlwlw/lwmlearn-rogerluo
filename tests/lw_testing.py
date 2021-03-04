@@ -18,7 +18,7 @@ from lightgbm import LGBMClassifier
 
 if __name__ == '__main__':
     pass
-    m = runlocaldataset('loan_short.csv',
+    m = runlocaldataset('make_classification',
                       sample=1000,
                       out_searchstep=False,
                       is_search=True,

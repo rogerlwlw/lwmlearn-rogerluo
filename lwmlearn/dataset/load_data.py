@@ -34,7 +34,8 @@ def get_local_data(data_name=None, all_datafile=False, rel_path=None):
     ----------
     data_name : str
         file name of data to be loaded, by default stored as .csv suffix must 
-        be included
+        be included.
+        if "make_classification" use synthetic data (5000, 30), return X, y
     
     all_datafile : bool
         if all_datafile=True then, load all file in `data` folder
